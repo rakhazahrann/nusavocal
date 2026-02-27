@@ -32,35 +32,19 @@ const MapNavigator = () => (
 );
 
 // 2. Main Tab
+import { CustomTabBar } from "../components/layout/TabBar";
+
 const MainNavigator = () => (
   <MainTab.Navigator
+    tabBar={(props) => <CustomTabBar {...props} />}
     screenOptions={{
       headerShown: false,
-      tabBarStyle: { backgroundColor: "#16213e", borderTopWidth: 0 },
-      tabBarActiveTintColor: "#ffc947",
-      tabBarInactiveTintColor: "#a0a0b0",
     }}
   >
-    <MainTab.Screen
-      name="Map"
-      component={MapNavigator}
-      options={{ tabBarLabel: "Petualangan" }}
-    />
-    <MainTab.Screen
-      name="Leaderboard"
-      component={LeaderboardScreen}
-      options={{ tabBarLabel: "Papan Skor" }}
-    />
-    <MainTab.Screen
-      name="Profile"
-      component={ProfileScreen}
-      options={{ tabBarLabel: "Profil" }}
-    />
-    <MainTab.Screen
-      name="Settings"
-      component={SettingsScreen}
-      options={{ tabBarLabel: "Pengaturan" }}
-    />
+    <MainTab.Screen name="Map" component={MapNavigator} />
+    <MainTab.Screen name="Settings" component={SettingsScreen} />
+    <MainTab.Screen name="Leaderboard" component={LeaderboardScreen} />
+    <MainTab.Screen name="Profile" component={ProfileScreen} />
   </MainTab.Navigator>
 );
 
