@@ -5,15 +5,16 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import {
   SplashScreen,
   LoginScreen,
-  OverworldMapScreen,
+  HomeScreen,
   StageBriefingScreen,
   VocabFarmingScreen,
-  GameplayScreen,
+  GameScreen,
   ResultScreen,
-  ProfileScreen,
-  LeaderboardScreen,
-  SettingsScreen,
+  Leaderboard,
+  Construction,
 } from "../screens";
+
+import { CustomTabBar } from "../components/common/TabBar";
 
 const RootStack = createNativeStackNavigator();
 const AuthStack = createNativeStackNavigator();
@@ -23,17 +24,15 @@ const MapStack = createNativeStackNavigator();
 // 1. Map Flow
 const MapNavigator = () => (
   <MapStack.Navigator screenOptions={{ headerShown: false }}>
-    <MapStack.Screen name="Overworld" component={OverworldMapScreen} />
+    <MapStack.Screen name="Overworld" component={HomeScreen} />
     <MapStack.Screen name="StageBriefing" component={StageBriefingScreen} />
     <MapStack.Screen name="VocabFarming" component={VocabFarmingScreen} />
-    <MapStack.Screen name="Gameplay" component={GameplayScreen} />
+    <MapStack.Screen name="Gameplay" component={GameScreen} />
     <MapStack.Screen name="Result" component={ResultScreen} />
   </MapStack.Navigator>
 );
 
 // 2. Main Tab
-import { CustomTabBar } from "../components/layout/TabBar";
-
 const MainNavigator = () => (
   <MainTab.Navigator
     tabBar={(props) => <CustomTabBar {...props} />}
@@ -42,9 +41,9 @@ const MainNavigator = () => (
     }}
   >
     <MainTab.Screen name="Map" component={MapNavigator} />
-    <MainTab.Screen name="Settings" component={SettingsScreen} />
-    <MainTab.Screen name="Leaderboard" component={LeaderboardScreen} />
-    <MainTab.Screen name="Profile" component={ProfileScreen} />
+    <MainTab.Screen name="Settings" component={Construction} />
+    <MainTab.Screen name="Leaderboard" component={Leaderboard} />
+    <MainTab.Screen name="Profile" component={Construction} />
   </MainTab.Navigator>
 );
 
