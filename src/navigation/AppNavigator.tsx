@@ -5,7 +5,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import {
   SplashScreen,
   LoginScreen,
-  HomeScreen,
+  MainScreen,
   StageBriefingScreen,
   VocabFarmingScreen,
   GameScreen,
@@ -24,11 +24,11 @@ const MapStack = createNativeStackNavigator();
 // 1. Map Flow
 const MapNavigator = () => (
   <MapStack.Navigator screenOptions={{ headerShown: false }}>
-    <MapStack.Screen name="Overworld" component={HomeScreen} />
-    <MapStack.Screen name="StageBriefing" component={StageBriefingScreen} />
+    <MapStack.Screen name="Overworld" component={MainScreen} />
+    {/* <MapStack.Screen name="StageBriefing" component={StageBriefingScreen} />
     <MapStack.Screen name="VocabFarming" component={VocabFarmingScreen} />
     <MapStack.Screen name="Gameplay" component={GameScreen} />
-    <MapStack.Screen name="Result" component={ResultScreen} />
+    <MapStack.Screen name="Result" component={ResultScreen} /> */}
   </MapStack.Navigator>
 );
 
@@ -42,7 +42,7 @@ const MainNavigator = () => (
   >
     <MainTab.Screen name="Map" component={MapNavigator} />
     <MainTab.Screen name="Settings" component={Construction} />
-    <MainTab.Screen name="Leaderboard" component={Leaderboard} />
+    <MainTab.Screen name="Leaderboard" component={Construction} />
     <MainTab.Screen name="Profile" component={Construction} />
   </MainTab.Navigator>
 );

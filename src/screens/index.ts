@@ -1,10 +1,10 @@
 // Halaman Utama Aplikasi
 export { default as SplashScreen } from "./SplashScreen";
 export { LoginScreen } from "./LoginScreen";
-export { HomeScreen } from "./MainScreen";
-export { GameScreen } from "./GameScreen";
-export { StageBriefingScreen } from "./StageBriefingScreen";
-export { VocabFarmingScreen } from "./VocabFarmingScreen";
+export { MainScreen } from "./(main)/MainScreen";
+export { GameScreen } from "./(main)/GameScreen";
+export { StageBriefingScreen } from "./(main)/StageBriefingScreen";
+export { VocabFarmingScreen } from "./(main)/VocabFarmingScreen";
 export { ResultScreen } from "./ResultScreen";
 export { Leaderboard } from "./Leaderboard";
 export { Construction } from "./Construction";

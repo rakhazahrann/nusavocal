@@ -1,0 +1,147 @@
+import { Dimensions } from "react-native";
+
+export const SCREEN_WIDTH = Dimensions.get("window").width;
+export const SCREEN_HEIGHT = Dimensions.get("window").height;
+
+// ── Background strip config ──────────────────────────────────────
+export const STRIP_HEIGHT = 800; // Height of one background strip copy
+export const NUM_COPIES = 3; // Number of background copies for seamless loop
+
+// ── Stage layout config ──────────────────────────────────────────
+export const STAGE_SPACING = 220; // Vertical distance between stages
+export const MAP_PADDING_TOP = 160; // Space above the topmost stage
+export const MAP_PADDING_BOTTOM = 200; // Space below the bottom-most stage
+export const STAGE_NODE_SIZE = 80; // Size of each stage node sprite
+
+// ── Decoration positions (relative to each stage) ────────────────
+export type DecoType = "palm" | "bush" | "rumah";
+export interface Decoration {
+  type: DecoType;
+  offsetX: number; // Offset from stage X (fraction of screen width)
+  offsetY: number; // Offset from stage Y
+  scale?: number;
+}
+
+// ── Stage data ───────────────────────────────────────────────────
+export type StageStatus = "locked" | "current" | "completed";
+export interface StageData {
+  id: number;
+  x: number; // Fraction of screen width (0=left, 1=right)
+  label: string;
+  status: StageStatus;
+  decorations?: Decoration[];
+}
+
+// Stages are defined bottom-to-top (stage 1 at the bottom of the map)
+// The x values create the zigzag/winding path effect
+export const STAGES: StageData[] = [
+  {
+    id: 1,
+    x: 0.5,
+    label: "Bandara",
+    status: "completed",
+    decorations: [
+      { type: "palm", offsetX: -0.3, offsetY: -30, scale: 0.8 },
+      { type: "palm", offsetX: 0.25, offsetY: 20 },
+      { type: "bush", offsetX: -0.15, offsetY: 50, scale: 0.7 },
+    ],
+  },
+  {
+    id: 2,
+    x: 0.3,
+    label: "Salam & Sapaan",
+    status: "completed",
+    decorations: [
+      { type: "palm", offsetX: 0.35, offsetY: -10 },
+      { type: "rumah", offsetX: 0.4, offsetY: 30, scale: 0.7 },
+    ],
+  },
+  {
+    id: 3,
+    x: 0.7,
+    label: "Perkenalan",
+    status: "current",
+    decorations: [
+      { type: "palm", offsetX: -0.35, offsetY: 0 },
+      { type: "bush", offsetX: -0.2, offsetY: 40, scale: 0.6 },
+      { type: "palm", offsetX: -0.45, offsetY: 50, scale: 0.9 },
+    ],
+  },
+  {
+    id: 4,
+    x: 0.35,
+    label: "Keluarga",
+    status: "locked",
+    decorations: [
+      { type: "rumah", offsetX: 0.35, offsetY: -20, scale: 0.65 },
+      { type: "palm", offsetX: -0.2, offsetY: 30 },
+    ],
+  },
+  {
+    id: 5,
+    x: 0.65,
+    label: "Di Pasar",
+    status: "locked",
+    decorations: [
+      { type: "palm", offsetX: -0.4, offsetY: -10, scale: 0.85 },
+      { type: "bush", offsetX: 0.2, offsetY: 60, scale: 0.7 },
+    ],
+  },
+  {
+    id: 6,
+    x: 0.3,
+    label: "Transportasi",
+    status: "locked",
+    decorations: [
+      { type: "palm", offsetX: 0.4, offsetY: 0 },
+      { type: "rumah", offsetX: -0.2, offsetY: -30, scale: 0.6 },
+    ],
+  },
+  {
+    id: 7,
+    x: 0.7,
+    label: "Makanan",
+    status: "locked",
+    decorations: [
+      { type: "palm", offsetX: -0.35, offsetY: 20, scale: 0.9 },
+      { type: "bush", offsetX: 0.15, offsetY: 50, scale: 0.6 },
+    ],
+  },
+  {
+    id: 8,
+    x: 0.4,
+    label: "Arah & Lokasi",
+    status: "locked",
+    decorations: [
+      { type: "palm", offsetX: 0.3, offsetY: -15 },
+      { type: "palm", offsetX: -0.25, offsetY: 25, scale: 0.8 },
+    ],
+  },
+];
+
+// Total height of the scrollable map content
+export const TOTAL_MAP_HEIGHT =
+  MAP_PADDING_TOP +
+  (STAGES.length - 1) * STAGE_SPACING +
+  MAP_PADDING_BOTTOM;
+
+/**
+ * Get the Y position of a stage in the virtual scroll content.
+ * Stage 1 is at the BOTTOM, higher stages go UP (visually).
+ * In scroll coordinates: stage 1 has the LARGEST Y, stage N has the smallest.
+ */
+export const getStageY = (index: number): number => {
+  return (
+    TOTAL_MAP_HEIGHT -
+    MAP_PADDING_BOTTOM -
+    index * STAGE_SPACING
+  );
+};
+
+/**
+ * Get the X position of a stage in pixels.
+ */
+export const getStageX = (xFraction: number): number => {
+  const usableWidth = SCREEN_WIDTH - STAGE_NODE_SIZE;
+  return xFraction * usableWidth;
+};

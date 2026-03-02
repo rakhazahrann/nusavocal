@@ -29,7 +29,7 @@ export const StreakCount: React.FC<StreakCountProps> = ({ streak = 5 }) => {
           style={styles.fireIcon}
           resizeMode="contain"
         />
-        <PixelText size={12} color="#FFF" shadow>
+        <PixelText size={14} color="#FFF" shadow style={styles.streakText}>
           {streak}
         </PixelText>
       </View>
@@ -39,6 +39,7 @@ export const StreakCount: React.FC<StreakCountProps> = ({ streak = 5 }) => {
 
 const styles = StyleSheet.create({
   container: {
+    width: BAR_WIDTH,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -48,15 +49,21 @@ const styles = StyleSheet.create({
     height: BAR_WIDTH, // Large enough to let contain fit natural ratio
   },
   content: {
+    width: BAR_WIDTH,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-start",
     gap: 8,
-    paddingHorizontal: 8,
+    paddingHorizontal: 12,
     paddingVertical: 8,
   },
   fireIcon: {
-    width: FIRE_SIZE,
-    height: FIRE_SIZE,
+    width: 23,
+    height: 30,
+    marginLeft: 4,
+  },
+  streakText: {
+    marginTop: 4,
+    marginLeft: 12,
   },
 });
