@@ -55,9 +55,6 @@ export const MainScreen = ({ navigation }: any) => {
 
   return (
     <View style={styles.container}>
-      {/* Layer 1: Repeating grass tile background */}
-      <DynamicBackground />
-
       {/* Layer 2: Scrollable map content */}
       <Animated.ScrollView
         ref={scrollRef}
@@ -67,6 +64,8 @@ export const MainScreen = ({ navigation }: any) => {
         contentContainerStyle={{ height: TOTAL_MAP_HEIGHT }}
         bounces={false}
       >
+        {/* Layer 1: Repeating grass tile background */}
+        <DynamicBackground />
         {/* Decorative elements (trees, buildings) */}
         <MapDecorations stages={STAGES} />
 

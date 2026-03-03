@@ -11,7 +11,7 @@ const PLAIN_GRASS_TILE = require("../../../assets/images/map/grass-tile.png");
  */
 export const DynamicBackground = () => {
   return (
-    <View style={StyleSheet.absoluteFill}>
+    <View style={styles.container}>
       <ImageBackground
         source={PLAIN_GRASS_TILE}
         style={styles.background}
@@ -22,6 +22,13 @@ export const DynamicBackground = () => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: SCREEN_WIDTH,
+    height: TOTAL_MAP_HEIGHT,
+  },
   background: {
     width: "100%",
     height: "100%",
