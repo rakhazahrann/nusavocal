@@ -4,7 +4,9 @@ export const SCREEN_WIDTH = Dimensions.get("window").width;
 export const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 // ── Background strip config ──────────────────────────────────────
-export const STRIP_HEIGHT = 800; // Height of one background strip copy
+const MAP_IMAGE_WIDTH = 816;
+const MAP_IMAGE_HEIGHT = 1216;
+export const STRIP_HEIGHT = (SCREEN_WIDTH * MAP_IMAGE_HEIGHT) / MAP_IMAGE_WIDTH;
 export const NUM_COPIES = 3; // Number of background copies for seamless loop
 
 // ── Stage layout config ──────────────────────────────────────────
@@ -37,7 +39,7 @@ export interface StageData {
 export const STAGES: StageData[] = [
   {
     id: 1,
-    x: 0.5,
+    x: 0.2,
     label: "Bandara",
     status: "completed",
     decorations: [
@@ -48,7 +50,7 @@ export const STAGES: StageData[] = [
   },
   {
     id: 2,
-    x: 0.3,
+    x: 0.6,
     label: "Salam & Sapaan",
     status: "completed",
     decorations: [

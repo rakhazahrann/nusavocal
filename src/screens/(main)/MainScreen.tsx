@@ -5,7 +5,7 @@ import Animated, {
   useAnimatedScrollHandler,
 } from "react-native-reanimated";
 import { TopBar } from "../../components/common/TopBar";
-import { InfiniteScrollBackground } from "../../components/map/InfiniteScrollBackground";
+import { DynamicBackground } from "../../components/map/DynamicBackground";
 import { StageNode } from "../../components/map/StageNode";
 import { StagePath } from "../../components/map/StagePath";
 import { MapDecorations } from "../../components/map/MapDecorations";
@@ -55,8 +55,8 @@ export const MainScreen = ({ navigation }: any) => {
 
   return (
     <View style={styles.container}>
-      {/* Layer 1: Infinite tiling background */}
-      <InfiniteScrollBackground scrollY={scrollY} />
+      {/* Layer 1: Repeating grass tile background */}
+      <DynamicBackground />
 
       {/* Layer 2: Scrollable map content */}
       <Animated.ScrollView
@@ -67,11 +67,11 @@ export const MainScreen = ({ navigation }: any) => {
         contentContainerStyle={{ height: TOTAL_MAP_HEIGHT }}
         bounces={false}
       >
-        {/* Dotted path connecting stages */}
-        <StagePath stages={STAGES} />
-
         {/* Decorative elements (trees, buildings) */}
         <MapDecorations stages={STAGES} />
+
+        {/* Dotted path connecting stages */}
+        <StagePath stages={STAGES} />
 
         {/* Stage nodes */}
         {STAGES.map((stage, index) => (
