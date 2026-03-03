@@ -48,7 +48,7 @@ export const MapDecorations: React.FC<MapDecorationsProps> = ({ stages }) => {
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
       {stages.map((stage, stageIndex) =>
         (stage.decorations || []).map((deco, decoIndex) => {
-          const stageX = getStageX(stage.x) + STAGE_NODE_SIZE / 2;
+          const stageX = getStageX(stage.x);
           const stageY = getStageY(stageIndex);
           const size = getDecoSize(deco.type, deco.scale);
 

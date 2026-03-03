@@ -9,14 +9,35 @@ import { DynamicBackground } from "../../components/map/DynamicBackground";
 import { StageNode } from "../../components/map/StageNode";
 import { StagePath } from "../../components/map/StagePath";
 import { MapDecorations } from "../../components/map/MapDecorations";
+import { Character } from "../../components/map/Character";
 import {
   STAGES,
   TOTAL_MAP_HEIGHT,
   getStageY,
+  getStageX,
 } from "../../constants/stageLayout";
 
 export const MainScreen = ({ navigation }: any) => {
   const scrollY = useSharedValue(0);
+
+  // Initialize character position to the "current" stage
+  const currentStageIndex = STAGES.findIndex((s) => s.status === "current");
+  const initialIndex = currentStageIndex >= 0 ? currentStageIndex : 0;
+
+  const [charStartX, setCharStartX] = React.useState(() =>
+    getStageX(STAGES[initialIndex].x),
+  );
+  const [charStartY, setCharStartY] = React.useState(() =>
+    getStageY(initialIndex),
+  );
+  const [charTargetX, setCharTargetX] = React.useState(() =>
+    getStageX(STAGES[initialIndex].x),
+  );
+  const [charTargetY, setCharTargetY] = React.useState(() =>
+    getStageY(initialIndex),
+  );
+  const [isWalking, setIsWalking] = React.useState(false);
+  const [scaleX, setScaleX] = React.useState(1);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -28,9 +49,8 @@ export const MainScreen = ({ navigation }: any) => {
   const scrollRef = useRef<Animated.ScrollView>(null);
 
   React.useEffect(() => {
-    const currentStageIndex = STAGES.findIndex((s) => s.status === "current");
-    if (currentStageIndex >= 0 && scrollRef.current) {
-      const targetY = getStageY(currentStageIndex) - 300; // Center-ish
+    if (initialIndex >= 0 && scrollRef.current) {
+      const targetY = getStageY(initialIndex) - 300; // Center-ish
       setTimeout(() => {
         scrollRef.current?.scrollTo({
           y: Math.max(0, targetY),
@@ -40,17 +60,39 @@ export const MainScreen = ({ navigation }: any) => {
     }
   }, []);
 
-  const handleStagePress = (stageId: number, label: string) => {
-    Alert.alert(label, `Start Stage ${stageId}?`, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Go!",
-        onPress: () => {
-          // TODO: Navigate to StageBriefing
-          // navigation.navigate("StageBriefing", { stageId });
+  const handleStagePress = (stageId: number, label: string, index: number) => {
+    if (isWalking) return; // Prevent multiple clicks while walking
+
+    const targetX = getStageX(STAGES[index].x);
+    const targetY = getStageY(index);
+
+    // Determine facing direction based on target X compared to current target X
+    if (targetX > charTargetX) {
+      setScaleX(1);
+    } else if (targetX < charTargetX) {
+      setScaleX(-1);
+    }
+
+    setIsWalking(true);
+    setCharStartX(charTargetX);
+    setCharStartY(charTargetY);
+    setCharTargetX(targetX);
+    setCharTargetY(targetY);
+
+    // Wait for the walking animation to finish (1500ms duration defined in Character)
+    setTimeout(() => {
+      setIsWalking(false);
+      Alert.alert(label, `Start Stage ${stageId}?`, [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Go!",
+          onPress: () => {
+            // TODO: Navigate to StageBriefing
+            // navigation.navigate("StageBriefing", { stageId });
+          },
         },
-      },
-    ]);
+      ]);
+    }, 1500);
   };
 
   return (
@@ -81,9 +123,19 @@ export const MainScreen = ({ navigation }: any) => {
             stageIndex={index}
             label={stage.label}
             status={stage.status}
-            onPress={() => handleStagePress(stage.id, stage.label)}
+            onPress={() => handleStagePress(stage.id, stage.label, index)}
           />
         ))}
+
+        {/* Character element positioned relative to the map */}
+        <Character
+          startX={charStartX}
+          startY={charStartY}
+          targetX={charTargetX}
+          targetY={charTargetY}
+          isWalking={isWalking}
+          scaleX={scaleX}
+        />
       </Animated.ScrollView>
 
       {/* Layer 3: Fixed TopBar overlay */}

@@ -15,9 +15,9 @@ import {
   getStageY,
 } from "../../constants/stageLayout";
 
-const STAGE_CURRENT = require("../../../assets/images/map/stage-current.png");
-const STAGE_LOCKED = require("../../../assets/images/map/stage-locked.png");
-const STAGE_COMPLETED = require("../../../assets/images/map/stage-completed.png");
+const STAGE_CURRENT = require("../../../assets/images/building/bandara.png");
+const STAGE_LOCKED = require("../../../assets/images/building/lock-stage.png");
+const STAGE_COMPLETED = require("../../../assets/images/building/ojek-pengkolan.png");
 
 interface StageNodeProps {
   id: number;
@@ -51,6 +51,12 @@ export const StageNode: React.FC<StageNodeProps> = ({
   const posX = getStageX(x);
   const posY = getStageY(stageIndex);
 
+  // LOGIKA POSISI BANGUNAN (Kiri atau Kanan)
+  // Jika x < 0.5 (Jalan di kiri, index genap), geser bangunan ke kiri (-90)
+  // Jika x >= 0.5 (Jalan di kanan, index ganjil), geser bangunan ke kanan (90)
+  const isLeftSide = x < 0.5;
+  const buildingOffsetX = isLeftSide ? -70 : 70;
+
   // Bounce animation for the current stage
   const bounceAnim = useSharedValue(0);
 
@@ -79,7 +85,7 @@ export const StageNode: React.FC<StageNodeProps> = ({
         styles.container,
         {
           left: posX,
-          top: posY - STAGE_NODE_SIZE / 2,
+          top: posY - 35, // Center vertically
         },
         animatedStyle,
       ]}
@@ -87,20 +93,23 @@ export const StageNode: React.FC<StageNodeProps> = ({
       <TouchableOpacity
         onPress={status !== "locked" ? onPress : undefined}
         activeOpacity={status === "locked" ? 1 : 0.7}
-        style={styles.touchable}
+        style={[
+          styles.touchable,
+          { transform: [{ translateX: buildingOffsetX }] },
+        ]}
       >
         <Image
           source={getStageImage(status)}
           style={styles.stageImage}
           resizeMode="contain"
         />
-        {/* Stage label */}
+        {/* Stage label (Berada di bawah asset building) */}
         <View style={styles.labelContainer}>
           <Text
             style={[styles.label, status === "locked" && styles.labelLocked]}
             numberOfLines={1}
           >
-            {label}
+            {label.toUpperCase()}
           </Text>
           <Text
             style={[
@@ -108,7 +117,7 @@ export const StageNode: React.FC<StageNodeProps> = ({
               status === "locked" && styles.labelLocked,
             ]}
           >
-            Stage {id}
+            (Stage {id})
           </Text>
         </View>
       </TouchableOpacity>
@@ -119,39 +128,45 @@ export const StageNode: React.FC<StageNodeProps> = ({
 const styles = StyleSheet.create({
   container: {
     position: "absolute",
-    width: STAGE_NODE_SIZE,
+    // Center at posX, posY
+    width: 200,
+    marginLeft: -100,
+    height: 150,
+    marginTop: -75,
     alignItems: "center",
+    justifyContent: "center",
+    zIndex: 10,
   },
   touchable: {
     alignItems: "center",
+    justifyContent: "center",
   },
   stageImage: {
-    width: STAGE_NODE_SIZE,
-    height: STAGE_NODE_SIZE,
+    width: 170, // Ukuran disesuaikan agar proporsional
+    height: 170,
+    marginBottom: 0,
   },
   labelContainer: {
-    marginTop: 4,
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.55)",
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    minWidth: STAGE_NODE_SIZE + 20,
+    marginTop: -40,
   },
   label: {
-    color: "#fff",
+    color: "#333", // Warna teks lebih gelap agar terlihat di rumput
     fontSize: 10,
     fontFamily: "PressStart2P_400Regular",
     textAlign: "center",
+    textShadowColor: "rgba(255, 255, 255, 0.5)",
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 1,
   },
   stageNumber: {
-    color: "#fbbf24",
+    color: "#444",
     fontSize: 8,
     fontFamily: "PressStart2P_400Regular",
     textAlign: "center",
     marginTop: 2,
   },
   labelLocked: {
-    color: "#888",
+    color: "#999",
   },
 });

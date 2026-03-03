@@ -13,7 +13,7 @@ export const NUM_COPIES = 3; // Number of background copies for seamless loop
 export const STAGE_SPACING = 220; // Vertical distance between stages
 export const MAP_PADDING_TOP = 160; // Space above the topmost stage
 export const MAP_PADDING_BOTTOM = 200; // Space below the bottom-most stage
-export const STAGE_NODE_SIZE = 80; // Size of each stage node sprite
+export const STAGE_NODE_SIZE = 150; // Size of each stage node sprite
 
 // ── Decoration positions (relative to each stage) ────────────────
 export type DecoType = "palm" | "bush" | "rumah";
@@ -34,89 +34,86 @@ export interface StageData {
   decorations?: Decoration[];
 }
 
-// Stages are defined bottom-to-top (stage 1 at the bottom of the map)
-// The x values create the zigzag/winding path effect
+// Pola huruf "S" (Kiri -> Kanan -> Kiri -> Kanan)
 export const STAGES: StageData[] = [
   {
     id: 1,
-    x: 0.2,
+    x: 0.35, // KIRI
     label: "Bandara",
     status: "completed",
     decorations: [
       { type: "palm", offsetX: -0.3, offsetY: -30, scale: 0.8 },
-      { type: "palm", offsetX: 0.25, offsetY: 20 },
-      { type: "bush", offsetX: -0.15, offsetY: 50, scale: 0.7 },
+      { type: "bush", offsetX: 0.5, offsetY: 20, scale: 0.7 }, // Pindah ke kanan jalan
     ],
   },
   {
     id: 2,
-    x: 0.6,
+    x: 0.65, // KANAN
     label: "Salam & Sapaan",
     status: "completed",
     decorations: [
       { type: "palm", offsetX: 0.35, offsetY: -10 },
-      { type: "rumah", offsetX: 0.4, offsetY: 30, scale: 0.7 },
+      { type: "rumah", offsetX: -0.5, offsetY: 30, scale: 0.7 }, // Pindah ke kiri jalan
     ],
   },
   {
     id: 3,
-    x: 0.7,
+    x: 0.35, // KIRI
     label: "Perkenalan",
     status: "current",
     decorations: [
       { type: "palm", offsetX: -0.35, offsetY: 0 },
-      { type: "bush", offsetX: -0.2, offsetY: 40, scale: 0.6 },
-      { type: "palm", offsetX: -0.45, offsetY: 50, scale: 0.9 },
+      { type: "bush", offsetX: 0.6, offsetY: 40, scale: 0.6 },
     ],
   },
   {
     id: 4,
-    x: 0.35,
+    x: 0.65, // KANAN
     label: "Keluarga",
     status: "locked",
     decorations: [
       { type: "rumah", offsetX: 0.35, offsetY: -20, scale: 0.65 },
-      { type: "palm", offsetX: -0.2, offsetY: 30 },
+      { type: "palm", offsetX: -0.4, offsetY: 30 },
     ],
   },
   {
     id: 5,
-    x: 0.65,
+    x: 0.35, // KIRI
     label: "Di Pasar",
     status: "locked",
     decorations: [
       { type: "palm", offsetX: -0.4, offsetY: -10, scale: 0.85 },
-      { type: "bush", offsetX: 0.2, offsetY: 60, scale: 0.7 },
+      { type: "bush", offsetX: 0.5, offsetY: 60, scale: 0.7 },
     ],
   },
   {
     id: 6,
-    x: 0.3,
+    x: 0.65, // KANAN
     label: "Transportasi",
     status: "locked",
     decorations: [
       { type: "palm", offsetX: 0.4, offsetY: 0 },
-      { type: "rumah", offsetX: -0.2, offsetY: -30, scale: 0.6 },
+      { type: "rumah", offsetX: -0.5, offsetY: -30, scale: 0.6 },
     ],
   },
   {
     id: 7,
-    x: 0.7,
+    x: 0.35, // KIRI
     label: "Makanan",
     status: "locked",
     decorations: [
       { type: "palm", offsetX: -0.35, offsetY: 20, scale: 0.9 },
-      { type: "bush", offsetX: 0.15, offsetY: 50, scale: 0.6 },
+      { type: "bush", offsetX: 0.5, offsetY: 50, scale: 0.6 },
     ],
   },
   {
     id: 8,
-    x: 0.4,
+    x: 0.65, // KANAN
     label: "Arah & Lokasi",
     status: "locked",
     decorations: [
       { type: "palm", offsetX: 0.3, offsetY: -15 },
-      { type: "palm", offsetX: -0.25, offsetY: 25, scale: 0.8 },
+      { type: "palm", offsetX: -0.4, offsetY: 25, scale: 0.8 },
     ],
   },
 ];
@@ -142,8 +139,9 @@ export const getStageY = (index: number): number => {
 
 /**
  * Get the X position of a stage in pixels.
+ * Now returns the center position directly.
  */
 export const getStageX = (xFraction: number): number => {
-  const usableWidth = SCREEN_WIDTH - STAGE_NODE_SIZE;
-  return xFraction * usableWidth;
+  return xFraction * SCREEN_WIDTH;
 };
+

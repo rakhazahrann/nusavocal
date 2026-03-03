@@ -12,7 +12,7 @@ import {
 // Import fungsi helper tadi
 import { generatePixelPath } from "../../utils/pixelPathGenerator";
 
-const DIRT_PATH_TEXTURE = require("../../../assets/images/map/generated-dirt-path.png");
+const DIRT_PATH_TEXTURE = require("../../../assets/images/map/dirt-texture.png");
 
 interface StagePathProps {
   stages: StageData[];
@@ -24,14 +24,15 @@ export const StagePath: React.FC<StagePathProps> = ({ stages }) => {
   let fullPathString = "";
 
   for (let i = 0; i < stages.length - 1; i++) {
-    const startX = getStageX(stages[i].x) + STAGE_NODE_SIZE / 2;
-    const startY = getStageY(i) + STAGE_NODE_SIZE / 2;
-    const endX = getStageX(stages[i + 1].x) + STAGE_NODE_SIZE / 2;
-    const endY = getStageY(i + 1) + STAGE_NODE_SIZE / 2;
+    const startX = getStageX(stages[i].x);
+    const startY = getStageY(i);
+    const endX = getStageX(stages[i + 1].x);
+    const endY = getStageY(i + 1);
 
     // 🔥 PANGGIL HELPER DI SINI
-    //pixelSize = 10 (coba ubah angka ini buat atur ukuran 'tangga' pixelnya)
-    fullPathString += generatePixelPath(startX, startY, endX, endY, 2);
+    // pixelSize mengatur seberapa besar kotak-kotaknya. Kita pakai 4 agar
+    // tangga-tangganya masih terlihat jelas bernuansa pixel art namun curve-nya mulus
+    fullPathString += generatePixelPath(startX, startY, endX, endY, 4);
   }
 
   const BORDER_COLOR = "#6d4e34";
@@ -71,8 +72,8 @@ export const StagePath: React.FC<StagePathProps> = ({ stages }) => {
           stroke={BORDER_COLOR}
           strokeWidth={PATH_WIDTH + 10}
           fill="none"
-          strokeLinecap="square"
-          strokeLinejoin="miter" // Penting biar sudut tajam
+          strokeLinecap="round"
+          strokeLinejoin="round" // Round membuat jalur tebal curve jadi mulus
         />
 
         {/* LAYER ISI (Pasir) */}
@@ -81,8 +82,8 @@ export const StagePath: React.FC<StagePathProps> = ({ stages }) => {
           stroke={BASE_COLOR}
           strokeWidth={PATH_WIDTH}
           fill="none"
-          strokeLinecap="square"
-          strokeLinejoin="miter"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
 
         {/* LAYER TEXTURE */}
@@ -91,8 +92,8 @@ export const StagePath: React.FC<StagePathProps> = ({ stages }) => {
           stroke="url(#dirtPattern)"
           strokeWidth={PATH_WIDTH}
           fill="none"
-          strokeLinecap="square"
-          strokeLinejoin="miter"
+          strokeLinecap="round"
+          strokeLinejoin="round"
           opacity={0.8}
         />
       </Svg>
