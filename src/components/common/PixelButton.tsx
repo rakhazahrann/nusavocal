@@ -11,15 +11,50 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 interface PixelButtonProps extends TouchableOpacityProps {
   title: string;
   icon?: keyof typeof MaterialCommunityIcons.glyphMap;
+  communityIconName?: keyof typeof MaterialCommunityIcons.glyphMap;
+  variant?: "primary" | "secondary" | "outline" | "adventure";
 }
 
 export const PixelButton: React.FC<PixelButtonProps> = ({
   title,
   icon,
+  communityIconName,
+  variant = "primary",
   style,
   ...props
 }) => {
   const [isPressed, setIsPressed] = useState(false);
+
+  const getTheme = () => {
+    switch (variant) {
+      case "secondary":
+        return {
+          main: "#AEECEF", // Retro Mint
+          shadow: "#5D3A1A",
+          text: "#5D3A1A",
+        };
+      case "outline":
+        return {
+          main: "#FFFFFF",
+          shadow: "#D1C4B5",
+          text: "#5D3A1A",
+        };
+      case "adventure":
+        return {
+          main: "#1E88E5", // Bright Adventure Blue
+          shadow: "#0D47A1", // Dark Navy Shadow
+          text: "#FFFFFF",
+        };
+      default:
+        return {
+          main: "#FFB067", // Retro Peach/Orange
+          shadow: "#5D3A1A",
+          text: "#5D3A1A",
+        };
+    }
+  };
+
+  const theme = getTheme();
 
   return (
     <TouchableOpacity
@@ -30,20 +65,41 @@ export const PixelButton: React.FC<PixelButtonProps> = ({
       {...props}
     >
       {/* Shadow / Bottom layer */}
-      <View style={[styles.shadowLayer, isPressed && styles.shadowPressed]} />
+      <View
+        style={[
+          styles.shadowLayer,
+          { backgroundColor: theme.shadow },
+          isPressed && styles.shadowPressed,
+        ]}
+      />
 
       {/* Main button layer */}
       <View
-        style={[styles.mainLayer, isPressed ? styles.mainLayerPressed : null]}
+        style={[
+          styles.mainLayer,
+          {
+            backgroundColor: theme.main,
+            borderColor: variant === "outline" ? theme.shadow : "#FFF",
+          },
+          isPressed ? styles.mainLayerPressed : null,
+        ]}
       >
-        <PixelText size={14} color="#FFF" shadow>
+        <PixelText size={12} color={theme.text} shadow={variant !== "outline"}>
           {title}
         </PixelText>
         {icon && (
           <MaterialCommunityIcons
             name={icon}
-            size={20}
-            color="#FFF"
+            size={18}
+            color={theme.text}
+            style={[styles.icon, isPressed ? null : styles.iconPulse]}
+          />
+        )}
+        {communityIconName && (
+          <MaterialCommunityIcons
+            name={communityIconName}
+            size={18}
+            color={theme.text}
             style={[styles.icon, isPressed ? null : styles.iconPulse]}
           />
         )}

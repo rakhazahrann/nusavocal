@@ -18,10 +18,11 @@ export const BackgroundLayer: React.FC<BackgroundLayerProps> = ({
         source={{ uri: BG_URL }}
         style={StyleSheet.absoluteFill}
         resizeMode="cover"
+        imageStyle={{ opacity: 0.1 }} // Make the background image very subtle for light theme
       >
-        {/* Dark overlay gradient matching HTML from-background-dark via/80 to transparent */}
+        {/* Soft light gradient */}
         <LinearGradient
-          colors={["transparent", "rgba(34, 25, 16, 0.8)", "#221910"]}
+          colors={["#FFF9F2", "#FFF0E0", "#FFE8D1"]}
           locations={[0, 0.5, 1]}
           style={StyleSheet.absoluteFill}
         />

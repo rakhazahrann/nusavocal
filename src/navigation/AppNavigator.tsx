@@ -5,6 +5,9 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import {
   SplashScreen,
   LoginScreen,
+  AuthScreen,
+  CharacterSelectScreen,
+  ProfileCreationScreen,
   MainScreen,
   StageBriefingScreen,
   VocabFarmingScreen,
@@ -50,7 +53,15 @@ const MainNavigator = () => (
 // 3. Auth Flow
 const AuthNavigator = () => (
   <AuthStack.Navigator screenOptions={{ headerShown: false }}>
-    <AuthStack.Screen name="Login" component={LoginScreen} />
+    <AuthStack.Screen name="Login" component={AuthScreen} />
+    <AuthStack.Screen
+      name="CharacterSelect"
+      component={CharacterSelectScreen}
+    />
+    <AuthStack.Screen
+      name="ProfileCreation"
+      component={ProfileCreationScreen}
+    />
   </AuthStack.Navigator>
 );
 
