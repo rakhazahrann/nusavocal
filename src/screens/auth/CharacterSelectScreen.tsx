@@ -19,13 +19,13 @@ const CHARACTERS = [
     id: "ira",
     name: "IRA",
     description: "Ira is a master of Central Javanese melodies.",
-    image: require("../../assets/images/characters/man-chara.png"),
+    image: require("../../../assets/images/characters/man-chara.png"),
   },
   {
     id: "sita",
     name: "SITA",
     description: "Sita is a master of Sundanese melodies.",
-    image: require("../../assets/images/characters/woman-chara.png"),
+    image: require("../../../assets/images/characters/woman-chara.png"),
   },
 ];
 

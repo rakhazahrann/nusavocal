@@ -17,11 +17,11 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 const CHARACTERS: any = {
   ira: {
     name: "IRA",
-    image: require("../../assets/images/characters/man-profile.png"),
+    image: require("../../../assets/images/characters/man-profile.png"),
   },
   sita: {
     name: "SITA",
-    image: require("../../assets/images/characters/woman-profile.png"),
+    image: require("../../../assets/images/characters/woman-profile.png"),
   },
 };
 
