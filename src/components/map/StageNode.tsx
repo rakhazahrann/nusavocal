@@ -98,11 +98,20 @@ export const StageNode: React.FC<StageNodeProps> = ({
           { transform: [{ translateX: buildingOffsetX }] },
         ]}
       >
-        <Image
-          source={getStageImage(status)}
-          style={styles.stageImage}
-          resizeMode="contain"
-        />
+        <View style={styles.imageContainer}>
+          {/* Shadow Layer: Duplicate image with tint and offset */}
+          <Image
+            source={getStageImage(status)}
+            style={[styles.stageImage, styles.shadow]}
+            resizeMode="contain"
+          />
+          {/* Main Asset Layer */}
+          <Image
+            source={getStageImage(status)}
+            style={styles.stageImage}
+            resizeMode="contain"
+          />
+        </View>
         {/* Stage label (Berada di bawah asset building) */}
         <View style={styles.labelContainer}>
           <Text
@@ -141,10 +150,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  stageImage: {
-    width: 170, // Ukuran disesuaikan agar proporsional
+  imageContainer: {
+    width: 170,
     height: 170,
-    marginBottom: 0,
+    position: "relative",
+  },
+  stageImage: {
+    width: "100%",
+    height: "100%",
+    position: "absolute",
+  },
+  shadow: {
+    tintColor: "rgba(0,0,0,0.25)",
+    top: 6, // Offset for depth
+    left: 6,
   },
   labelContainer: {
     alignItems: "center",
