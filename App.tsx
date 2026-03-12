@@ -12,6 +12,12 @@ import {
   SpaceGrotesk_700Bold,
 } from "@expo-google-fonts/space-grotesk";
 import { PressStart2P_400Regular } from "@expo-google-fonts/press-start-2p";
+import {
+  PixelifySans_400Regular,
+  PixelifySans_500Medium,
+  PixelifySans_600SemiBold,
+  PixelifySans_700Bold,
+} from "@expo-google-fonts/pixelify-sans";
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -24,6 +30,10 @@ export default function App() {
     "SpaceGrotesk-SemiBold": SpaceGrotesk_600SemiBold,
     "SpaceGrotesk-Bold": SpaceGrotesk_700Bold,
     "PressStart2P-Regular": PressStart2P_400Regular,
+    "PixelifySans-Regular": PixelifySans_400Regular,
+    "PixelifySans-Medium": PixelifySans_500Medium,
+    "PixelifySans-SemiBold": PixelifySans_600SemiBold,
+    "PixelifySans-Bold": PixelifySans_700Bold,
   });
 
   useEffect(() => {

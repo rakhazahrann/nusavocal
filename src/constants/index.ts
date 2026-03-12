@@ -12,3 +12,13 @@ export const COLORS = {
   red: '#ef4444',
   navy: '#0f3460',
 };
+
+export const FONTS = {
+  pixel: 'PressStart2P-Regular',
+  pixelify: 'PixelifySans-Regular',
+  pixelifyMedium: 'PixelifySans-Medium',
+  pixelifyBold: 'PixelifySans-Bold',
+  display: 'SpaceGrotesk-Regular',
+  displayMedium: 'SpaceGrotesk-Medium',
+  displayBold: 'SpaceGrotesk-Bold',
+};

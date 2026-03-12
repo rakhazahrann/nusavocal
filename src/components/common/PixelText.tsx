@@ -4,7 +4,7 @@ import { Text, TextProps, StyleSheet, TextStyle } from "react-native";
 interface PixelTextProps extends TextProps {
   color?: string;
   size?: number;
-  family?: "pixel" | "display";
+  family?: "pixel" | "display" | "pixelify";
   weight?: "300" | "400" | "500" | "600" | "700";
   shadow?: boolean;
 }
@@ -37,6 +37,21 @@ export const PixelText: React.FC<PixelTextProps> = ({
         break;
       default:
         fontFamily = "SpaceGrotesk-Regular";
+        break;
+    }
+  } else if (family === "pixelify") {
+    switch (weight) {
+      case "500":
+        fontFamily = "PixelifySans-Medium";
+        break;
+      case "600":
+        fontFamily = "PixelifySans-SemiBold";
+        break;
+      case "700":
+        fontFamily = "PixelifySans-Bold";
+        break;
+      default:
+        fontFamily = "PixelifySans-Regular";
         break;
     }
   }

@@ -10,3 +10,4 @@ export { TopBar } from "./TopBar";
 export { HealthCount } from "./HealthCount";
 export { StreakCount } from "./StreakCount";
 export { CustomTabBar } from "./TabBar";
+export { PixelNextButton } from "./PixelNextButton";

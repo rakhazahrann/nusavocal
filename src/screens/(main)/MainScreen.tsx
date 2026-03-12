@@ -150,7 +150,7 @@ export const MainScreen = ({ navigation }: any) => {
         onCancel={() => setPopupVisible(false)}
         onStart={(stageId) => {
           setPopupVisible(false);
-          // navigation.navigate("StageBriefing", { stageId });
+          navigation.navigate("VocabFarming", { stageId });
         }}
       />
     </View>

@@ -4,7 +4,6 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import {
   SplashScreen,
-  LoginScreen,
   AuthScreen,
   CharacterSelectScreen,
   ProfileCreationScreen,
@@ -13,7 +12,6 @@ import {
   VocabFarmingScreen,
   GameScreen,
   ResultScreen,
-  Leaderboard,
   Construction,
 } from "../screens";
 
@@ -28,10 +26,6 @@ const MapStack = createNativeStackNavigator();
 const MapNavigator = () => (
   <MapStack.Navigator screenOptions={{ headerShown: false }}>
     <MapStack.Screen name="Overworld" component={MainScreen} />
-    {/* <MapStack.Screen name="StageBriefing" component={StageBriefingScreen} />
-    <MapStack.Screen name="VocabFarming" component={VocabFarmingScreen} />
-    <MapStack.Screen name="Gameplay" component={GameScreen} />
-    <MapStack.Screen name="Result" component={ResultScreen} /> */}
   </MapStack.Navigator>
 );
 
@@ -71,5 +65,9 @@ export const AppNavigator = () => (
     <RootStack.Screen name="Splash" component={SplashScreen} />
     <RootStack.Screen name="Auth" component={AuthNavigator} />
     <RootStack.Screen name="Main" component={MainNavigator} />
+    <RootStack.Screen name="StageBriefing" component={StageBriefingScreen} />
+    <RootStack.Screen name="VocabFarming" component={VocabFarmingScreen} />
+    <RootStack.Screen name="Gameplay" component={GameScreen} />
+    <RootStack.Screen name="Result" component={ResultScreen} />
   </RootStack.Navigator>
 );
