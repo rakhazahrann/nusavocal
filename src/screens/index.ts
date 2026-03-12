@@ -1,5 +1,4 @@
 export { default as SplashScreen } from "./SplashScreen";
-export { LoginScreen } from "./LoginScreen";
 export { AuthScreen } from "./auth/AuthScreen";
 export { CharacterSelectScreen } from "./auth/CharacterSelectScreen";
 export { ProfileCreationScreen } from "./auth/ProfileCreationScreen";

@@ -10,6 +10,7 @@ import { StageNode } from "../../components/map/StageNode";
 import { StagePath } from "../../components/map/StagePath";
 import { MapDecorations } from "../../components/map/MapDecorations";
 import { Character } from "../../components/map/Character";
+import { StagePopup } from "../../components/map/StagePopup";
 import {
   STAGES,
   TOTAL_MAP_HEIGHT,
@@ -38,6 +39,10 @@ export const MainScreen = ({ navigation }: any) => {
   );
   const [isWalking, setIsWalking] = React.useState(false);
   const [scaleX, setScaleX] = React.useState(1);
+
+  const [selectedStageId, setSelectedStageId] = React.useState<number | null>(null);
+  const [selectedStageLabel, setSelectedStageLabel] = React.useState<string>("");
+  const [popupVisible, setPopupVisible] = React.useState(false);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -79,19 +84,13 @@ export const MainScreen = ({ navigation }: any) => {
     setCharTargetX(targetX);
     setCharTargetY(targetY);
 
+    setSelectedStageId(stageId);
+    setSelectedStageLabel(label);
+    setPopupVisible(true);
+
     // Wait for the walking animation to finish (1500ms duration defined in Character)
     setTimeout(() => {
       setIsWalking(false);
-      Alert.alert(label, `Start Stage ${stageId}?`, [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Go!",
-          onPress: () => {
-            // TODO: Navigate to StageBriefing
-            // navigation.navigate("StageBriefing", { stageId });
-          },
-        },
-      ]);
     }, 1500);
   };
 
@@ -142,6 +141,18 @@ export const MainScreen = ({ navigation }: any) => {
       <View style={styles.topBarOverlay}>
         <TopBar />
       </View>
+
+      {/* Layer 4: Popups */}
+      <StagePopup
+        visible={popupVisible}
+        stageId={selectedStageId}
+        label={selectedStageLabel}
+        onCancel={() => setPopupVisible(false)}
+        onStart={(stageId) => {
+          setPopupVisible(false);
+          // navigation.navigate("StageBriefing", { stageId });
+        }}
+      />
     </View>
   );
 };
