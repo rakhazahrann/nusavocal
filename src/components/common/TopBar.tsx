@@ -1,8 +1,15 @@
 import React from "react";
-import { View, StyleSheet, Dimensions } from "react-native";
+import { View, StyleSheet, Image } from "react-native";
 import { HealthCount } from "./HealthCount";
 import { StreakCount } from "./StreakCount";
 import { NavBarBackground, BAR_HEIGHT, SCREEN_WIDTH } from "./BarBackground";
+import { useAuthStore } from "../../stores/authStore";
+
+// Profile images based on gender
+const PROFILE_IMAGES = {
+  man: require("../../../assets/images/characters/man-profile.png"),
+  woman: require("../../../assets/images/characters/woman-profile.png"),
+};
 
 interface TopBarProps {
   lives?: number;
@@ -15,6 +22,13 @@ export const TopBar: React.FC<TopBarProps> = ({
   maxLives = 3,
   streak = 0,
 }) => {
+  const { profile } = useAuthStore();
+
+  // Determine profile image based on gender
+  const profileImage = profile?.gender === "woman"
+    ? PROFILE_IMAGES.woman
+    : PROFILE_IMAGES.man;
+
   return (
     <View style={styles.container}>
       {/* Wood bar background – same asset as TabBar */}
@@ -22,6 +36,11 @@ export const TopBar: React.FC<TopBarProps> = ({
 
       {/* Hearts – left side */}
       <HealthCount lives={lives} maxLives={maxLives} />
+
+      {/* Profile icon – center-right */}
+      <View style={styles.profileContainer}>
+        <Image source={profileImage} style={styles.profileImage} resizeMode="contain" />
+      </View>
 
       {/* Streak bar – right side */}
       <StreakCount streak={streak} />
@@ -43,4 +62,14 @@ const styles = StyleSheet.create({
     bottom: undefined,
     top: 0,
   } as any,
+  profileContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    overflow: "hidden",
+  },
+  profileImage: {
+    width: "100%",
+    height: "100%",
+  },
 });

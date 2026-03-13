@@ -1,19 +1,49 @@
 import React, { useEffect } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, ActivityIndicator } from "react-native";
 import { ScreenWrapper } from "../components/common/ScreenWrapper";
+import { useAuthStore } from "../stores/authStore";
 
 export default function SplashScreen({ navigation }: any) {
+  const { session, profile, isInitialized } = useAuthStore();
+
   useEffect(() => {
-    // Navigate to Login after a short delay
+    if (!isInitialized) return; // Wait for auth to initialize
+
     const timer = setTimeout(() => {
-      navigation.replace("Auth");
-    }, 2500);
+      if (session && profile?.role === "admin") {
+        // Admin user → go to admin panel
+        navigation.replace("Admin");
+      } else if (session && profile?.gender && profile?.nickname) {
+        // Fully authenticated user with complete profile
+        navigation.replace("Main");
+      } else if (session && !profile?.gender) {
+        // Authenticated but needs character selection
+        navigation.replace("Auth", {
+          screen: "CharacterSelect",
+        });
+      } else if (session && profile?.gender && !profile?.nickname) {
+        // Authenticated but needs nickname
+        navigation.replace("Auth", {
+          screen: "ProfileCreation",
+          params: { characterId: profile?.character_id || "ira" },
+        });
+      } else {
+        // Not authenticated
+        navigation.replace("Auth");
+      }
+    }, 2000);
+
     return () => clearTimeout(timer);
-  }, [navigation]);
+  }, [isInitialized, navigation]);
 
   return (
     <ScreenWrapper style={styles.container}>
       <Text style={styles.title}>NusaVocal</Text>
+      <ActivityIndicator
+        size="small"
+        color="#f48c25"
+        style={{ marginTop: 16 }}
+      />
       <Text style={styles.subtitle}>Loading...</Text>
     </ScreenWrapper>
   );

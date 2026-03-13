@@ -107,6 +107,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#5D3A1A", // Dark brown for light theme high contrast
   },
   textureContainer: {
+    flex: 1,
     backgroundColor: "#5d3a1a",
     borderWidth: 4,
     borderColor: "#8b5a2b",
@@ -125,6 +126,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
   },
   innerArea: {
+    flex: 1,
     backgroundColor: "#e6dcc3",
     borderRadius: 4,
     shadowColor: "#000",

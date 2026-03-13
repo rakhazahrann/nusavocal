@@ -8,6 +8,7 @@ import Animated, {
   useSharedValue,
   Easing,
 } from "react-native-reanimated";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import {
   StageStatus,
   STAGE_NODE_SIZE,
@@ -26,6 +27,7 @@ interface StageNodeProps {
   label: string;
   status: StageStatus;
   onPress?: () => void;
+  onDelete?: () => void;
 }
 
 const getStageImage = (status: StageStatus) => {
@@ -47,6 +49,7 @@ export const StageNode: React.FC<StageNodeProps> = ({
   label,
   status,
   onPress,
+  onDelete,
 }) => {
   const posX = getStageX(x);
   const posY = getStageY(stageIndex);
@@ -130,6 +133,20 @@ export const StageNode: React.FC<StageNodeProps> = ({
           </Text>
         </View>
       </TouchableOpacity>
+
+      {/* Admin Delete Button (Moved outside main TouchableOpacity to ensure clickability) */}
+      {onDelete && (
+        <TouchableOpacity
+          style={[
+            styles.deleteBtn,
+            isLeftSide ? { right: 0 } : { left: 0 },
+            { transform: [{ translateX: buildingOffsetX }] }
+          ]}
+          onPress={onDelete}
+        >
+          <MaterialIcons name="delete" size={24} color="#FFF" />
+        </TouchableOpacity>
+      )}
     </Animated.View>
   );
 };
@@ -187,5 +204,23 @@ const styles = StyleSheet.create({
   },
   labelLocked: {
     color: "#999",
+  },
+  deleteBtn: {
+    position: "absolute",
+    top: 5,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#d9534f",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#FFF",
+    zIndex: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+    elevation: 3,
   },
 });

@@ -1,19 +1,32 @@
 import React from "react";
-import { View, StyleSheet, TouchableOpacity, Dimensions } from "react-native";
+import { View, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { NavBarBackground, BAR_HEIGHT } from "./BarBackground";
 import { NavMapIcon } from "../map/Map-Icon";
 import { NavBookIcon } from "../map/Book-Icon";
 import { NavCupIcon } from "../map/Cup-Icon";
-import { NavPlayerIcon } from "../map/Player-Icon";
+import { useAuthStore } from "../../stores/authStore";
 
 const ICON_SIZE = 48;
+
+// Profile images based on gender
+const PROFILE_IMAGES = {
+  man: require("../../../assets/images/characters/man-profile.png"),
+  woman: require("../../../assets/images/characters/woman-profile.png"),
+};
 
 export const CustomTabBar = ({
   state,
   descriptors,
   navigation,
 }: BottomTabBarProps) => {
+  const { profile } = useAuthStore();
+
+  // Determine profile image based on gender
+  const profileImage = profile?.gender === "woman"
+    ? PROFILE_IMAGES.woman
+    : PROFILE_IMAGES.man;
+
   return (
     <View style={styles.container}>
       {/* Background bar image – stretches full width */}
@@ -51,7 +64,16 @@ export const CustomTabBar = ({
               icon = <NavCupIcon size={ICON_SIZE} style={{ opacity }} />;
               break;
             case "Profile":
-              icon = <NavPlayerIcon size={ICON_SIZE} style={{ opacity }} />;
+              // Gender-based profile icon
+              icon = (
+                <View style={[styles.profileIconContainer, { opacity }]}>
+                  <Image
+                    source={profileImage}
+                    style={styles.profileIcon}
+                    resizeMode="contain"
+                  />
+                </View>
+              );
               break;
             default:
               icon = <NavMapIcon size={ICON_SIZE} style={{ opacity }} />;
@@ -102,5 +124,16 @@ const styles = StyleSheet.create({
   },
   tabItemFocused: {
     transform: [{ scale: 1.15 }],
+  },
+  profileIconContainer: {
+    width: 60,
+    height: 60,
+    paddingBottom: 5,
+    borderRadius: 30,
+    overflow: "hidden",
+  },
+  profileIcon: {
+    width: "100%",
+    height: "100%",
   },
 });

@@ -6,11 +6,14 @@ import {
   SafeAreaView,
   Image,
   Dimensions,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { BackgroundLayer } from "../../components/common/BackgroundLayer";
 import { PixelText } from "../../components/common/PixelText";
 import { PixelButton } from "../../components/common/PixelButton";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { useAuthStore, Gender } from "../../stores/authStore";
 
 const { width } = Dimensions.get("window");
 
@@ -18,12 +21,14 @@ const CHARACTERS = [
   {
     id: "ira",
     name: "IRA",
+    gender: "man" as Gender,
     description: "Ira is a master of Central Javanese melodies.",
     image: require("../../../assets/images/characters/man-chara.png"),
   },
   {
     id: "sita",
     name: "SITA",
+    gender: "woman" as Gender,
     description: "Sita is a master of Sundanese melodies.",
     image: require("../../../assets/images/characters/woman-chara.png"),
   },
@@ -31,8 +36,26 @@ const CHARACTERS = [
 
 export const CharacterSelectScreen = ({ navigation }: any) => {
   const [selectedId, setSelectedId] = useState("ira");
+  const { updateProfile, isLoading } = useAuthStore();
 
   const selectedChar = CHARACTERS.find((c) => c.id === selectedId);
+
+  const handleContinue = async () => {
+    if (!selectedChar) return;
+
+    const result = await updateProfile({
+      gender: selectedChar.gender,
+      character_id: selectedChar.id,
+    });
+
+    if (result.success) {
+      navigation.navigate("ProfileCreation", {
+        characterId: selectedId,
+      });
+    } else {
+      Alert.alert("Error", result.error || "Failed to save character selection.");
+    }
+  };
 
   return (
     <BackgroundLayer>
@@ -78,6 +101,12 @@ export const CharacterSelectScreen = ({ navigation }: any) => {
                     {char.name}
                   </PixelText>
                 </View>
+                {/* Gender indicator */}
+                <View style={styles.genderBadge}>
+                  <PixelText size={7} color="#5d3a1a">
+                    {char.gender === "man" ? "♂" : "♀"}
+                  </PixelText>
+                </View>
                 {selectedId === char.id && (
                   <View style={styles.checkBadge}>
                     <MaterialIcons name="check" size={16} color="#FFF" />
@@ -103,14 +132,19 @@ export const CharacterSelectScreen = ({ navigation }: any) => {
 
           {/* Continue Button */}
           <PixelButton
-            title="CONTINUE"
-            onPress={() =>
-              navigation.navigate("ProfileCreation", {
-                characterId: selectedId,
-              })
-            }
+            title={isLoading ? "SAVING..." : "CONTINUE"}
+            onPress={handleContinue}
             style={styles.continueBtn}
+            disabled={isLoading}
           />
+
+          {isLoading && (
+            <ActivityIndicator
+              size="small"
+              color="#f48c25"
+              style={{ marginTop: 12 }}
+            />
+          )}
         </View>
       </SafeAreaView>
     </BackgroundLayer>
@@ -190,6 +224,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 4,
     marginTop: 8,
+  },
+  genderBadge: {
+    position: "absolute",
+    top: 8,
+    left: 8,
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    width: 22,
+    height: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#D1C4B5",
   },
   checkBadge: {
     position: "absolute",

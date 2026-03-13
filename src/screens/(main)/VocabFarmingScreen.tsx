@@ -1,24 +1,74 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
-  Text,
   View,
   TouchableOpacity,
   Image,
   ImageBackground,
   SafeAreaView,
+  ActivityIndicator,
 } from "react-native";
 import { PixelText } from "../../components/common/PixelText";
+import { useGameStore } from "../../stores/gameStore";
 
-export const VocabFarmingScreen = ({ navigation }: any) => {
+export const VocabFarmingScreen = ({ navigation, route }: any) => {
+  const { stageId } = route?.params || {};
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [score, setScore] = useState(0);
 
-  const options = [
+  const { currentVocabQuestions, fetchVocabQuestions, isLoading } = useGameStore();
+
+  useEffect(() => {
+    if (stageId) {
+      fetchVocabQuestions(stageId);
+    }
+  }, [stageId]);
+
+  const currentQuestion = currentVocabQuestions[currentQuestionIndex];
+  const options = currentQuestion?.options || [];
+
+  // Fallback data when no DB data
+  const fallbackOptions = [
     "LOREM IPSUM",
     "LOREM IPSUM",
     "LOREM IPSUM",
     "LOREM IPSUM",
   ];
+
+  const handleNext = () => {
+    // Check if answer is correct
+    if (selectedOption !== null && currentQuestion) {
+      const selectedOpt = options[selectedOption];
+      if (selectedOpt?.is_correct) {
+        setScore(score + 1);
+      }
+    }
+
+    // Move to next question or go to game screen
+    if (currentQuestionIndex < currentVocabQuestions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setSelectedOption(null);
+    } else {
+      // All questions done, go to game screen
+      navigation.replace("Gameplay", { stageId, vocabScore: score });
+    }
+  };
+
+  const displayOptions = options.length > 0
+    ? options.map(o => o.option_text)
+    : fallbackOptions;
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color="#f48c25" />
+        <PixelText size={10} color="#5B4434" style={{ marginTop: 16 }}>
+          LOADING VOCAB...
+        </PixelText>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -34,22 +84,41 @@ export const VocabFarmingScreen = ({ navigation }: any) => {
             resizeMode="contain"
           />
         </TouchableOpacity>
+
+        {/* Progress indicator */}
+        {currentVocabQuestions.length > 0 && (
+          <View style={styles.progressContainer}>
+            <PixelText family="pixelify" weight="600" size={12} color="#5B4434">
+              {currentQuestionIndex + 1} / {currentVocabQuestions.length}
+            </PixelText>
+          </View>
+        )}
       </View>
 
       <View style={styles.content}>
-        {/* Placeholder for Airplane Image */}
+        {/* Placeholder for Image */}
         <View style={styles.imagePlaceholder}>
-          <PixelText style={styles.placeholderText}>Airplane Placeholder</PixelText>
+          {currentQuestion?.image_url ? (
+            <Image
+              source={{ uri: currentQuestion.image_url }}
+              style={{ width: "100%", height: "100%", borderRadius: 16 }}
+              resizeMode="contain"
+            />
+          ) : (
+            <PixelText style={styles.placeholderText}>Airplane Placeholder</PixelText>
+          )}
         </View>
 
         {/* Question Text */}
         <View style={styles.questionContainer}>
-          <PixelText family="pixelify" weight="600" size={18} style={styles.questionText}>LOREM IPSUM .....</PixelText>
+          <PixelText family="pixelify" weight="600" size={18} style={styles.questionText}>
+            {currentQuestion?.question_text || "LOREM IPSUM ....."}
+          </PixelText>
         </View>
 
         {/* Options */}
         <View style={styles.optionsContainer}>
-          {options.map((option, index) => {
+          {displayOptions.map((option, index) => {
             const isSelected = selectedOption === index;
             const bgSource = isSelected
               ? require("../../../assets/images/game/selected-bar.png")
@@ -94,11 +163,11 @@ export const VocabFarmingScreen = ({ navigation }: any) => {
             styles.nextButtonContainer,
             selectedOption === null && styles.hidden,
           ]}
-          onPress={() => navigation.replace("Gameplay")}
+          onPress={handleNext}
           disabled={selectedOption === null}
         >
           <Image
-            source={require("../../../assets/images/stage/next-button.png")}
+            source={require("../../../assets/images/game/next-button.png")}
             style={styles.nextIcon}
             resizeMode="contain"
           />
@@ -111,20 +180,27 @@ export const VocabFarmingScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9E8D1", // Used exact color from user feedback
+    backgroundColor: "#F9E8D1",
   },
   header: {
     paddingHorizontal: 20,
     paddingTop: 10,
-    alignItems: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     zIndex: 10,
   },
-  backButton: {
-    // Intentionally empty according to user request
-  },
+  backButton: {},
   backIcon: {
     width: 50,
     height: 50,
+  },
+  progressContainer: {
+    backgroundColor: "rgba(93, 58, 26, 0.1)",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderWidth: 2,
+    borderColor: "#5D3A1A",
   },
   content: {
     flex: 1,
@@ -142,6 +218,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "rgba(0,0,0,0.1)",
     borderStyle: "dashed",
+    overflow: "hidden",
   },
   placeholderText: {
     color: "#8a7a6a",
@@ -175,7 +252,7 @@ const styles = StyleSheet.create({
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
-    paddingBottom: 5, // Fine-tuned for pixel art bar alignment
+    paddingBottom: 5,
   },
   optionText: {
     letterSpacing: 0,

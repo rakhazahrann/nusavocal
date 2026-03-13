@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { AppNavigator } from "./src/navigation/AppNavigator";
 import { StatusBar } from "expo-status-bar";
@@ -18,11 +18,14 @@ import {
   PixelifySans_600SemiBold,
   PixelifySans_700Bold,
 } from "@expo-google-fonts/pixelify-sans";
+import { useAuthStore } from "./src/stores/authStore";
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
+  const { initialize } = useAuthStore();
+
   const [fontsLoaded] = useFonts({
     "SpaceGrotesk-Light": SpaceGrotesk_300Light,
     "SpaceGrotesk-Regular": SpaceGrotesk_400Regular,
@@ -35,6 +38,11 @@ export default function App() {
     "PixelifySans-SemiBold": PixelifySans_600SemiBold,
     "PixelifySans-Bold": PixelifySans_700Bold,
   });
+
+  useEffect(() => {
+    // Initialize auth state (check for existing session)
+    initialize();
+  }, []);
 
   useEffect(() => {
     async function prepare() {

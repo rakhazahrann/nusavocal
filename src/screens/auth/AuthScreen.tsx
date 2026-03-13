@@ -7,6 +7,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { BackgroundLayer } from "../../components/common/BackgroundLayer";
 import { WoodPanel } from "../../components/common/WoodPanel";
@@ -15,10 +17,60 @@ import { PixelInput } from "../../components/common/PixelInput";
 import { PixelButton } from "../../components/common/PixelButton";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuthStore } from "../../stores/authStore";
 
 export const AuthScreen = ({ navigation }: any) => {
   const [isLogin, setIsLogin] = useState(true);
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const insets = useSafeAreaInsets();
+
+  const { signUp, signIn, isLoading, error, clearError } = useAuthStore();
+
+  const handleSubmit = async () => {
+    if (isLogin) {
+      // Login: use email + password
+      if (!email.trim() || !password.trim()) {
+        Alert.alert("Error", "Please fill in email and password.");
+        return;
+      }
+
+      const result = await signIn(email.trim(), password);
+      if (result.success) {
+        // Check if profile has gender set
+        const profile = useAuthStore.getState().profile;
+        if (profile?.gender && profile?.nickname) {
+          navigation.replace("Main");
+        } else if (profile?.gender) {
+          navigation.replace("Auth", { screen: "ProfileCreation", params: { characterId: profile.character_id || "ira" } });
+        } else {
+          navigation.navigate("CharacterSelect");
+        }
+      } else {
+        Alert.alert("Login Failed", result.error || "Invalid credentials.");
+      }
+    } else {
+      // Register: use username, email, password
+      if (!username.trim() || !email.trim() || !password.trim()) {
+        Alert.alert("Error", "Please fill in all fields.");
+        return;
+      }
+
+      if (password.length < 6) {
+        Alert.alert("Error", "Password must be at least 6 characters.");
+        return;
+      }
+
+      const result = await signUp(email.trim(), password, username.trim());
+      if (result.success) {
+        navigation.navigate("CharacterSelect");
+      } else {
+        Alert.alert("Registration Failed", result.error || "Could not create account.");
+      }
+    }
+  };
 
   return (
     <BackgroundLayer>
@@ -50,7 +102,7 @@ export const AuthScreen = ({ navigation }: any) => {
                 {/* Tabs */}
                 <View style={styles.tabContainer}>
                   <TouchableOpacity
-                    onPress={() => setIsLogin(true)}
+                    onPress={() => { setIsLogin(true); clearError(); }}
                     style={[styles.tab, isLogin && styles.activeTab]}
                   >
                     <PixelText
@@ -62,7 +114,7 @@ export const AuthScreen = ({ navigation }: any) => {
                     {isLogin && <View style={styles.activeTabIndicator} />}
                   </TouchableOpacity>
                   <TouchableOpacity
-                    onPress={() => setIsLogin(false)}
+                    onPress={() => { setIsLogin(false); clearError(); }}
                     style={[styles.tab, !isLogin && styles.activeTab]}
                   >
                     <PixelText
@@ -77,20 +129,24 @@ export const AuthScreen = ({ navigation }: any) => {
 
                 {/* Form */}
                 <View style={styles.formContainer}>
-                  <PixelInput
-                    label="USERNAME"
-                    iconName="person"
-                    placeholder="Wayang_Singer88"
-                  />
-
                   {!isLogin && (
                     <PixelInput
-                      label="EMAIL"
-                      iconName="email"
-                      placeholder="vocalist@nusavocal.com"
-                      keyboardType="email-address"
+                      label="USERNAME"
+                      iconName="person"
+                      placeholder="Wayang_Singer88"
+                      value={username}
+                      onChangeText={setUsername}
                     />
                   )}
+
+                  <PixelInput
+                    label="EMAIL"
+                    iconName="email"
+                    placeholder="vocalist@nusavocal.com"
+                    keyboardType="email-address"
+                    value={email}
+                    onChangeText={setEmail}
+                  />
 
                   <PixelInput
                     label="SECRET KEY"
@@ -98,13 +154,18 @@ export const AuthScreen = ({ navigation }: any) => {
                     placeholder="********"
                     secureTextEntry
                     showPasswordToggle
+                    value={password}
+                    onChangeText={setPassword}
                   />
 
                   {isLogin && (
                     <View style={styles.forgotRow}>
-                      <TouchableOpacity style={styles.rememberMe}>
+                      <TouchableOpacity
+                        style={styles.rememberMe}
+                        onPress={() => setRememberMe(!rememberMe)}
+                      >
                         <MaterialIcons
-                          name="check-box-outline-blank"
+                          name={rememberMe ? "check-box" : "check-box-outline-blank"}
                           size={18}
                           color="#5D3A1A"
                         />
@@ -124,12 +185,30 @@ export const AuthScreen = ({ navigation }: any) => {
                     </View>
                   )}
 
+                  {/* Error Message */}
+                  {error && (
+                    <View style={styles.errorContainer}>
+                      <PixelText size={8} color="#ef4444">
+                        {error}
+                      </PixelText>
+                    </View>
+                  )}
+
                   <PixelButton
-                    title={isLogin ? "START JOURNEY" : "CREATE ACCOUNT"}
+                    title={isLoading ? "LOADING..." : isLogin ? "START JOURNEY" : "CREATE ACCOUNT"}
                     communityIconName={isLogin ? "sword-cross" : "account-plus"}
-                    onPress={() => navigation.navigate("CharacterSelect")}
+                    onPress={handleSubmit}
                     style={{ marginTop: 16 }}
+                    disabled={isLoading}
                   />
+
+                  {isLoading && (
+                    <ActivityIndicator
+                      size="small"
+                      color="#f48c25"
+                      style={{ marginTop: 12 }}
+                    />
+                  )}
                 </View>
 
                 {/* Quick Entry / Social */}
@@ -243,6 +322,13 @@ const styles = StyleSheet.create({
   rememberMe: {
     flexDirection: "row",
     alignItems: "center",
+  },
+  errorContainer: {
+    backgroundColor: "rgba(239, 68, 68, 0.1)",
+    padding: 8,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: "rgba(239, 68, 68, 0.3)",
   },
   socialSection: {
     marginTop: 32,

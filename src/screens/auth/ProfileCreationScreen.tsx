@@ -7,12 +7,16 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { BackgroundLayer } from "../../components/common/BackgroundLayer";
 import { PixelText } from "../../components/common/PixelText";
 import { PixelInput } from "../../components/common/PixelInput";
 import { PixelButton } from "../../components/common/PixelButton";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { useAuthStore } from "../../stores/authStore";
+import { supabase } from "../../api/supabase";
 
 const CHARACTERS: any = {
   ira: {
@@ -29,6 +33,56 @@ export const ProfileCreationScreen = ({ navigation, route }: any) => {
   const { characterId = "ira" } = route.params || {};
   const [nickname, setNickname] = useState("");
   const character = CHARACTERS[characterId];
+  const { updateProfile, isLoading, user } = useAuthStore();
+
+  const handleFinish = async () => {
+    if (!nickname.trim()) {
+      Alert.alert("Error", "Please enter a nickname.");
+      return;
+    }
+
+    const result = await updateProfile({ nickname: nickname.trim() });
+    if (result.success) {
+      // Initialize first stage progress
+      if (user) {
+        try {
+          // Check if user already has progress
+          const { data: existing } = await supabase
+            .from('user_progress')
+            .select('id')
+            .eq('user_id', user.id)
+            .limit(1);
+
+          if (!existing || existing.length === 0) {
+            // Get first stage
+            const { data: firstStage } = await supabase
+              .from('stages')
+              .select('id')
+              .eq('is_active', true)
+              .order('sort_order', { ascending: true })
+              .limit(1)
+              .single();
+
+            if (firstStage) {
+              await supabase
+                .from('user_progress')
+                .insert({
+                  user_id: user.id,
+                  stage_id: firstStage.id,
+                  status: 'current',
+                });
+            }
+          }
+        } catch (e) {
+          console.error('Progress init error:', e);
+        }
+      }
+
+      navigation.replace("Main");
+    } else {
+      Alert.alert("Error", result.error || "Failed to save nickname.");
+    }
+  };
 
   return (
     <BackgroundLayer>
@@ -87,11 +141,21 @@ export const ProfileCreationScreen = ({ navigation, route }: any) => {
 
             {/* Final Action */}
             <PixelButton
-              title="FINISH ADVENTURE"
+              title={isLoading ? "SAVING..." : "FINISH ADVENTURE"}
               icon="controller-classic"
-              onPress={() => navigation.replace("Main")}
+              onPress={handleFinish}
               style={styles.finishBtn}
+              disabled={isLoading}
             />
+
+            {isLoading && (
+              <ActivityIndicator
+                size="small"
+                color="#f48c25"
+                style={{ marginTop: 8 }}
+              />
+            )}
+
             <PixelText size={8} color="#a1887f" style={styles.footerHint}>
               Press Start to begin your musical journey across the archipelago.
             </PixelText>

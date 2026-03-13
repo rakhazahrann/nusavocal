@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -7,20 +7,65 @@ import {
   ImageBackground,
   SafeAreaView,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { PixelText, PixelNextButton } from "../../components/common";
+import { useAuthStore } from "../../stores/authStore";
+import { useGameStore, GameScenario } from "../../stores/gameStore";
 
 const { width, height } = Dimensions.get("window");
 
-export const GameScreen = ({ navigation }: any) => {
+// Profile images based on gender
+const PROFILE_IMAGES = {
+  man: require("../../../assets/images/characters/man-profile.png"),
+  woman: require("../../../assets/images/characters/woman-profile.png"),
+};
+
+// Fallback background for when no scenario image is available
+const FALLBACK_BG = require("../../../assets/images/airport-scenario.png");
+
+export const GameScreen = ({ navigation, route }: any) => {
+  const { stageId } = route?.params || {};
+  const { profile } = useAuthStore();
+  const { currentScenarios, fetchGameScenarios, isLoading } = useGameStore();
+  const [currentScenarioIndex, setCurrentScenarioIndex] = useState(0);
+
+  useEffect(() => {
+    if (stageId) {
+      fetchGameScenarios(stageId);
+    }
+  }, [stageId]);
+
+  const scenario: GameScenario | null = currentScenarios[currentScenarioIndex] || null;
+
+  // Determine profile image based on gender
+  const profileImage = profile?.gender === "woman"
+    ? PROFILE_IMAGES.woman
+    : PROFILE_IMAGES.man;
+
+  // Determine background image
+  const backgroundSource = scenario?.background_image_url
+    ? { uri: scenario.background_image_url }
+    : FALLBACK_BG;
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color="#f48c25" />
+        <PixelText size={10} color="#5D3A1A" style={{ marginTop: 16 }}>
+          LOADING SCENARIO...
+        </PixelText>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Background Section (Top) */}
       <View style={styles.backgroundContainer}>
         <Image
-          source={require("../../../assets/images/airport-scenario.png")}
+          source={backgroundSource}
           style={styles.backgroundImage}
-          
         />
         {/* Back Button */}
         <TouchableOpacity
@@ -52,7 +97,7 @@ export const GameScreen = ({ navigation }: any) => {
               style={styles.nameText}
               shadow={false}
             >
-              Airport{"\n"}Receptionist
+              {scenario?.npc_name || "NPC"}
             </PixelText>
           </ImageBackground>
         </View>
@@ -71,7 +116,7 @@ export const GameScreen = ({ navigation }: any) => {
               color="#000000"
               style={styles.chatText}
             >
-              LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUMLOREM IPSUMLOREM IPSUMLOREM IPSUM
+              {scenario?.npc_text || "Hello, welcome! Let's practice your language skills."}
             </PixelText>
           </View>
         </ImageBackground>
@@ -95,9 +140,9 @@ export const GameScreen = ({ navigation }: any) => {
               </PixelText>
             </View>
           </ImageBackground>
-          {/* User Profile Picture */}
+          {/* User Profile Picture - gender-based */}
           <Image
-            source={require("../../../assets/images/characters/man-profile.png")}
+            source={profileImage}
             style={styles.userProfileImage}
             resizeMode="contain"
           />
@@ -116,7 +161,7 @@ export const GameScreen = ({ navigation }: any) => {
 
         {/* Footer Area */}
         <View style={styles.footer}>
-          <PixelNextButton onPress={() => navigation.replace("Result", { win: true })} />
+          <PixelNextButton onPress={() => navigation.replace("Result", { win: true, stageId })} />
         </View>
       </View>
     </SafeAreaView>
@@ -126,7 +171,7 @@ export const GameScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9E8D1", // Temporarily base color since inner border is on it. Wait, the user asked for #C36A4C background with stroke weight 4 inside
+    backgroundColor: "#F9E8D1",
   },
   backgroundContainer: {
     height: height * 0.38,
@@ -149,17 +194,17 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    backgroundColor: "#C36A4C", // Base background for bottom part
+    backgroundColor: "#C36A4C",
     borderWidth: 4,
-    borderColor: "#000000", // "stroke weight 4 inside" implying a black border
-    marginTop: -2, // To avoid gaps
+    borderColor: "#000000",
+    marginTop: -2,
     paddingHorizontal: 20,
-    paddingTop: 0, // Padding around the content
+    paddingTop: 0,
     zIndex: 2,
   },
   nameTagContainer: {
     alignItems: "center",
-    marginTop: -20, // Overlap the Top Background
+    marginTop: -20,
     marginBottom: -10,
     zIndex: 5,
   },
@@ -179,12 +224,12 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingBottom: 20, // push text up if necessary
+    paddingBottom: 20,
   },
   chatTextContainer: {
     width: "100%",
     height: "100%",
-    paddingTop: 30, // account for speech bubble tail
+    paddingTop: 30,
     paddingHorizontal: 10,
   },
   chatText: {
@@ -216,6 +261,8 @@ const styles = StyleSheet.create({
   userProfileImage: {
     width: 60,
     height: 60,
+    borderRadius: 30,
+    overflow: "hidden",
     position: "absolute",
     right: 10,
     top: -30,
