@@ -210,14 +210,9 @@ const styles = StyleSheet.create({
   imagePlaceholder: {
     width: 250,
     height: 150,
-    backgroundColor: "rgba(0,0,0,0.05)",
-    borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
     marginVertical: 40,
-    borderWidth: 2,
-    borderColor: "rgba(0,0,0,0.1)",
-    borderStyle: "dashed",
     overflow: "hidden",
   },
   placeholderText: {

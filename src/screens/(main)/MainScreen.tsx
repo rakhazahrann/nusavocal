@@ -35,13 +35,23 @@ export const MainScreen = ({ navigation }: any) => {
 
   // STAGE DATA: STRICTLY DATABASE ONLY
   // No more fallbacks to hardcoded tutorial stages.
-  const stages = dbStages.map((s, i) => ({
-    id: s.id,
-    x: s.x_position,
-    label: s.label,
-    status: s.status,
-    decorations: FALLBACK_STAGES[i]?.decorations || [], // Reuse decorations for ambiance if possible
-  }));
+  const stages = dbStages.map((s, i) => {
+    let status = s.status;
+    // Admins can access everything
+    if (profile?.role === "admin" && status === "locked") {
+      status = "completed";
+    }
+
+    return {
+      id: s.id,
+      x: s.x_position,
+      label: s.label,
+      description: s.description,
+      image_url: s.image_url,
+      status: status,
+      decorations: FALLBACK_STAGES[i]?.decorations || [],
+    };
+  });
 
   // Fetch stages on mount
   useEffect(() => {
@@ -127,15 +137,12 @@ export const MainScreen = ({ navigation }: any) => {
 
     setSelectedStageId(stageId);
     setSelectedStageLabel(label);
-
-    // Get description from DB stages if available
-    const dbStage = dbStages.find(s => s.id === stageId);
-    setSelectedStageDescription(dbStage?.description || `Stage ${stageId}`);
-    setPopupVisible(true);
+    setSelectedStageDescription(stages[index].description || `Misi ke-${stageId}`);
 
     // Wait for the walking animation to finish (1500ms duration defined in Character)
     setTimeout(() => {
       setIsWalking(false);
+      setPopupVisible(true);
     }, 1500);
   };
 
@@ -215,6 +222,8 @@ export const MainScreen = ({ navigation }: any) => {
         visible={popupVisible}
         stageId={selectedStageId}
         label={selectedStageLabel}
+        description={selectedStageDescription}
+        imageUrl={stages.find(s => s.id === selectedStageId)?.image_url}
         onCancel={() => setPopupVisible(false)}
         onStart={(stageId) => {
           setPopupVisible(false);

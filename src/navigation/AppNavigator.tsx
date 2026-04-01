@@ -22,7 +22,6 @@ const RootStack = createNativeStackNavigator();
 const AuthStack = createNativeStackNavigator();
 const MainTab = createBottomTabNavigator();
 const MapStack = createNativeStackNavigator();
-const AdminStack = createNativeStackNavigator();
 
 // 1. Map Flow
 const MapNavigator = () => (

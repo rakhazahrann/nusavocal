@@ -11,8 +11,7 @@ export default function SplashScreen({ navigation }: any) {
 
     const timer = setTimeout(() => {
       if (session && profile?.role === "admin") {
-        // Admin user → go to admin panel
-        navigation.replace("Admin");
+        navigation.replace("Main");
       } else if (session && profile?.gender && profile?.nickname) {
         // Fully authenticated user with complete profile
         navigation.replace("Main");

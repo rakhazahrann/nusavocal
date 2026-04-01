@@ -37,6 +37,7 @@ export const AdminStageWizardModal: React.FC<AdminStageWizardModalProps> = ({
 
   // Step 2: Vocab (1 Question, 3 Options)
   const [vocabQuestion, setVocabQuestion] = useState("");
+  const [vocabImage, setVocabImage] = useState("");
   const [opt1, setOpt1] = useState("");
   const [opt2, setOpt2] = useState("");
   const [opt3, setOpt3] = useState("");
@@ -54,6 +55,7 @@ export const AdminStageWizardModal: React.FC<AdminStageWizardModalProps> = ({
     setStageDesc("");
     setStageImage("");
     setVocabQuestion("");
+    setVocabImage("");
     setOpt1("");
     setOpt2("");
     setOpt3("");
@@ -64,7 +66,7 @@ export const AdminStageWizardModal: React.FC<AdminStageWizardModalProps> = ({
     setExpectedVoice("");
   };
 
-  const handeClose = () => {
+  const handleClose = () => {
     resetForm();
     onClose();
   };
@@ -84,6 +86,17 @@ export const AdminStageWizardModal: React.FC<AdminStageWizardModalProps> = ({
   const handlePrev = () => setStep(step - 1);
 
   const handleSubmit = async () => {
+    // Final Validation
+    if (!stageLabel) {
+      Alert.alert("Error", "Nama Stage (Step 1) harus diisi.");
+      setStep(1);
+      return;
+    }
+    if (!vocabQuestion || !opt1 || !opt2) {
+      Alert.alert("Error", "Kuis Vocab (Step 2) minimal harus ada 2 pilihan.");
+      setStep(2);
+      return;
+    }
     if (!npcText || !expectedVoice) {
       Alert.alert("Validation", "NPC Text and Expected Voice are required.");
       return;
@@ -91,39 +104,49 @@ export const AdminStageWizardModal: React.FC<AdminStageWizardModalProps> = ({
 
     try {
       setIsLoading(true);
+      console.log("[Wizard] Starting submission...");
 
       // 0. Upload Images if they are selected
+      console.log("[Wizard] Uploading images...");
       const finalStageImage = await mediaService.uploadImage(stageImage, "stages");
       const finalScenarioBg = await mediaService.uploadImage(scenarioBg, "scenarios");
 
       // 1. Determine next alternating X position
+      console.log("[Wizard] Determining position...");
       const lastX = await stageService.getLastStagePosition();
       let nextX = 0.35; // default to left
       if (lastX !== null) {
-        // If last was left (<= 0.5), go right (0.65). If last was right, go left.
         nextX = lastX <= 0.5 ? 0.65 : 0.35;
       }
 
       // 2. Insert Stage
+      console.log("[Wizard] Creating stage record...");
       const stageData = await stageService.createStage({
         label: stageLabel,
         description: stageDesc,
         image_url: finalStageImage || null,
         x_position: nextX,
-        sort_order: 99, // Put it at the end
+        sort_order: 99, 
       });
 
       const stageId = stageData.id;
+      console.log(`[Wizard] Stage created with ID: ${stageId}`);
 
       // 3. Insert Vocab Question
+      console.log("[Wizard] Uploading vocab image...");
+      const finalVocabImage = await mediaService.uploadImage(vocabImage, "vocabs");
+
+      console.log("[Wizard] Creating vocab question...");
       const questionData = await vocabService.createVocabQuestion({
         stage_id: stageId,
         question_text: vocabQuestion,
+        image_url: finalVocabImage || null,
       });
 
       const qId = questionData.id;
 
       // 4. Insert Vocab Options
+      console.log("[Wizard] Creating vocab options...");
       const optionsToInsert = [
         { question_id: qId, option_text: opt1, is_correct: correctIdx === 0, sort_order: 1 },
         { question_id: qId, option_text: opt2, is_correct: correctIdx === 1, sort_order: 2 },
@@ -135,6 +158,7 @@ export const AdminStageWizardModal: React.FC<AdminStageWizardModalProps> = ({
       await vocabService.createVocabOptions(optionsToInsert);
 
       // 5. Insert Scenario
+      console.log("[Wizard] Creating scenario...");
       await scenarioService.createScenario({
         stage_id: stageId,
         background_image_url: finalScenarioBg || null,
@@ -143,16 +167,29 @@ export const AdminStageWizardModal: React.FC<AdminStageWizardModalProps> = ({
         expected_voice_text: expectedVoice,
       });
 
-      Alert.alert("Success", "Stage created successfully!");
+      console.log("[Wizard] All records created successfully!");
+      console.log("[Wizard] All records created successfully!");
+      Alert.alert(
+        "Berhasil! 🎉", 
+        `Stage "${stageLabel}" sudah aktif di Peta.\nID Stage: ${stageId}`
+      );
       onSuccess();
-      handeClose();
+      handleClose();
     } catch (e: any) {
-      console.error("Submit error:", e);
-      Alert.alert("Error", e.message || "Failed to create stage");
+      console.error("[Wizard] Submit Critical Error:", e);
+      // Give more helpful common error messages
+      let msg = e.message || "Gagal menyimpan data.";
+      if (msg.includes("storage")) {
+        msg = "Gagal upload gambar. Pastikan bucket 'assets' sudah dibuat di Supabase Storage.";
+      } else if (msg.includes("permission") || msg.includes("row-level security")) {
+        msg = "Akses Ditolak. Pastikan role Anda sudah 'admin' di tabel profiles.";
+      }
+      
+      Alert.alert("Gagal Simpan", msg);
     } finally {
       setIsLoading(false);
     }
-  };;
+  };
 
   return (
     <Modal visible={visible} transparent animationType="slide">
@@ -161,7 +198,7 @@ export const AdminStageWizardModal: React.FC<AdminStageWizardModalProps> = ({
         behavior={Platform.OS === "ios" ? "padding" : Platform.OS === "android" ? "height" : undefined}
       >
         <View style={styles.modalContainer}>
-          <WoodPanel variant="light" innerPadding={20} style={{ flex: 1 }}>
+          <WoodPanel variant="light" innerPadding={20} style={{ flex: 1 }} outerStyle={{ flex: 1 }}>
             
             {/* Header */}
             <View style={styles.header}>
@@ -173,7 +210,7 @@ export const AdminStageWizardModal: React.FC<AdminStageWizardModalProps> = ({
                   STEP {step} OF 3
                 </PixelText>
               </View>
-              <TouchableOpacity onPress={handeClose} disabled={isLoading}>
+              <TouchableOpacity onPress={handleClose} disabled={isLoading}>
                 <MaterialIcons name="close" size={28} color="#5D3A1A" />
               </TouchableOpacity>
             </View>
@@ -183,6 +220,7 @@ export const AdminStageWizardModal: React.FC<AdminStageWizardModalProps> = ({
               contentContainerStyle={styles.scrollContent} 
               showsVerticalScrollIndicator={true}
               keyboardShouldPersistTaps="handled"
+              nestedScrollEnabled={true}
             >
               
               {/* STEP 1: STAGE INFO */}
@@ -204,6 +242,7 @@ export const AdminStageWizardModal: React.FC<AdminStageWizardModalProps> = ({
                     2. Vocabulary Quiz
                   </PixelText>
                   <AdminInput label="Question *" value={vocabQuestion} onChangeText={setVocabQuestion} placeholder="e.g. What is Hello?" />
+                  <ImageUploadPlaceholder label="Question Image (Optional)" value={vocabImage} onSelect={setVocabImage} />
                   
                   <View style={styles.optionsWrapper}>
                     <PixelText size={10} color="#5D3A1A" style={{ marginBottom: 8 }}>Options (Select Correct)</PixelText>
@@ -336,16 +375,13 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.6)",
-    justifyContent: "flex-end",
+    justifyContent: "center",
+    paddingHorizontal: 10,
   },
   modalContainer: {
-    height: "85%",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    /* overflow hidden doesn't work well on wood panel if we want to show it fully, 
-       but WoodPanel uses its own corners. We'll add some padding */
+    height: "75%",
+    borderRadius: 20,
     paddingTop: 10,
-    marginBottom: -10, // Hide bottom wood edge if needed
   },
   header: {
     flexDirection: "row",

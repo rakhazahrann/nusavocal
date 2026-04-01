@@ -1,5 +1,5 @@
 import React from "react";
-import { Modal, View, Text, StyleSheet, ImageBackground, TouchableOpacity } from "react-native";
+import { Modal, View, Text, StyleSheet, ImageBackground, TouchableOpacity, Image } from "react-native";
 
 const BORDER_POPUP = require("../../../assets/images/popup/border-popup.png");
 const BORDER_IMAGE = require("../../../assets/images/popup/border-image.png");
@@ -9,6 +9,8 @@ interface StagePopupProps {
   visible: boolean;
   stageId: number | null;
   label: string;
+  description?: string;
+  imageUrl?: string | null;
   onCancel: () => void;
   onStart: (stageId: number) => void;
 }
@@ -17,6 +19,8 @@ export const StagePopup: React.FC<StagePopupProps> = ({
   visible,
   stageId,
   label,
+  description,
+  imageUrl,
   onCancel,
   onStart,
 }) => {
@@ -42,17 +46,27 @@ export const StagePopup: React.FC<StagePopupProps> = ({
               style={styles.imageFrame}
               imageStyle={{ resizeMode: "stretch" }}
             >
-              <Text style={styles.imageText}>IMAGE</Text>
+              {imageUrl ? (
+                <View style={styles.imageInner}>
+                  <Image 
+                    source={{ uri: imageUrl }} 
+                    style={styles.actualImage} 
+                    resizeMode="cover"
+                  />
+                </View>
+              ) : (
+                <Text style={styles.imageText}>IMAGE</Text>
+              )}
             </ImageBackground>
 
             {/* Middle Description Area */}
             <View style={styles.descriptionContainer}>
-              <Text style={styles.descriptionTitle}>DESCRIPTION</Text>
+              <Text style={styles.descriptionTitle}>{label}</Text>
               <Text style={styles.descriptionBody}>
-                {label}
+                {description || "No description available."}
               </Text>
               <Text style={styles.descriptionSub}>
-                Stage {stageId}
+                ID: {stageId}
               </Text>
             </View>
 
@@ -116,6 +130,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginTop: 10,
+  },
+  imageInner: {
+    width: "84%",
+    height: "78%",
+    overflow: "hidden",
+    borderRadius: 8,
+  },
+  actualImage: {
+    width: "100%",
+    height: "100%",
   },
   imageText: {
     fontSize: 20,

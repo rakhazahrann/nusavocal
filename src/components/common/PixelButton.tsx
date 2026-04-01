@@ -4,6 +4,7 @@ import {
   View,
   StyleSheet,
   TouchableOpacityProps,
+  ActivityIndicator,
 } from "react-native";
 import { PixelText } from "./PixelText";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -12,7 +13,8 @@ interface PixelButtonProps extends TouchableOpacityProps {
   title: string;
   icon?: keyof typeof MaterialCommunityIcons.glyphMap;
   communityIconName?: keyof typeof MaterialCommunityIcons.glyphMap;
-  variant?: "primary" | "secondary" | "outline" | "adventure";
+  variant?: "primary" | "secondary" | "outline" | "adventure" | "danger";
+  isLoading?: boolean;
 }
 
 export const PixelButton: React.FC<PixelButtonProps> = ({
@@ -20,7 +22,9 @@ export const PixelButton: React.FC<PixelButtonProps> = ({
   icon,
   communityIconName,
   variant = "primary",
+  isLoading = false,
   style,
+  disabled,
   ...props
 }) => {
   const [isPressed, setIsPressed] = useState(false);
@@ -45,6 +49,12 @@ export const PixelButton: React.FC<PixelButtonProps> = ({
           shadow: "#0D47A1", // Dark Navy Shadow
           text: "#FFFFFF",
         };
+      case "danger":
+        return {
+          main: "#d9534f", // Retro Red
+          shadow: "#5D3A1A",
+          text: "#FFFFFF",
+        };
       default:
         return {
           main: "#FFB067", // Retro Peach/Orange
@@ -61,7 +71,8 @@ export const PixelButton: React.FC<PixelButtonProps> = ({
       activeOpacity={1}
       onPressIn={() => setIsPressed(true)}
       onPressOut={() => setIsPressed(false)}
-      style={[styles.container, style]}
+      style={[styles.container, style, (disabled || isLoading) && styles.disabled]}
+      disabled={disabled || isLoading}
       {...props}
     >
       {/* Shadow / Bottom layer */}
@@ -84,24 +95,30 @@ export const PixelButton: React.FC<PixelButtonProps> = ({
           isPressed ? styles.mainLayerPressed : null,
         ]}
       >
-        <PixelText size={12} color={theme.text} shadow={variant !== "outline"}>
-          {title}
-        </PixelText>
-        {icon && (
-          <MaterialCommunityIcons
-            name={icon}
-            size={18}
-            color={theme.text}
-            style={[styles.icon, isPressed ? null : styles.iconPulse]}
-          />
-        )}
-        {communityIconName && (
-          <MaterialCommunityIcons
-            name={communityIconName}
-            size={18}
-            color={theme.text}
-            style={[styles.icon, isPressed ? null : styles.iconPulse]}
-          />
+        {isLoading ? (
+          <ActivityIndicator color={theme.text} size="small" />
+        ) : (
+          <>
+            <PixelText size={12} color={theme.text} shadow={variant !== "outline"}>
+              {title}
+            </PixelText>
+            {icon && (
+              <MaterialCommunityIcons
+                name={icon}
+                size={18}
+                color={theme.text}
+                style={[styles.icon, isPressed ? null : styles.iconPulse]}
+              />
+            )}
+            {communityIconName && (
+              <MaterialCommunityIcons
+                name={communityIconName}
+                size={18}
+                color={theme.text}
+                style={[styles.icon, isPressed ? null : styles.iconPulse]}
+              />
+            )}
+          </>
         )}
       </View>
     </TouchableOpacity>
@@ -145,5 +162,8 @@ const styles = StyleSheet.create({
   iconPulse: {
     // simplified for react native core, full animation would use Reanimated
     opacity: 0.9,
+  },
+  disabled: {
+    opacity: 0.6,
   },
 });
