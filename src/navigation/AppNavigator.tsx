@@ -8,11 +8,13 @@ import {
   CharacterSelectScreen,
   ProfileCreationScreen,
   MainScreen,
+  LeaderboardScreen,
+  ProfileScreen,
+  SettingsScreen,
   StageBriefingScreen,
   VocabFarmingScreen,
   GameScreen,
   ResultScreen,
-  Construction,
 } from "../screens";
 
 import { CustomTabBar } from "../components/common/TabBar";
@@ -39,9 +41,9 @@ const MainNavigator = () => (
     }}
   >
     <MainTab.Screen name="Map" component={MapNavigator} />
-    <MainTab.Screen name="Settings" component={Construction} />
-    <MainTab.Screen name="Leaderboard" component={Construction} />
-    <MainTab.Screen name="Profile" component={Construction} />
+    <MainTab.Screen name="Leaderboard" component={LeaderboardScreen} />
+    <MainTab.Screen name="Profile" component={ProfileScreen} />
+    <MainTab.Screen name="Settings" component={SettingsScreen} />
   </MainTab.Navigator>
 );
 

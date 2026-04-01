@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+const { create } = require('zustand') as typeof import('zustand');
 import { supabase } from '../api/supabase';
 import { Session, User } from '@supabase/supabase-js';
 import { authService } from '../services/authService';

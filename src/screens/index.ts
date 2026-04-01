@@ -7,6 +7,9 @@ export { GameScreen } from "./(main)/GameScreen";
 export { StageBriefingScreen } from "./(main)/StageBriefingScreen";
 export { VocabFarmingScreen } from "./(main)/VocabFarmingScreen";
 export { ResultScreen } from "./ResultScreen";
-export { Leaderboard } from "./Leaderboard";
+export { LeaderboardScreen } from "./LeaderboardScreen";
+export { ProfileScreen } from "./ProfileScreen";
+export { SettingsScreen } from "./SettingsScreen";
 export { Construction } from "./Construction";
+
 

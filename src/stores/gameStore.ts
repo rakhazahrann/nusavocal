@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+const { create } = require('zustand') as typeof import('zustand');
 import { stageService } from '../services/stageService';
 import { vocabService } from '../services/vocabService';
 import { scenarioService } from '../services/scenarioService';

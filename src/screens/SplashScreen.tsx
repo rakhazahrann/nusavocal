@@ -1,7 +1,9 @@
 import React, { useEffect } from "react";
-import { StyleSheet, Text, View, ActivityIndicator } from "react-native";
-import { ScreenWrapper } from "../components/common/ScreenWrapper";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { Screen, Text } from "../components/ui";
+import { colors, spacing } from "../theme";
 import { useAuthStore } from "../stores/authStore";
+import { EnterAnimatedView } from "../motion/EnterAnimatedView";
 
 export default function SplashScreen({ navigation }: any) {
   const { session, profile, isInitialized } = useAuthStore();
@@ -36,15 +38,24 @@ export default function SplashScreen({ navigation }: any) {
   }, [isInitialized, navigation]);
 
   return (
-    <ScreenWrapper style={styles.container}>
-      <Text style={styles.title}>NusaVocal</Text>
-      <ActivityIndicator
-        size="small"
-        color="#f48c25"
-        style={{ marginTop: 16 }}
-      />
-      <Text style={styles.subtitle}>Loading...</Text>
-    </ScreenWrapper>
+    <Screen padded={false}>
+      <View style={styles.container}>
+        <EnterAnimatedView>
+          <Text variant="hero" weight="bold">
+            NusaVocal
+          </Text>
+          <Text variant="body" tone="muted" style={{ marginTop: spacing.sm }}>
+            Loading...
+          </Text>
+
+          <ActivityIndicator
+            size="small"
+            color={colors.accent}
+            style={{ marginTop: spacing.lg }}
+          />
+        </EnterAnimatedView>
+      </View>
+    </Screen>
   );
 }
 
@@ -52,16 +63,7 @@ const styles = StyleSheet.create({
   container: {
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#1a1a2e",
-  },
-  title: {
-    fontSize: 24,
-    color: "#e94560",
-    fontWeight: "bold",
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#a0a0b0",
-    marginTop: 10,
+    flex: 1,
+    backgroundColor: colors.background,
   },
 });

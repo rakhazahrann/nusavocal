@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { AppNavigator } from "./src/navigation/AppNavigator";
 import { StatusBar } from "expo-status-bar";
@@ -25,8 +25,9 @@ SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const { initialize } = useAuthStore();
+  const [fontTimeoutReached, setFontTimeoutReached] = useState(false);
 
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     "SpaceGrotesk-Light": SpaceGrotesk_300Light,
     "SpaceGrotesk-Regular": SpaceGrotesk_400Regular,
     "SpaceGrotesk-Medium": SpaceGrotesk_500Medium,
@@ -45,21 +46,29 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    const t = setTimeout(() => setFontTimeoutReached(true), 3500);
+    return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
     async function prepare() {
-      if (fontsLoaded) {
+      if (fontsLoaded || fontError || fontTimeoutReached) {
+        if (fontError) {
+          console.warn("[fonts] failed to load, continuing without them", fontError);
+        }
         await SplashScreen.hideAsync();
       }
     }
     prepare();
-  }, [fontsLoaded]);
+  }, [fontsLoaded, fontError, fontTimeoutReached]);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded && !fontError && !fontTimeoutReached) {
     return null;
   }
 
   return (
     <NavigationContainer>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       <AppNavigator />
     </NavigationContainer>
   );

@@ -1,13 +1,11 @@
 import React from "react";
-import { View, StyleSheet, TouchableOpacity, Image } from "react-native";
+import { View, StyleSheet, Pressable, Image } from "react-native";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { NavBarBackground, BAR_HEIGHT } from "./BarBackground";
-import { NavMapIcon } from "../map/Map-Icon";
-import { NavBookIcon } from "../map/Book-Icon";
-import { NavCupIcon } from "../map/Cup-Icon";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useAuthStore } from "../../stores/authStore";
+import { colors, radius, spacing } from "../../theme";
 
-const ICON_SIZE = 48;
+const BAR_HEIGHT = 72;
 
 // Profile images based on gender
 const PROFILE_IMAGES = {
@@ -29,10 +27,6 @@ export const CustomTabBar = ({
 
   return (
     <View style={styles.container}>
-      {/* Background bar image – stretches full width */}
-      <NavBarBackground />
-
-      {/* Icons row on top of the bar */}
       <View style={styles.tabContent}>
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
@@ -50,47 +44,36 @@ export const CustomTabBar = ({
             }
           };
 
-          const opacity = isFocused ? 1 : 0.6;
+          const color = isFocused ? colors.text : colors.mutedText;
+          const iconSize = 26;
 
-          let icon;
-          switch (route.name) {
-            case "Map":
-              icon = <NavMapIcon size={ICON_SIZE} style={{ opacity }} />;
-              break;
-            case "Settings":
-              icon = <NavBookIcon size={ICON_SIZE} style={{ opacity }} />;
-              break;
-            case "Leaderboard":
-              icon = <NavCupIcon size={ICON_SIZE} style={{ opacity }} />;
-              break;
-            case "Profile":
-              // Gender-based profile icon
-              icon = (
-                <View style={[styles.profileIconContainer, { opacity }]}>
-                  <Image
-                    source={profileImage}
-                    style={styles.profileIcon}
-                    resizeMode="contain"
-                  />
-                </View>
-              );
-              break;
-            default:
-              icon = <NavMapIcon size={ICON_SIZE} style={{ opacity }} />;
+          let iconNode: React.ReactNode = null;
+          if (route.name === "Map") {
+            iconNode = <MaterialIcons name="map" size={iconSize} color={color} />;
+          } else if (route.name === "Leaderboard") {
+            iconNode = <MaterialIcons name="emoji-events" size={iconSize} color={color} />;
+          } else if (route.name === "Profile") {
+            iconNode = (
+              <View style={[styles.profileIconContainer, isFocused && styles.profileFocused]}>
+                <Image source={profileImage} style={styles.profileIcon} />
+              </View>
+            );
+          } else {
+            iconNode = <MaterialIcons name="settings" size={iconSize} color={color} />;
           }
 
           return (
-            <TouchableOpacity
+            <Pressable
               key={route.key}
               accessibilityState={isFocused ? { selected: true } : {}}
               accessibilityLabel={options.tabBarAccessibilityLabel}
               testID={options.tabBarButtonTestID}
               onPress={onPress}
               style={[styles.tabItem, isFocused && styles.tabItemFocused]}
-              activeOpacity={0.8}
             >
-              {icon}
-            </TouchableOpacity>
+              {iconNode}
+              {isFocused ? <View style={styles.activePill} /> : null}
+            </Pressable>
           );
         })}
       </View>
@@ -105,35 +88,48 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: BAR_HEIGHT,
+    backgroundColor: colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
   },
   tabContent: {
     flexDirection: "row",
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
     height: BAR_HEIGHT,
     alignItems: "center",
     justifyContent: "space-around",
-    paddingHorizontal: 24,
+    paddingHorizontal: spacing.lg,
   },
   tabItem: {
     alignItems: "center",
     justifyContent: "center",
-    padding: 4,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    minWidth: 72,
   },
   tabItemFocused: {
-    transform: [{ scale: 1.15 }],
+    transform: [{ scale: 1.02 }],
+  },
+  activePill: {
+    marginTop: 6,
+    width: 18,
+    height: 4,
+    borderRadius: radius.pill,
+    backgroundColor: colors.accent,
   },
   profileIconContainer: {
-    width: 60,
-    height: 60,
-    paddingBottom: 5,
-    borderRadius: 30,
+    width: 30,
+    height: 30,
+    borderRadius: radius.pill,
     overflow: "hidden",
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  profileFocused: {
+    borderColor: colors.accent,
   },
   profileIcon: {
     width: "100%",
     height: "100%",
   },
 });
+

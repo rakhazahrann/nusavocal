@@ -1,21 +1,10 @@
-import React, { useState } from "react";
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  SafeAreaView,
-  Image,
-  Dimensions,
-  ActivityIndicator,
-  Alert,
-} from "react-native";
-import { BackgroundLayer } from "../../components/common/BackgroundLayer";
-import { PixelText } from "../../components/common/PixelText";
-import { PixelButton } from "../../components/common/PixelButton";
+import React, { useMemo, useState } from "react";
+import { Alert, Image, Pressable, StyleSheet, View } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { Button, Card, Screen, Text } from "../../components/ui";
+import { EnterAnimatedView } from "../../motion/EnterAnimatedView";
+import { colors, radius, spacing } from "../../theme";
 import { useAuthStore, Gender } from "../../stores/authStore";
-
-const { width } = Dimensions.get("window");
 
 const CHARACTERS = [
   {
@@ -38,7 +27,10 @@ export const CharacterSelectScreen = ({ navigation }: any) => {
   const [selectedId, setSelectedId] = useState("ira");
   const { updateProfile, isLoading } = useAuthStore();
 
-  const selectedChar = CHARACTERS.find((c) => c.id === selectedId);
+  const selectedChar = useMemo(
+    () => CHARACTERS.find((c) => c.id === selectedId),
+    [selectedId]
+  );
 
   const handleContinue = async () => {
     if (!selectedChar) return;
@@ -58,223 +50,135 @@ export const CharacterSelectScreen = ({ navigation }: any) => {
   };
 
   return (
-    <BackgroundLayer>
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.container}>
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <MaterialIcons name="arrow-back" size={28} color="#5d3a1a" />
-            </TouchableOpacity>
-            <PixelText size={10} color="#5d3a1a" style={styles.headerTitle}>
-              WHO ARE YOU?
-            </PixelText>
-          </View>
-
-          {/* Title Section */}
-          <View style={styles.titleSection}>
-            <PixelText size={24} color="#5d3a1a" style={styles.title}>
-              Pick Your Character
-            </PixelText>
-            <PixelText size={10} color="#a1887f" style={styles.subtitle}>
-              A MUSICAL JOURNEY AWAITS
-            </PixelText>
-          </View>
-
-          {/* Character Cards */}
-          <View style={styles.cardsContainer}>
-            {CHARACTERS.map((char) => (
-              <TouchableOpacity
-                key={char.id}
-                onPress={() => setSelectedId(char.id)}
-                activeOpacity={0.9}
-                style={[
-                  styles.charCard,
-                  selectedId === char.id && styles.selectedCard,
-                ]}
-              >
-                <View style={styles.imageWrapper}>
-                  <Image source={char.image} style={styles.charImage} />
-                </View>
-                <View style={styles.nameBadge}>
-                  <PixelText size={10} color="#FFF">
-                    {char.name}
-                  </PixelText>
-                </View>
-                {/* Gender indicator */}
-                <View style={styles.genderBadge}>
-                  <PixelText size={7} color="#5d3a1a">
-                    {char.gender === "man" ? "♂" : "♀"}
-                  </PixelText>
-                </View>
-                {selectedId === char.id && (
-                  <View style={styles.checkBadge}>
-                    <MaterialIcons name="check" size={16} color="#FFF" />
-                  </View>
-                )}
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {/* Description Section */}
-          <View style={styles.descriptionBox}>
-            <PixelText size={12} color="#5d3a1a" style={styles.descriptionText}>
-              {selectedChar?.description}
-            </PixelText>
-          </View>
-
-          {/* Progress Indicator */}
-          <View style={styles.progressDots}>
-            <View style={styles.dot} />
-            <View style={[styles.dot, styles.activeDot]} />
-            <View style={styles.dot} />
-          </View>
-
-          {/* Continue Button */}
-          <PixelButton
-            title={isLoading ? "SAVING..." : "CONTINUE"}
-            onPress={handleContinue}
-            style={styles.continueBtn}
-            disabled={isLoading}
-          />
-
-          {isLoading && (
-            <ActivityIndicator
-              size="small"
-              color="#f48c25"
-              style={{ marginTop: 12 }}
-            />
-          )}
+    <Screen>
+      <EnterAnimatedView style={{ flex: 1 }}>
+        <View style={styles.headerRow}>
+          <Pressable onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <MaterialIcons name="arrow-back" size={24} color={colors.text} />
+          </Pressable>
+          <Text variant="label" weight="semibold">
+            Choose character
+          </Text>
+          <View style={{ width: 40 }} />
         </View>
-      </SafeAreaView>
-    </BackgroundLayer>
+
+        <Text variant="body" tone="muted" style={{ marginTop: spacing.sm }}>
+          Pilih karakter untuk memulai perjalanan.
+        </Text>
+
+        <View style={styles.cardsRow}>
+          {CHARACTERS.map((char) => {
+            const selected = selectedId === char.id;
+            return (
+              <Pressable key={char.id} onPress={() => setSelectedId(char.id)} style={{ flex: 1 }}>
+                <Card
+                  padded={false}
+                  style={[styles.charCard, selected && styles.charCardSelected]}
+                >
+                  <View style={styles.charTop}>
+                    <Text variant="label" weight="bold">
+                      {char.name}
+                    </Text>
+                    <View style={styles.genderBadge}>
+                      <Text variant="caption" tone="muted">
+                        {char.gender === "man" ? "♂" : "♀"}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.imageWrap}>
+                    <Image source={char.image} style={styles.charImage} />
+                  </View>
+
+                  {selected ? (
+                    <View style={styles.checkBadge}>
+                      <MaterialIcons name="check" size={18} color={colors.surface} />
+                    </View>
+                  ) : null}
+                </Card>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <Card style={{ marginTop: spacing.md }}>
+          <Text variant="label" weight="semibold">
+            About
+          </Text>
+          <Text variant="body" tone="muted" style={{ marginTop: spacing.sm }}>
+            {selectedChar?.description}
+          </Text>
+        </Card>
+
+        <View style={{ marginTop: spacing.lg }}>
+          <Button label={isLoading ? "Saving..." : "Continue"} onPress={handleContinue} loading={isLoading} />
+        </View>
+      </EnterAnimatedView>
+    </Screen>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
-  },
-  header: {
+  headerRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 16,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: "center",
-    marginRight: 28, // Offset back button
-    color: "#5D3A1A",
-  },
-  titleSection: {
-    alignItems: "center",
-    marginTop: 20,
-    marginBottom: 40,
-  },
-  title: {
-    textAlign: "center",
-    marginBottom: 8,
-    color: "#5D3A1A",
-  },
-  subtitle: {
-    letterSpacing: 1,
-    color: "#D1C4B5",
-  },
-  cardsContainer: {
-    flexDirection: "row",
     justifyContent: "space-between",
-    gap: 16,
-    marginBottom: 40,
   },
-  charCard: {
-    flex: 1,
-    aspectRatio: 0.8,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 4,
-    borderColor: "#D1C4B5",
-    padding: 8,
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 0,
+    backgroundColor: colors.surface,
   },
-  selectedCard: {
-    borderColor: "#FFB067",
-    backgroundColor: "#FFF9F2",
-    shadowOpacity: 0.2,
+  cardsRow: {
+    flexDirection: "row",
+    gap: spacing.md,
+    marginTop: spacing.lg,
   },
-  imageWrapper: {
+  charCard: {
+    height: 220,
+    overflow: "hidden",
+  },
+  charCardSelected: {
+    borderColor: colors.accent,
+  },
+  charTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+  },
+  genderBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.pill,
+    backgroundColor: colors.background,
+  },
+  imageWrap: {
     flex: 1,
-    width: "100%",
+    padding: spacing.md,
   },
   charImage: {
     width: "100%",
     height: "100%",
     resizeMode: "contain",
   },
-  nameBadge: {
-    backgroundColor: "#FFB067",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    marginTop: 8,
-  },
-  genderBadge: {
-    position: "absolute",
-    top: 8,
-    left: 8,
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    width: 22,
-    height: 22,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#D1C4B5",
-  },
   checkBadge: {
     position: "absolute",
-    top: -8,
-    right: -8,
-    backgroundColor: "#FFB067",
-    width: 24,
-    height: 24,
-    borderRadius: 2,
+    top: 10,
+    right: 10,
+    backgroundColor: colors.accent,
+    width: 28,
+    height: 28,
+    borderRadius: radius.pill,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "#FFFFFF",
-  },
-  descriptionBox: {
-    paddingHorizontal: 32,
-    marginBottom: 40,
-  },
-  descriptionText: {
-    textAlign: "center",
-    lineHeight: 20,
-    color: "#5D3A1A",
-  },
-  progressDots: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 8,
-    marginBottom: 24,
-  },
-  dot: {
-    width: 10,
-    height: 10,
-    backgroundColor: "#D1C4B5",
-    transform: [{ rotate: "45deg" }],
-  },
-  activeDot: {
-    backgroundColor: "#FFB067",
-  },
-  continueBtn: {
-    width: "100%",
   },
 });

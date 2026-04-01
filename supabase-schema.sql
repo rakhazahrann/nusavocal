@@ -189,3 +189,36 @@ INSERT INTO public.stages (label, description, image_url, x_position, sort_order
   ('Transportasi', 'Kosakata transportasi untuk menjelajahi nusantara.', NULL, 0.65, 6),
   ('Makanan', 'Pelajari nama-nama makanan tradisional.', NULL, 0.35, 7),
   ('Arah & Lokasi', 'Kuasai arah dan lokasi dalam bahasa daerah.', NULL, 0.65, 8);
+
+-- ── LEADERBOARD (RPC) ───────────────────────────────────────────
+-- Global leaderboard requires a SECURITY DEFINER function to avoid client-side RLS limitations.
+-- This returns only non-sensitive public fields + aggregates.
+
+CREATE OR REPLACE FUNCTION public.get_leaderboard(limit_count INT DEFAULT 50)
+RETURNS TABLE (
+  user_id UUID,
+  username TEXT,
+  nickname TEXT,
+  completed_stages INT,
+  total_vocab_score INT
+)
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT
+    p.id AS user_id,
+    p.username,
+    p.nickname,
+    COALESCE(SUM(CASE WHEN up.status = 'completed' THEN 1 ELSE 0 END), 0)::INT AS completed_stages,
+    COALESCE(SUM(up.vocab_score), 0)::INT AS total_vocab_score
+  FROM public.profiles p
+  LEFT JOIN public.user_progress up
+    ON up.user_id = p.id
+  GROUP BY p.id, p.username, p.nickname
+  ORDER BY total_vocab_score DESC, completed_stages DESC
+  LIMIT limit_count;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_leaderboard(INT) TO anon, authenticated;
+

@@ -1,20 +1,18 @@
 import React, { useState } from "react";
 import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  SafeAreaView,
+  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
-  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
 } from "react-native";
-import { BackgroundLayer } from "../../components/common/BackgroundLayer";
-import { PixelText } from "../../components/common/PixelText";
-import { PixelInput } from "../../components/common/PixelInput";
-import { PixelButton } from "../../components/common/PixelButton";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { Button, Card, Input, Screen, Text } from "../../components/ui";
+import { EnterAnimatedView } from "../../motion/EnterAnimatedView";
+import { colors, radius, spacing } from "../../theme";
 import { useAuthStore } from "../../stores/authStore";
 import { supabase } from "../../api/supabase";
 
@@ -85,161 +83,115 @@ export const ProfileCreationScreen = ({ navigation, route }: any) => {
   };
 
   return (
-    <BackgroundLayer>
+    <Screen padded={false}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
-        <SafeAreaView style={styles.safeArea}>
-          <View style={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
-              <TouchableOpacity onPress={() => navigation.goBack()}>
-                <MaterialIcons name="arrow-back" size={28} color="#5d3a1a" />
-              </TouchableOpacity>
-              <PixelText size={10} color="#5d3a1a" style={styles.headerTitle}>
-                STEP 3 OF 3
-              </PixelText>
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+          <EnterAnimatedView>
+            <View style={styles.headerRow}>
+              <Pressable onPress={() => navigation.goBack()} style={styles.backBtn}>
+                <MaterialIcons name="arrow-back" size={24} color={colors.text} />
+              </Pressable>
+              <Text variant="label" weight="semibold">
+                Profile setup
+              </Text>
+              <View style={{ width: 40 }} />
             </View>
 
-            {/* Title Section */}
-            <View style={styles.titleSection}>
-              <PixelText size={24} color="#5d3a1a" style={styles.title}>
-                CHOOSE YOUR NICKNAME
-              </PixelText>
-              <PixelText size={10} color="#a1887f" style={styles.subtitle}>
-                Welcome to Nusavocal, Traveler!
-              </PixelText>
-            </View>
+            <Text variant="title" weight="bold" style={{ marginTop: spacing.lg }}>
+              Choose your nickname
+            </Text>
+            <Text variant="body" tone="muted" style={{ marginTop: spacing.sm }}>
+              Ini akan tampil di profil dan leaderboard.
+            </Text>
 
-            {/* Nickname Input Section */}
-            <View style={styles.inputContainer}>
-              <PixelInput
-                label="IDENTITY INPUT"
-                iconName="badge"
-                placeholder="Budi_Vocalist"
-                value={nickname}
-                onChangeText={setNickname}
-                maxLength={12}
-              />
-              <PixelText size={8} color="#a1887f" style={styles.inputHint}>
-                MAX 12 CHARACTERS. NO SPECIAL CHARACTERS ALLOWED.
-              </PixelText>
-            </View>
-
-            {/* Hero Preview */}
-            <View style={styles.previewSection}>
-              <View style={styles.avatarBorder}>
-                <Image source={character.image} style={styles.avatar} />
+            <Card style={{ marginTop: spacing.lg }}>
+              <View style={styles.previewRow}>
+                <View style={styles.avatarWrap}>
+                  <Image source={character.image} style={styles.avatar} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text variant="label" weight="semibold">
+                    {character.name}
+                  </Text>
+                  <Text variant="caption" tone="muted" style={{ marginTop: spacing.xs }}>
+                    Step 3 of 3
+                  </Text>
+                </View>
               </View>
-              <PixelText size={8} color="#a1887f" style={styles.previewLabel}>
-                PREVIEW HERO
-              </PixelText>
-            </View>
 
-            <View style={{ flex: 1 }} />
+              <View style={{ marginTop: spacing.md }}>
+                <Input
+                  label="Nickname"
+                  placeholder="BudiVocal"
+                  value={nickname}
+                  onChangeText={setNickname}
+                  maxLength={12}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  helperText="Max 12 karakter."
+                />
+              </View>
 
-            {/* Final Action */}
-            <PixelButton
-              title={isLoading ? "SAVING..." : "FINISH ADVENTURE"}
-              icon="controller-classic"
-              onPress={handleFinish}
-              style={styles.finishBtn}
-              disabled={isLoading}
-            />
+              <View style={{ marginTop: spacing.lg }}>
+                <Button label={isLoading ? "Saving..." : "Finish"} onPress={handleFinish} loading={isLoading} />
+              </View>
+            </Card>
 
-            {isLoading && (
-              <ActivityIndicator
-                size="small"
-                color="#f48c25"
-                style={{ marginTop: 8 }}
-              />
-            )}
-
-            <PixelText size={8} color="#a1887f" style={styles.footerHint}>
-              Press Start to begin your musical journey across the archipelago.
-            </PixelText>
-          </View>
-        </SafeAreaView>
+            <Text variant="caption" tone="muted" style={{ marginTop: spacing.lg, textAlign: "center" }}>
+              Mulai perjalanan belajarmu.
+            </Text>
+          </EnterAnimatedView>
+        </ScrollView>
       </KeyboardAvoidingView>
-    </BackgroundLayer>
+    </Screen>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xxl,
+    paddingBottom: spacing.xxl,
+    backgroundColor: colors.background,
   },
-  container: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
-  },
-  header: {
+  headerRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 16,
+    justifyContent: "space-between",
   },
-  headerTitle: {
-    flex: 1,
-    textAlign: "center",
-    marginRight: 28,
-    color: "#5D3A1A",
-  },
-  titleSection: {
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
     alignItems: "center",
-    marginTop: 40,
-    marginBottom: 60,
+    justifyContent: "center",
+    backgroundColor: colors.surface,
   },
-  title: {
-    textAlign: "center",
-    marginBottom: 8,
-    color: "#5D3A1A",
-  },
-  subtitle: {
-    letterSpacing: 1,
-    color: "#D1C4B5",
-  },
-  inputContainer: {
-    marginBottom: 40,
-  },
-  inputHint: {
-    marginTop: 8,
-    textAlign: "center",
-    color: "#D1C4B5",
-  },
-  previewSection: {
+  previewRow: {
+    flexDirection: "row",
     alignItems: "center",
-    marginTop: 20,
+    gap: spacing.md,
   },
-  avatarBorder: {
-    width: 100,
-    height: 100,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 4,
-    borderColor: "#5D3A1A",
-    padding: 8,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 0,
+  avatarWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: radius.pill,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
   },
   avatar: {
     width: "100%",
     height: "100%",
     resizeMode: "contain",
-  },
-  previewLabel: {
-    letterSpacing: 1,
-    color: "#D1C4B5",
-  },
-  finishBtn: {
-    width: "100%",
-    marginBottom: 12,
-  },
-  footerHint: {
-    textAlign: "center",
-    color: "#D1C4B5",
   },
 });
