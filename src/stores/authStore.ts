@@ -32,7 +32,7 @@ interface AuthState {
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   fetchProfile: () => Promise<Profile | null>;
-  updateProfile: (updates: Partial<Pick<Profile, 'gender' | 'character_id' | 'nickname'>>) => Promise<{ success: boolean; error?: string }>;
+  updateProfile: (updates: Partial<Pick<Profile, 'gender' | 'character_id' | 'nickname' | 'username' | 'email'>>) => Promise<{ success: boolean; error?: string }>;
   clearError: () => void;
 }
 

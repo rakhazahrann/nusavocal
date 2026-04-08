@@ -1,16 +1,14 @@
-import React from "react";
-import { Modal, View, Text, StyleSheet, ImageBackground, TouchableOpacity, Image } from "react-native";
-
-const BORDER_POPUP = require("../../../assets/images/popup/border-popup.png");
-const BORDER_IMAGE = require("../../../assets/images/popup/border-image.png");
-const BUTTON_BG = require("../../../assets/images/popup/button.png");
+import React, { useEffect, useRef } from "react";
+import { View, StyleSheet, TouchableOpacity, Modal, Animated } from "react-native";
+import { BlurView } from "expo-blur";
+import { Text } from "../ui";
+import gsap from "gsap";
 
 interface StagePopupProps {
   visible: boolean;
   stageId: number | null;
   label: string;
   description?: string;
-  imageUrl?: string | null;
   onCancel: () => void;
   onStart: (stageId: number) => void;
 }
@@ -20,81 +18,69 @@ export const StagePopup: React.FC<StagePopupProps> = ({
   stageId,
   label,
   description,
-  imageUrl,
   onCancel,
   onStart,
 }) => {
+  const floatY = useRef(new Animated.Value(0)).current;
+  const floatData = useRef({ y: 0 }).current;
+
+  useEffect(() => {
+    if (!visible) return;
+
+    const tween = gsap.to(floatData, {
+      y: -8,
+      duration: 1.5,
+      ease: "sine.inOut",
+      yoyo: true,
+      repeat: -1,
+      onUpdate: () => {
+        floatY.setValue(floatData.y);
+      },
+    });
+
+    return () => {
+      tween.kill();
+    };
+  }, [visible, floatData, floatY]);
+
   if (!visible || stageId === null) return null;
 
   return (
-    <Modal
-      transparent
-      animationType="fade"
-      visible={visible}
-      onRequestClose={onCancel}
-    >
-      <View style={styles.overlay}>
-        <ImageBackground
-          source={BORDER_POPUP}
-          style={styles.popupContainer}
-          imageStyle={styles.popupImage}
-        >
-          <View style={styles.contentContainer}>
-            {/* Top Image Frame Area */}
-            <ImageBackground
-              source={BORDER_IMAGE}
-              style={styles.imageFrame}
-              imageStyle={{ resizeMode: "stretch" }}
-            >
-              {imageUrl ? (
-                <View style={styles.imageInner}>
-                  <Image 
-                    source={{ uri: imageUrl }} 
-                    style={styles.actualImage} 
-                    resizeMode="cover"
-                  />
+    <Modal transparent animationType="fade" visible={visible} onRequestClose={onCancel}>
+      <TouchableOpacity 
+        style={styles.overlay} 
+        activeOpacity={1} 
+        onPress={onCancel}
+      >
+        <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+          <Animated.View style={[styles.popupCard, { transform: [{ translateY: floatY }] }]}>
+            <BlurView intensity={80} tint="light" style={styles.blurContainer}>
+              <View style={styles.content}>
+                <View style={styles.header}>
+                  <Text style={styles.title}>{label}</Text>
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>UNIT {stageId}</Text>
+                  </View>
                 </View>
-              ) : (
-                <Text style={styles.imageText}>IMAGE</Text>
-              )}
-            </ImageBackground>
+                
+                <Text style={styles.description}>
+                  {description || "Master common daily expressions and polite greetings."}
+                </Text>
 
-            {/* Middle Description Area */}
-            <View style={styles.descriptionContainer}>
-              <Text style={styles.descriptionTitle}>{label}</Text>
-              <Text style={styles.descriptionBody}>
-                {description || "No description available."}
-              </Text>
-              <Text style={styles.descriptionSub}>
-                ID: {stageId}
-              </Text>
-            </View>
-
-            {/* Bottom Button Row */}
-            <View style={styles.buttonRow}>
-              <TouchableOpacity onPress={onCancel} style={styles.buttonWrapper}>
-                <ImageBackground 
-                  source={BUTTON_BG} 
-                  style={styles.buttonBg} 
-                  imageStyle={{ resizeMode: "stretch" }}
+                <TouchableOpacity 
+                  style={styles.startButton} 
+                  activeOpacity={0.8}
+                  onPress={() => onStart(stageId)}
                 >
-                  <Text style={styles.buttonText}>CANCEL</Text>
-                </ImageBackground>
-              </TouchableOpacity>
-
-              <TouchableOpacity onPress={() => onStart(stageId)} style={styles.buttonWrapper}>
-                <ImageBackground 
-                  source={BUTTON_BG} 
-                  style={styles.buttonBg} 
-                  imageStyle={{ resizeMode: "stretch" }}
-                >
-                  <Text style={styles.buttonText}>START</Text>
-                </ImageBackground>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </ImageBackground>
-      </View>
+                  <Text style={styles.startText}>START LESSON</Text>
+                </TouchableOpacity>
+              </View>
+              {/* Tooltip tail */}
+              <View style={styles.tooltipTail} />
+            </BlurView>
+          </Animated.View>
+        </TouchableOpacity>
+      </TouchableOpacity>
     </Modal>
   );
 };
@@ -102,98 +88,85 @@ export const StagePopup: React.FC<StagePopupProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
     justifyContent: "center",
     alignItems: "center",
   },
-  popupContainer: {
-    width: 320,
-    height: 480, // Approximate portrait layout
-    justifyContent: "center",
-    alignItems: "center",
+  popupCard: {
+    width: 256, // matching w-64
+    marginBottom: 100, // floating above the node
+    shadowColor: "#1a1c1c",
+    shadowOffset: { width: 0, height: 40 },
+    shadowOpacity: 0.08,
+    shadowRadius: 40,
+    elevation: 10,
   },
-  popupImage: {
-    resizeMode: "stretch", // Ensures the border scales well
+  blurContainer: {
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: "rgba(198,198,198,0.15)",
+    overflow: "visible", // for tail
+    backgroundColor: "rgba(255,255,255,0.8)",
   },
-  contentContainer: {
-    width: "100%",
-    height: "100%",
-    paddingTop: 60,
-    paddingBottom: 40,
-    paddingHorizontal: 40,
-    justifyContent: "space-between",
-    alignItems: "center",
+  content: {
+    padding: 24,
   },
-  imageFrame: {
-    width: "100%",
-    height: 140,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 10,
-  },
-  imageInner: {
-    width: "84%",
-    height: "78%",
-    overflow: "hidden",
-    borderRadius: 8,
-  },
-  actualImage: {
-    width: "100%",
-    height: "100%",
-  },
-  imageText: {
-    fontSize: 20,
-    color: "#000",
-    letterSpacing: 2,
-    fontFamily: "PressStart2P-Regular", 
-  },
-  descriptionContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 10,
-  },
-  descriptionTitle: {
-    fontSize: 16,
-    color: "#000",
-    marginBottom: 10,
-    fontFamily: "PressStart2P-Regular",
-    textAlign: "center",
-  },
-  descriptionBody: {
-    fontSize: 10,
-    color: "#333",
-    textAlign: "center",
-    fontFamily: "PressStart2P-Regular",
-    lineHeight: 16,
-  },
-  descriptionSub: {
-    fontSize: 8,
-    color: "#555",
-    marginTop: 10,
-    fontFamily: "PressStart2P-Regular",
-  },
-  buttonRow: {
+  header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    width: "100%",
-    paddingHorizontal: 5,
-    marginBottom: 10,
+    alignItems: "flex-start",
+    marginBottom: 12,
   },
-  buttonWrapper: {
-    width: "45%",
-    height: 45,
+  title: {
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 18,
+    letterSpacing: -0.5,
+    color: "#000",
   },
-  buttonBg: {
-    width: "100%",
-    height: "100%",
-    justifyContent: "center",
+  badge: {
+    backgroundColor: "#e2e2e2", // surface-container-highest
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 9999,
+  },
+  badgeText: {
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 9,
+    letterSpacing: 1,
+    textTransform: "uppercase",
+    color: "#000",
+  },
+  description: {
+    fontFamily: "SpaceGrotesk-Regular",
+    fontSize: 14,
+    lineHeight: 20,
+    color: "#474747", // on-surface-variant
+    marginBottom: 16,
+  },
+  startButton: {
+    backgroundColor: "#000", // primary
+    paddingVertical: 12,
+    borderRadius: 9999,
     alignItems: "center",
   },
-  buttonText: {
-    fontSize: 10,
-    color: "#fff",
-    fontFamily: "PressStart2P-Regular",
-    marginTop: 4, // slight adjustment to center pixel font vertically
+  startText: {
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 12,
+    letterSpacing: 2,
+    textTransform: "uppercase",
+    color: "#FFF",
   },
+  tooltipTail: {
+    position: "absolute",
+    bottom: -8,
+    left: "50%",
+    marginLeft: -8,
+    width: 16,
+    height: 16,
+    backgroundColor: "rgba(255,255,255,0.9)",
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: "rgba(198,198,198,0.15)",
+    transform: [{ rotate: "45deg" }],
+  }
 });
+

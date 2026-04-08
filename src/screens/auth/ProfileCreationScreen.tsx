@@ -16,21 +16,9 @@ import { colors, radius, spacing } from "../../theme";
 import { useAuthStore } from "../../stores/authStore";
 import { supabase } from "../../api/supabase";
 
-const CHARACTERS: any = {
-  ira: {
-    name: "IRA",
-    image: require("../../../assets/images/characters/man-profile.png"),
-  },
-  sita: {
-    name: "SITA",
-    image: require("../../../assets/images/characters/woman-profile.png"),
-  },
-};
 
 export const ProfileCreationScreen = ({ navigation, route }: any) => {
-  const { characterId = "ira" } = route.params || {};
   const [nickname, setNickname] = useState("");
-  const character = CHARACTERS[characterId];
   const { updateProfile, isLoading, user } = useAuthStore();
 
   const handleFinish = async () => {
@@ -39,7 +27,11 @@ export const ProfileCreationScreen = ({ navigation, route }: any) => {
       return;
     }
 
-    const result = await updateProfile({ nickname: nickname.trim() });
+    const result = await updateProfile({ 
+      nickname: nickname.trim(),
+      username: user?.user_metadata?.username || user?.email?.split('@')[0], // Ambil dari metadata auth
+      email: user?.email,
+    });
     if (result.success) {
       // Initialize first stage progress
       if (user) {
@@ -108,19 +100,6 @@ export const ProfileCreationScreen = ({ navigation, route }: any) => {
             </Text>
 
             <Card style={{ marginTop: spacing.lg }}>
-              <View style={styles.previewRow}>
-                <View style={styles.avatarWrap}>
-                  <Image source={character.image} style={styles.avatar} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text variant="label" weight="semibold">
-                    {character.name}
-                  </Text>
-                  <Text variant="caption" tone="muted" style={{ marginTop: spacing.xs }}>
-                    Step 3 of 3
-                  </Text>
-                </View>
-              </View>
 
               <View style={{ marginTop: spacing.md }}>
                 <Input

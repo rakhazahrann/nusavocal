@@ -1,8 +1,8 @@
 import React from "react";
-import { View, StyleSheet, Image } from "react-native";
-import { HealthCount } from "./HealthCount";
-import { StreakCount } from "./StreakCount";
-import { NavBarBackground, BAR_HEIGHT, SCREEN_WIDTH } from "./BarBackground";
+import { View, StyleSheet, TouchableOpacity, Image } from "react-native";
+import { BlurView } from "expo-blur";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { Text } from "../ui/Text";
 import { useAuthStore } from "../../stores/authStore";
 
 // Profile images based on gender
@@ -11,65 +11,105 @@ const PROFILE_IMAGES = {
   woman: require("../../../assets/images/characters/woman-profile.png"),
 };
 
-interface TopBarProps {
-  lives?: number;
-  maxLives?: number;
-  streak?: number;
-}
-
-export const TopBar: React.FC<TopBarProps> = ({
-  lives = 3,
-  maxLives = 3,
-  streak = 0,
-}) => {
+export const TopBar = () => {
   const { profile } = useAuthStore();
-
-  // Determine profile image based on gender
-  const profileImage = profile?.gender === "woman"
-    ? PROFILE_IMAGES.woman
-    : PROFILE_IMAGES.man;
+  const profileImage =
+    profile?.gender === "woman" ? PROFILE_IMAGES.woman : PROFILE_IMAGES.man;
 
   return (
     <View style={styles.container}>
-      {/* Wood bar background – same asset as TabBar */}
-      <NavBarBackground style={styles.barOverride} />
+      <BlurView intensity={70} tint="light" style={styles.blurContainer}>
+        <View style={styles.leftContainer}>
+          <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
+            <MaterialIcons name="menu" size={24} color="#1a1c1c" />
+          </TouchableOpacity>
+          <Text style={styles.title}>NusaVocal</Text>
+        </View>
 
-      {/* Hearts – left side */}
-      <HealthCount lives={lives} maxLives={maxLives} />
-
-      {/* Profile icon – center-right */}
-      <View style={styles.profileContainer}>
-        <Image source={profileImage} style={styles.profileImage} resizeMode="contain" />
-      </View>
-
-      {/* Streak bar – right side */}
-      <StreakCount streak={streak} />
+        <View style={styles.rightContainer}>
+          <View style={styles.streakBadge}>
+            <MaterialIcons name="local-fire-department" size={20} color="#f97316" />
+            <Text style={styles.streakText}>12</Text>
+          </View>
+          
+          <View style={styles.avatarContainer}>
+            <Image source={profileImage} style={styles.avatar} />
+          </View>
+        </View>
+      </BlurView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    width: SCREEN_WIDTH,
-    height: BAR_HEIGHT,
+    position: "absolute",
+    top: 16,
+    left: 16,
+    right: 16,
+    zIndex: 50,
+  },
+  blurContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 9999,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "rgba(226,232,240,0.4)",
+    backgroundColor: "rgba(255,255,255,0.7)",
+  },
+  leftContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingLeft: 30,
-    paddingRight: 30,
+    gap: 16,
   },
-  barOverride: {
-    bottom: undefined,
-    top: 0,
-  } as any,
-  profileContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  iconButton: {
+    padding: 8,
+    borderRadius: 9999,
+  },
+  title: {
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 20,
+    textTransform: "uppercase",
+    letterSpacing: -0.5,
+    color: "#1a1c1c",
+  },
+  rightContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+  },
+  streakBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "rgba(244,244,245,0.5)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 9999,
+    borderWidth: 1,
+    borderColor: "rgba(226,232,240,0.3)",
+  },
+  streakText: {
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 14,
+    color: "#1a1c1c",
+  },
+  avatarContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "rgba(198,198,198,0.3)",
   },
-  profileImage: {
+  avatar: {
     width: "100%",
     height: "100%",
+    resizeMode: "cover",
   },
 });
+

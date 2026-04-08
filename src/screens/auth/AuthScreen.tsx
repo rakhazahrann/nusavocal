@@ -44,7 +44,7 @@ export const AuthScreen = ({ navigation }: any) => {
             params: { characterId: profile.character_id || "ira" },
           });
         } else {
-          navigation.navigate("CharacterSelect");
+          navigation.navigate("ProfileCreation");
         }
       } else {
         Alert.alert("Login Failed", result.error || "Invalid credentials.");
@@ -62,7 +62,7 @@ export const AuthScreen = ({ navigation }: any) => {
 
       const result = await signUp(email.trim(), password, username.trim());
       if (result.success) {
-        navigation.navigate("CharacterSelect");
+        navigation.navigate("ProfileCreation");
       } else {
         Alert.alert(
           "Registration Failed",

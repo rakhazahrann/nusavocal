@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
   View,
@@ -16,6 +16,8 @@ export const VocabFarmingScreen = ({ navigation, route }: any) => {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
+  // Ref menyimpan nilai score terbaru agar tidak terjadi stale closure
+  const scoreRef = useRef(0);
 
   const { currentVocabQuestions, fetchVocabQuestions, isLoading } = useGameStore();
 
@@ -37,11 +39,15 @@ export const VocabFarmingScreen = ({ navigation, route }: any) => {
   ];
 
   const handleNext = () => {
+    let newScore = scoreRef.current;
+
     // Check if answer is correct
     if (selectedOption !== null && currentQuestion) {
       const selectedOpt = options[selectedOption];
       if (selectedOpt?.is_correct) {
-        setScore(score + 1);
+        newScore = newScore + 1;
+        scoreRef.current = newScore;
+        setScore(newScore);
       }
     }
 
@@ -50,8 +56,8 @@ export const VocabFarmingScreen = ({ navigation, route }: any) => {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setSelectedOption(null);
     } else {
-      // All questions done, go to game screen
-      navigation.replace("Gameplay", { stageId, vocabScore: score });
+      // All questions done — kirim score terbaru via ref (bukan stale state)
+      navigation.replace("Gameplay", { stageId, vocabScore: newScore });
     }
   };
 

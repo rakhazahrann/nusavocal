@@ -1,22 +1,19 @@
 import React from "react";
-import { StyleSheet, View, ImageBackground } from "react-native";
+import { View, StyleSheet, Dimensions } from "react-native";
 
-import { SCREEN_WIDTH, TOTAL_MAP_HEIGHT } from "../../constants/stageLayout";
+const { width } = Dimensions.get("window");
 
-const PLAIN_GRASS_TILE = require("../../../assets/images/map/grass-tile.png");
-
-/**
- * A simple repeating grass background tile for the Dynamic Floating Path map.
- * This fills the entire scrollable area.
- */
 export const DynamicBackground = () => {
   return (
     <View style={styles.container}>
-      <ImageBackground
-        source={PLAIN_GRASS_TILE}
-        style={styles.background}
-        resizeMode="repeat"
-      />
+      {/* Base Background Color from Tailwind */}
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: "#f9f9f9" }]} />
+      
+      {/* Top Left Blob - Simplified to prevent sharp gradient box issues on Web */}
+      <View style={[styles.blob, styles.topLeftBlob]} />
+
+      {/* Subtle Grain Overlay approximation */}
+      <View style={[StyleSheet.absoluteFill, styles.grainOverlay]} />
     </View>
   );
 };
@@ -24,13 +21,32 @@ export const DynamicBackground = () => {
 const styles = StyleSheet.create({
   container: {
     position: "absolute",
-    top: 0,
-    left: 0,
-    width: SCREEN_WIDTH,
-    height: TOTAL_MAP_HEIGHT,
-  },
-  background: {
     width: "100%",
     height: "100%",
+    zIndex: -20, // Sit far behind everything
+    overflow: "hidden",
+  },
+  blob: {
+    position: "absolute",
+    borderRadius: 9999, // Perfect circle
+    opacity: 0.15,
+  },
+  topLeftBlob: {
+    backgroundColor: "#e8e8e8",
+    top: -100,
+    left: -100,
+    width: width * 0.8,
+    height: width * 0.8,
+  },
+  bottomRightBlob: {
+    backgroundColor: "#c6c6c6",
+    bottom: -100,
+    right: -100,
+    width: width * 0.6,
+    height: width * 0.6,
+  },
+  grainOverlay: {
+    backgroundColor: "transparent",
   },
 });
+

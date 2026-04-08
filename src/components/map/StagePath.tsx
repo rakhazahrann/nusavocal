@@ -1,102 +1,73 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
-import Svg, { Path, Defs, Pattern, Image as SvgImage } from "react-native-svg";
-import {
-  StageData,
-  getStageX,
-  getStageY,
-  STAGE_NODE_SIZE,
-  SCREEN_WIDTH,
-  TOTAL_MAP_HEIGHT,
-} from "../../constants/stageLayout";
-// Import fungsi helper tadi
-import { generatePixelPath } from "../../utils/pixelPathGenerator";
+import Svg, { Path } from "react-native-svg";
+import { getStageX, getStageY } from "../../constants/stageLayout";
 
-const DIRT_PATH_TEXTURE = require("../../../assets/images/map/dirt-texture.png");
+interface Stage {
+  id: number;
+  x: number;
+}
 
 interface StagePathProps {
-  stages: StageData[];
+  stages: Stage[];
 }
 
 export const StagePath: React.FC<StagePathProps> = ({ stages }) => {
-  if (!stages || stages.length < 2) return null;
+  if (stages.length < 2) return null;
 
-  let fullPathString = "";
+  // Calculate the total bounding box for the SVG
+  const minX = 0;
+  const maxX = 400; // Map width
+  const topY = getStageY(stages.length - 1);
+  const bottomY = getStageY(0);
+  const height = bottomY - topY + 200; // Add padding
+
+  // Generate SVG path string
+  let pathStr = "";
 
   for (let i = 0; i < stages.length - 1; i++) {
-    const startX = getStageX(stages[i].x);
-    const startY = getStageY(i);
-    const endX = getStageX(stages[i + 1].x);
-    const endY = getStageY(i + 1);
+    const current = stages[i];
+    const next = stages[i + 1];
 
-    // 🔥 PANGGIL HELPER DI SINI
-    // pixelSize mengatur seberapa besar kotak-kotaknya. Kita pakai 4 agar
-    // tangga-tangganya masih terlihat jelas bernuansa pixel art namun curve-nya mulus
-    fullPathString += generatePixelPath(startX, startY, endX, endY, 4);
+    const startX = getStageX(current.x);
+    const startY = getStageY(i) - topY + 100; // Adjust for top padding
+    const endX = getStageX(next.x);
+    const endY = getStageY(i + 1) - topY + 100;
+
+    if (i === 0) {
+      pathStr += `M ${startX} ${startY} `;
+    }
+
+    const midY = (startY + endY) / 2;
+
+    // Use a simple S-curve (Bezier) connecting the current to the next node
+    pathStr += `C ${startX} ${midY}, ${endX} ${midY}, ${endX} ${endY} `;
   }
 
-  const BORDER_COLOR = "#6d4e34";
-  const BASE_COLOR = "#e6c483";
-  const PATH_WIDTH = 40; // Sesuaikan lebar
-
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+    <View style={styles.container} pointerEvents="none">
       <Svg
-        width={SCREEN_WIDTH}
-        height={TOTAL_MAP_HEIGHT}
-        style={StyleSheet.absoluteFill}
-        // @ts-ignore - 'shapeRendering' is not explicitly typed in react-native-svg for Svg component
-        shapeRendering="crispEdges" // Tetap wajib pakai ini!
+        width="100%"
+        height={height}
+        style={{ position: "absolute", top: topY - 100 }}
       >
-        <Defs>
-          <Pattern
-            id="dirtPattern"
-            patternUnits="userSpaceOnUse"
-            width="64"
-            height="64"
-          >
-            <SvgImage
-              href={DIRT_PATH_TEXTURE}
-              x="0"
-              y="0"
-              width="64"
-              height="64"
-              preserveAspectRatio="none"
-            />
-          </Pattern>
-        </Defs>
-
-        {/* LAYER BORDER */}
         <Path
-          d={fullPathString}
-          stroke={BORDER_COLOR}
-          strokeWidth={PATH_WIDTH + 10}
+          d={pathStr}
           fill="none"
+          stroke="rgba(119,119,119,0.3)" // Matches text-outline-variant/20
+          strokeWidth={4}
+          strokeDasharray="12 12"
           strokeLinecap="round"
-          strokeLinejoin="round" // Round membuat jalur tebal curve jadi mulus
-        />
-
-        {/* LAYER ISI (Pasir) */}
-        <Path
-          d={fullPathString}
-          stroke={BASE_COLOR}
-          strokeWidth={PATH_WIDTH}
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-
-        {/* LAYER TEXTURE */}
-        <Path
-          d={fullPathString}
-          stroke="url(#dirtPattern)"
-          strokeWidth={PATH_WIDTH}
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          opacity={0.8}
         />
       </Svg>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 1, // Behind the nodes
+  },
+});
+

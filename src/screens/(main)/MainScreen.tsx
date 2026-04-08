@@ -1,15 +1,16 @@
-import React, { useRef, useEffect, useCallback } from "react";
-import { StyleSheet, View, Alert, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
+import React, { useRef, useEffect } from "react";
+import { StyleSheet, View, Alert, TouchableOpacity, ActivityIndicator, useWindowDimensions } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
+  runOnJS,
 } from "react-native-reanimated";
+import gsap from "gsap";
 import { TopBar } from "../../components/common/TopBar";
 import { DynamicBackground } from "../../components/map/DynamicBackground";
 import { StageNode } from "../../components/map/StageNode";
 import { StagePath } from "../../components/map/StagePath";
 import { MapDecorations } from "../../components/map/MapDecorations";
-import { Character } from "../../components/map/Character";
 import { StagePopup } from "../../components/map/StagePopup";
 import {
   TOTAL_MAP_HEIGHT,
@@ -25,13 +26,29 @@ import { useGameStore, Stage } from "../../stores/gameStore";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { AdminStageWizardModal } from "../../components/admin/AdminStageWizardModal";
 import { AdminDeleteConfirmModal } from "../../components/admin/AdminDeleteConfirmModal";
-import { PixelText } from "../../components/common/PixelText";
-import { WoodPanel } from "../../components/common/WoodPanel";
+import { Text, Card } from "../../components/ui";
+
 
 export const MainScreen = ({ navigation }: any) => {
   const scrollY = useSharedValue(0);
+  const { height: viewportHeight } = useWindowDimensions();
   const { profile, user } = useAuthStore();
   const { stages: dbStages, fetchStages, deleteStage, isLoading, error } = useGameStore();
+
+  const scrollOffsetRef = useRef(0);
+  const scrollTweenRef = useRef<gsap.core.Tween | null>(null);
+  const scrollDataRef = useRef({ y: 0 });
+
+  const killScrollTween = React.useCallback(() => {
+    if (scrollTweenRef.current) {
+      scrollTweenRef.current.kill();
+      scrollTweenRef.current = null;
+    }
+  }, []);
+
+  const setScrollOffset = React.useCallback((y: number) => {
+    scrollOffsetRef.current = y;
+  }, []);
 
   // STAGE DATA: STRICTLY DATABASE ONLY
   // No more fallbacks to hardcoded tutorial stages.
@@ -68,24 +85,9 @@ export const MainScreen = ({ navigation }: any) => {
       MAP_PADDING_BOTTOM
   );
 
-  // Initialize character position to the "current" stage
+  // Determine initial index for scrolling
   const currentStageIndex = stages.findIndex((s) => s.status === "current");
   const initialIndex = currentStageIndex >= 0 ? currentStageIndex : 0;
-
-  const [charStartX, setCharStartX] = React.useState(() =>
-    getStageX(stages[initialIndex]?.x || 0.5),
-  );
-  const [charStartY, setCharStartY] = React.useState(() =>
-    getStageY(initialIndex),
-  );
-  const [charTargetX, setCharTargetX] = React.useState(() =>
-    getStageX(stages[initialIndex]?.x || 0.5),
-  );
-  const [charTargetY, setCharTargetY] = React.useState(() =>
-    getStageY(initialIndex),
-  );
-  const [isWalking, setIsWalking] = React.useState(false);
-  const [scaleX, setScaleX] = React.useState(1);
 
   const [selectedStageId, setSelectedStageId] = React.useState<number | null>(null);
   const [selectedStageLabel, setSelectedStageLabel] = React.useState<string>("");
@@ -98,52 +100,95 @@ export const MainScreen = ({ navigation }: any) => {
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       scrollY.value = event.contentOffset.y;
+      runOnJS(setScrollOffset)(event.contentOffset.y);
     },
   });
+
+  // Sync selected stage with the current stage from DB
+  useEffect(() => {
+    if (!stages.length) return;
+
+    const dbCurrent = stages.find((s) => s.status === "current");
+    const nextSelectedId = selectedStageId ?? dbCurrent?.id ?? stages[0]?.id ?? null;
+
+    if (nextSelectedId !== selectedStageId) {
+      setSelectedStageId(nextSelectedId);
+    }
+
+    const selectedStage = stages.find((s) => s.id === nextSelectedId) || stages[0];
+    if (selectedStage) {
+      setSelectedStageLabel(selectedStage.label);
+      setSelectedStageDescription(selectedStage.description || `Misi ke-${selectedStage.id}`);
+    }
+  }, [stages]);
 
   // Scroll to the current stage on mount
   const scrollRef = useRef<Animated.ScrollView>(null);
 
-  React.useEffect(() => {
-    if (initialIndex >= 0 && scrollRef.current) {
-      const targetY = getStageY(initialIndex) - 300; // Center-ish
-      setTimeout(() => {
-        scrollRef.current?.scrollTo({
-          y: Math.max(0, targetY),
-          animated: true,
-        });
-      }, 500);
+  const scrollToStage = (stageIndex: number, animated: boolean) => {
+    if (!scrollRef.current) return;
+
+    // Kill any in-flight tween before starting a new one.
+    killScrollTween();
+
+    const safeViewportHeight = Math.max(1, viewportHeight || 1);
+    const desiredViewportY = safeViewportHeight * 0.65; // keep node a bit lower to fit popup above
+    const stageY = getStageY(stageIndex);
+
+    const rawTarget = stageY - desiredViewportY;
+    const maxScroll = Math.max(0, totalMapHeight - safeViewportHeight);
+    const clamped = Math.max(0, Math.min(rawTarget, maxScroll));
+
+    if (!animated) {
+      scrollOffsetRef.current = clamped;
+      scrollRef.current?.scrollTo({ y: clamped, animated: false });
+      return;
     }
-  }, []);
+
+    const startY = scrollOffsetRef.current;
+    const distance = Math.abs(clamped - startY);
+    const duration = Math.max(0.35, Math.min(0.9, 0.35 + (distance / 1200) * 0.55));
+
+    scrollDataRef.current.y = startY;
+    scrollTweenRef.current = gsap.to(scrollDataRef.current, {
+      y: clamped,
+      duration,
+      ease: "power2.inOut",
+      overwrite: true,
+      onUpdate: () => {
+        const y = scrollDataRef.current.y;
+        scrollOffsetRef.current = y;
+        scrollRef.current?.scrollTo({ y, animated: false });
+      },
+      onComplete: () => {
+        scrollOffsetRef.current = clamped;
+        scrollTweenRef.current = null;
+      },
+    });
+  };
+
+  useEffect(() => {
+    return () => {
+      killScrollTween();
+    };
+  }, [killScrollTween]);
+
+  React.useEffect(() => {
+    if (initialIndex < 0) return;
+    const t = setTimeout(() => {
+      scrollToStage(initialIndex, true);
+    }, 500);
+    return () => clearTimeout(t);
+  }, [initialIndex, viewportHeight, totalMapHeight]);
 
   const handleStagePress = (stageId: number, label: string, index: number) => {
-    if (isWalking) return; // Prevent multiple clicks while walking
-
-    const targetX = getStageX(stages[index].x);
-    const targetY = getStageY(index);
-
-    // Determine facing direction based on target X compared to current target X
-    if (targetX > charTargetX) {
-      setScaleX(1);
-    } else if (targetX < charTargetX) {
-      setScaleX(-1);
-    }
-
-    setIsWalking(true);
-    setCharStartX(charTargetX);
-    setCharStartY(charTargetY);
-    setCharTargetX(targetX);
-    setCharTargetY(targetY);
+    // Ensure the target stage has enough space for the popup (esp. near top)
+    scrollToStage(index, true);
 
     setSelectedStageId(stageId);
     setSelectedStageLabel(label);
     setSelectedStageDescription(stages[index].description || `Misi ke-${stageId}`);
-
-    // Wait for the walking animation to finish (1500ms duration defined in Character)
-    setTimeout(() => {
-      setIsWalking(false);
-      setPopupVisible(true);
-    }, 1500);
+    setPopupVisible(true);
   };
 
   const handleDeleteStage = (stageId: number, label: string) => {
@@ -175,41 +220,39 @@ export const MainScreen = ({ navigation }: any) => {
         ref={scrollRef}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
+        onScrollBeginDrag={killScrollTween}
+        onMomentumScrollBegin={killScrollTween}
+        onTouchStart={killScrollTween}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ height: totalMapHeight }}
         bounces={false}
       >
         {/* Layer 1: Repeating grass tile background */}
         <DynamicBackground />
-        {/* Decorative elements (trees, buildings) */}
-        <MapDecorations stages={stages} />
 
         {/* Dotted path connecting stages */}
         <StagePath stages={stages} />
 
         {/* Stage nodes */}
-        {stages.map((stage, index) => (
+        {stages.map((stage, index) => {
+          const isSelected = stage.id === selectedStageId;
+          const nodeStatus = isSelected ? "current" : (stage.status === "current" ? "completed" : stage.status);
+          const isAdmin = profile?.role === "admin";
+
+          return (
           <StageNode
             key={stage.id}
             id={stage.id}
             x={stage.x}
             stageIndex={index}
             label={stage.label}
-            status={stage.status}
+            status={nodeStatus}
             onPress={() => handleStagePress(stage.id, stage.label, index)}
-            onDelete={(profile?.role === "admin" || true) ? () => handleDeleteStage(stage.id, stage.label) : undefined}
+            onDelete={isAdmin ? () => handleDeleteStage(stage.id, stage.label) : undefined}
           />
-        ))}
+          );
+        })}
 
-        {/* Character element positioned relative to the map */}
-        <Character
-          startX={charStartX}
-          startY={charStartY}
-          targetX={charTargetX}
-          targetY={charTargetY}
-          isWalking={isWalking}
-          scaleX={scaleX}
-        />
       </Animated.ScrollView>
 
       {/* Layer 3: Fixed TopBar overlay */}
@@ -223,7 +266,6 @@ export const MainScreen = ({ navigation }: any) => {
         stageId={selectedStageId}
         label={selectedStageLabel}
         description={selectedStageDescription}
-        imageUrl={stages.find(s => s.id === selectedStageId)?.image_url}
         onCancel={() => setPopupVisible(false)}
         onStart={(stageId) => {
           setPopupVisible(false);
@@ -232,7 +274,7 @@ export const MainScreen = ({ navigation }: any) => {
       />
 
       {/* Layer 5: Admin Floating Action Button */}
-      {(profile?.role === "admin" || true) && (
+      {profile?.role === "admin" && (
         <TouchableOpacity
           style={styles.adminFab}
           onPress={() => setIsWizardVisible(true)}
@@ -263,19 +305,19 @@ export const MainScreen = ({ navigation }: any) => {
       {/* Error / Empty State Feedback */}
       {!isLoading && (error || (user?.id && stages.length === 0)) && (
         <View style={styles.errorContainer}>
-          <WoodPanel variant="light" innerPadding={15}>
+          <Card style={{ padding: 16, alignItems: "center" }}>
             <MaterialIcons name="error-outline" size={24} color="#D32F2F" style={{ alignSelf: 'center', marginBottom: 5 }} />
-            <PixelText size={10} color="#D32F2F" style={{ textAlign: 'center' }}>
+            <Text tone="danger" style={{ textAlign: "center" }}>
               {error ? error : "Wah, Peta kosong! Klik '+' untuk tambah stage baru."}
-            </PixelText>
+            </Text>
             {error && (
               <TouchableOpacity onPress={() => user?.id && fetchStages(user.id)} style={{ marginTop: 10 }}>
-                <PixelText size={8} color="#5D3A1A" style={{ textAlign: 'center', textDecorationLine: 'underline' }}>
+                <Text tone="muted" style={{ textAlign: "center", textDecorationLine: "underline" }}>
                   COBA LAGI
-                </PixelText>
+                </Text>
               </TouchableOpacity>
             )}
-          </WoodPanel>
+          </Card>
         </View>
       )}
 
@@ -292,7 +334,7 @@ export const MainScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#3a7a2e",
+    backgroundColor: "#f9f9f9",
   },
   topBarOverlay: {
     position: "absolute",

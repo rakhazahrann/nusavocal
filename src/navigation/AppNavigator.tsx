@@ -5,7 +5,6 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import {
   SplashScreen,
   AuthScreen,
-  CharacterSelectScreen,
   ProfileCreationScreen,
   MainScreen,
   LeaderboardScreen,
@@ -52,10 +51,6 @@ const AuthNavigator = () => (
   <AuthStack.Navigator screenOptions={{ headerShown: false }}>
     <AuthStack.Screen name="Login" component={AuthScreen} />
     <AuthStack.Screen
-      name="CharacterSelect"
-      component={CharacterSelectScreen}
-    />
-    <AuthStack.Screen
       name="ProfileCreation"
       component={ProfileCreationScreen}
     />
@@ -82,7 +77,6 @@ export const AppNavigator = () => {
     if (!session) return "Auth";
     // Admins now use the Main Map flow with integrated tools
     // We only check for gender/nickname for regular users (or for everyone to ensure profile setup)
-    if (!profile?.gender) return "Auth";
     if (!profile?.nickname) return "Auth";
     return "Main";
   };

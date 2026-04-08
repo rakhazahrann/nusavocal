@@ -25,7 +25,7 @@ const PROFILE_IMAGES = {
 const FALLBACK_BG = require("../../../assets/images/airport-scenario.png");
 
 export const GameScreen = ({ navigation, route }: any) => {
-  const { stageId } = route?.params || {};
+  const { stageId, vocabScore = 0 } = route?.params || {};
   const { profile } = useAuthStore();
   const { currentScenarios, fetchGameScenarios, isLoading } = useGameStore();
   const [currentScenarioIndex, setCurrentScenarioIndex] = useState(0);
@@ -161,7 +161,7 @@ export const GameScreen = ({ navigation, route }: any) => {
 
         {/* Footer Area */}
         <View style={styles.footer}>
-          <PixelNextButton onPress={() => navigation.replace("Result", { win: true, stageId })} />
+          <PixelNextButton onPress={() => navigation.replace("Result", { win: true, stageId, vocabScore })} />
         </View>
       </View>
     </SafeAreaView>

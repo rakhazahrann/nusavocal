@@ -1,24 +1,9 @@
-import React from "react";
-import { StyleSheet, Image, TouchableOpacity, Text, View } from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  withRepeat,
-  withSequence,
-  withTiming,
-  useSharedValue,
-  Easing,
-} from "react-native-reanimated";
+import React, { useEffect, useRef } from "react";
+import { View, StyleSheet, TouchableOpacity, Animated } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import {
-  StageStatus,
-  STAGE_NODE_SIZE,
-  getStageX,
-  getStageY,
-} from "../../constants/stageLayout";
-
-const STAGE_CURRENT = require("../../../assets/images/building/bandara.png");
-const STAGE_LOCKED = require("../../../assets/images/building/lock-stage.png");
-const STAGE_COMPLETED = require("../../../assets/images/building/ojek-pengkolan.png");
+import { StageStatus, getStageX, getStageY, STAGE_NODE_SIZE } from "../../constants/stageLayout";
+import { Text } from "../ui";
+import gsap from "gsap";
 
 interface StageNodeProps {
   id: number;
@@ -26,139 +11,130 @@ interface StageNodeProps {
   stageIndex: number;
   label: string;
   status: StageStatus;
-  onPress?: () => void;
+  onPress: () => void;
   onDelete?: () => void;
 }
 
-const getStageImage = (status: StageStatus) => {
-  switch (status) {
-    case "completed":
-      return STAGE_COMPLETED;
-    case "current":
-      return STAGE_CURRENT;
-    case "locked":
-    default:
-      return STAGE_LOCKED;
-  }
-};
+export const StageNode: React.FC<StageNodeProps> = ({ id, x, stageIndex, label, status, onPress, onDelete }) => {
+  const top = getStageY(stageIndex) - STAGE_NODE_SIZE / 2;
+  const left = getStageX(x) - STAGE_NODE_SIZE / 2;
 
-export const StageNode: React.FC<StageNodeProps> = ({
-  id,
-  x,
-  stageIndex,
-  label,
-  status,
-  onPress,
-  onDelete,
-}) => {
-  const posX = getStageX(x);
-  const posY = getStageY(stageIndex);
+  // React Native Animated values for GSAP to drive
+  const scale = useRef(new Animated.Value(1)).current;
+  const pingScale = useRef(new Animated.Value(1)).current;
+  const pingOpacity = useRef(new Animated.Value(0.15)).current;
 
-  // LOGIKA POSISI BANGUNAN (Kiri atau Kanan)
-  // Jika x < 0.5 (Jalan di kiri, index genap), geser bangunan ke kiri (-90)
-  // Jika x >= 0.5 (Jalan di kanan, index ganjil), geser bangunan ke kanan (90)
-  const isLeftSide = x < 0.5;
-  const buildingOffsetX = isLeftSide ? -70 : 70;
+  // Refs for GSAP to mutate directly before syncing to Animated
+  const scaleData = useRef({ s: 1 }).current;
+  const pingData = useRef({ s: 1, o: 0.15 }).current;
 
-  // Bounce animation for the current stage
-  const bounceAnim = useSharedValue(0);
-
-  React.useEffect(() => {
+  useEffect(() => {
+    let pingTween: gsap.core.Tween | null = null;
+    
     if (status === "current") {
-      bounceAnim.value = withRepeat(
-        withSequence(
-          withTiming(-8, { duration: 600, easing: Easing.inOut(Easing.ease) }),
-          withTiming(0, { duration: 600, easing: Easing.inOut(Easing.ease) }),
-        ),
-        -1, // infinite
-        false,
-      );
+      // Create a pulsating ("berdebar") heartbeat effect
+      pingTween = gsap.to(pingData, {
+        s: 1.7,
+        o: 0,
+        duration: 1.4,
+        repeat: -1,
+        ease: "sine.out",
+        onUpdate: () => {
+          pingScale.setValue(pingData.s);
+          pingOpacity.setValue(pingData.o);
+        },
+      });
     }
+
+    return () => {
+      if (pingTween) pingTween.kill();
+    };
   }, [status]);
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateY: bounceAnim.value }],
-    };
-  });
+  const handlePressIn = () => {
+    gsap.to(scaleData, {
+      s: 0.9,
+      duration: 0.2,
+      ease: "power2.out",
+      onUpdate: () => scale.setValue(scaleData.s),
+    });
+  };
+
+  const handlePressOut = () => {
+    gsap.to(scaleData, {
+      s: 1,
+      duration: 0.4,
+      ease: "elastic.out(1.2, 0.5)",
+      onUpdate: () => scale.setValue(scaleData.s),
+    });
+  };
+
+  const renderVisuals = () => {
+    if (status === "completed") {
+      return (
+        <View style={styles.nodeWrapper}>
+          <View style={[styles.node, styles.completedNode]}>
+            <MaterialIcons name="check-circle" size={32} color="#000" />
+          </View>
+          <Text style={styles.labelCompleted}>{label}</Text>
+        </View>
+      );
+    }
+
+    if (status === "current") {
+      return (
+        <View style={styles.nodeWrapper}>
+          <View style={styles.currentHalo} />
+          <Animated.View style={[styles.pingRing, { 
+            transform: [{ scale: pingScale }], 
+            opacity: pingOpacity 
+          }]} />
+          
+          <View style={[styles.node, styles.currentNode]}>
+            <MaterialIcons name="play-arrow" size={36} color="#FFF" />
+          </View>
+          <Text style={styles.labelCurrent}>NEXT LESSON</Text>
+        </View>
+      );
+    }
+
+    // Locked status
+    return (
+      <View style={[styles.nodeWrapper, { opacity: 0.4 }]}>
+        <View style={[styles.node, styles.lockedNode]}>
+          <MaterialIcons name="lock" size={24} color="#777" />
+        </View>
+        <Text style={styles.labelLocked}>{label}</Text>
+      </View>
+    );
+  };
 
   return (
     <Animated.View
       style={[
-        styles.container,
-        {
-          left: posX,
-          top: posY - 35, // Center vertically
-        },
-        animatedStyle,
+        styles.absoluteContainer,
+        { top, left, width: STAGE_NODE_SIZE, height: STAGE_NODE_SIZE },
+        { transform: [{ scale: scale }] }
       ]}
     >
       <TouchableOpacity
-        onPress={status !== "locked" ? onPress : undefined}
-        activeOpacity={status === "locked" ? 1 : 0.7}
-        style={[
-          styles.touchable,
-          { transform: [{ translateX: buildingOffsetX }] },
-        ]}
+        style={styles.touchable}
+        activeOpacity={1}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        onPress={onPress}
+        onLongPress={onDelete}
+        disabled={status === "locked"}
       >
-        <View style={styles.imageContainer}>
-          {/* Shadow Layer: Duplicate image with tint and offset */}
-          <Image
-            source={getStageImage(status)}
-            style={[styles.stageImage, styles.shadow]}
-            resizeMode="contain"
-          />
-          {/* Main Asset Layer */}
-          <Image
-            source={getStageImage(status)}
-            style={styles.stageImage}
-            resizeMode="contain"
-          />
-        </View>
-        {/* Stage label (Berada di bawah asset building) */}
-        <View style={styles.labelContainer}>
-          <Text
-            style={[styles.label, status === "locked" && styles.labelLocked]}
-            numberOfLines={1}
-          >
-            {label.toUpperCase()}
-          </Text>
-          <Text
-            style={[
-              styles.stageNumber,
-              status === "locked" && styles.labelLocked,
-            ]}
-          >
-            (Stage {id})
-          </Text>
-        </View>
+        {renderVisuals()}
       </TouchableOpacity>
-
-      {/* Admin Delete Button (Moved outside main TouchableOpacity to ensure clickability) */}
-      {onDelete && (
-        <TouchableOpacity
-          style={[
-            styles.deleteBtn,
-            isLeftSide ? { right: 0 } : { left: 0 },
-            { transform: [{ translateX: buildingOffsetX }] }
-          ]}
-          onPress={onDelete}
-        >
-          <MaterialIcons name="delete" size={24} color="#FFF" />
-        </TouchableOpacity>
-      )}
     </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  absoluteContainer: {
     position: "absolute",
-    // Center at posX, posY
-    width: 200,
-    marginLeft: -100,
-    height: 150,
-    marginTop: -75,
     alignItems: "center",
     justifyContent: "center",
     zIndex: 10,
@@ -167,60 +143,94 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  imageContainer: {
-    width: 170,
-    height: 170,
-    position: "relative",
-  },
-  stageImage: {
-    width: "100%",
-    height: "100%",
-    position: "absolute",
-  },
-  shadow: {
-    tintColor: "rgba(0,0,0,0.25)",
-    top: 6, // Offset for depth
-    left: 6,
-  },
-  labelContainer: {
+  nodeWrapper: {
     alignItems: "center",
-    marginTop: -40,
-  },
-  label: {
-    color: "#333", // Warna teks lebih gelap agar terlihat di rumput
-    fontSize: 10,
-    fontFamily: "PressStart2P_400Regular",
-    textAlign: "center",
-    textShadowColor: "rgba(255, 255, 255, 0.5)",
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 1,
-  },
-  stageNumber: {
-    color: "#444",
-    fontSize: 8,
-    fontFamily: "PressStart2P_400Regular",
-    textAlign: "center",
-    marginTop: 2,
-  },
-  labelLocked: {
-    color: "#999",
-  },
-  deleteBtn: {
-    position: "absolute",
-    top: 5,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#d9534f",
     justifyContent: "center",
+    width: 100, 
+    height: 120, 
+  },
+  node: {
     alignItems: "center",
-    borderWidth: 2,
-    borderColor: "#FFF",
-    zIndex: 20,
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  completedNode: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "rgba(255,255,255,0.6)",
+    borderWidth: 1,
+    borderColor: "rgba(198,198,198,0.15)",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.03,
+    shadowRadius: 40,
     elevation: 3,
   },
+  currentNode: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: "#000", 
+    borderWidth: 4,
+    borderColor: "#FFF", 
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  currentHalo: {
+    position: "absolute",
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: "rgba(0,0,0,0.05)",
+  },
+  lockedNode: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "rgba(243,243,243,0.4)", 
+    borderWidth: 1,
+    borderColor: "rgba(198,198,198,0.1)",
+  },
+  pingRing: {
+    position: "absolute",
+    top: 12, // (120 - 96) / 2
+    left: 2, // (100 - 96) / 2
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    borderWidth: 2,
+    borderColor: "rgba(0,0,0,0.18)",
+    backgroundColor: "transparent",
+  },
+  labelCompleted: {
+    position: "absolute",
+    bottom: -16,
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 10,
+    letterSpacing: 2,
+    textTransform: "uppercase",
+    opacity: 0.4,
+  },
+  labelLocked: {
+    position: "absolute",
+    bottom: 8,
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 10,
+    letterSpacing: 2,
+    textTransform: "uppercase",
+  },
+  labelCurrent: {
+    position: "absolute",
+    bottom: -10,
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 11,
+    letterSpacing: 2,
+    textTransform: "uppercase",
+    color: "#000", 
+  },
 });
+
