@@ -4,19 +4,23 @@ import {
   View,
   TouchableOpacity,
   Image,
-  ImageBackground,
   SafeAreaView,
   ActivityIndicator,
+  Text,
+  Platform,
+  ScrollView,
 } from "react-native";
-import { PixelText } from "../../components/common/PixelText";
+import { MaterialIcons } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
 import { useGameStore } from "../../stores/gameStore";
+import { GlassOption, GlassProgressBar } from "../../components/glass";
 
 export const VocabFarmingScreen = ({ navigation, route }: any) => {
   const { stageId } = route?.params || {};
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
-  // Ref menyimpan nilai score terbaru agar tidak terjadi stale closure
   const scoreRef = useRef(0);
 
   const { currentVocabQuestions, fetchVocabQuestions, isLoading } = useGameStore();
@@ -32,10 +36,10 @@ export const VocabFarmingScreen = ({ navigation, route }: any) => {
 
   // Fallback data when no DB data
   const fallbackOptions = [
-    "LOREM IPSUM",
-    "LOREM IPSUM",
-    "LOREM IPSUM",
-    "LOREM IPSUM",
+    { option_text: "LOREM IPSUM", is_correct: false },
+    { option_text: "LOREM IPSUM", is_correct: false },
+    { option_text: "LOREM IPSUM", is_correct: true },
+    { option_text: "LOREM IPSUM", is_correct: false },
   ];
 
   const handleNext = () => {
@@ -56,231 +60,279 @@ export const VocabFarmingScreen = ({ navigation, route }: any) => {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setSelectedOption(null);
     } else {
-      // All questions done — kirim score terbaru via ref (bukan stale state)
       navigation.replace("Gameplay", { stageId, vocabScore: newScore });
     }
   };
 
-  const displayOptions = options.length > 0
-    ? options.map(o => o.option_text)
-    : fallbackOptions;
+  const displayOptions = options.length > 0 ? options : fallbackOptions;
+  const progress = currentVocabQuestions.length > 0 
+    ? (currentQuestionIndex + 1) / currentVocabQuestions.length 
+    : 0;
 
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
-        <ActivityIndicator size="large" color="#f48c25" />
-        <PixelText size={10} color="#5B4434" style={{ marginTop: 16 }}>
-          LOADING VOCAB...
-        </PixelText>
-      </SafeAreaView>
+      <LinearGradient colors={["#ffffff", "#f0f0f0"]} style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#000000" />
+        <Text style={styles.loadingText}>Loading Vocabulary...</Text>
+      </LinearGradient>
     );
   }
 
+  const optionLabels = ["A", "B", "C", "D"];
+
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Top Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Image
-            source={require("../../../assets/images/game/back-button.png")}
-            style={styles.backIcon}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
+    <LinearGradient colors={["#ffffff", "#f0f0f0"]} style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
+        {/* Top Navigation Shell */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
+          >
+            <BlurView intensity={45} tint="light" style={styles.backButtonGlass}>
+              <MaterialIcons name="arrow-back" size={24} color="#000000" />
+            </BlurView>
+          </TouchableOpacity>
 
-        {/* Progress indicator */}
-        {currentVocabQuestions.length > 0 && (
-          <View style={styles.progressContainer}>
-            <PixelText family="pixelify" weight="600" size={12} color="#5B4434">
-              {currentQuestionIndex + 1} / {currentVocabQuestions.length}
-            </PixelText>
+          <View style={styles.progressWrapper}>
+            <GlassProgressBar progress={progress} />
           </View>
-        )}
-      </View>
 
-      <View style={styles.content}>
-        {/* Placeholder for Image */}
-        <View style={styles.imagePlaceholder}>
-          {currentQuestion?.image_url ? (
-            <Image
-              source={{ uri: currentQuestion.image_url }}
-              style={{ width: "100%", height: "100%", borderRadius: 16 }}
-              resizeMode="contain"
-            />
-          ) : (
-            <PixelText style={styles.placeholderText}>Airplane Placeholder</PixelText>
-          )}
+          <Text style={styles.progressText}>
+            {currentQuestionIndex + 1}/{currentVocabQuestions.length || 1}
+          </Text>
         </View>
 
-        {/* Question Text */}
-        <View style={styles.questionContainer}>
-          <PixelText family="pixelify" weight="600" size={18} style={styles.questionText}>
-            {currentQuestion?.question_text || "LOREM IPSUM ....."}
-          </PixelText>
-        </View>
-
-        {/* Options */}
-        <View style={styles.optionsContainer}>
-          {displayOptions.map((option, index) => {
-            const isSelected = selectedOption === index;
-            const bgSource = isSelected
-              ? require("../../../assets/images/game/selected-bar.png")
-              : require("../../../assets/images/game/unselected-bar.png");
-
-            return (
-              <TouchableOpacity
-                key={index}
-                activeOpacity={0.8}
-                onPress={() => setSelectedOption(index)}
-                style={styles.optionButton}
-              >
-                <ImageBackground
-                  source={bgSource}
-                  style={styles.optionBackground}
-                  resizeMode="stretch"
-                >
-                  <PixelText
-                    style={[
-                      styles.optionText,
-                      isSelected && styles.selectedOptionText,
-                    ]}
-                    family="pixelify"
-                    weight="500"
-                    size={16}
-                    color={isSelected ? "#412414" : "#FFFFFF"}
-                    shadow={!isSelected}
-                  >
-                    {option}
-                  </PixelText>
-                </ImageBackground>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
-
-      {/* Footer Area for Next Button */}
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={[
-            styles.nextButtonContainer,
-            selectedOption === null && styles.hidden,
-          ]}
-          onPress={handleNext}
-          disabled={selectedOption === null}
+        {/* Main Canvas */}
+        <ScrollView 
+          style={styles.mainCanvas} 
+          contentContainerStyle={styles.mainCanvasContent}
+          showsVerticalScrollIndicator={false}
         >
-          <Image
-            source={require("../../../assets/images/game/next-button.png")}
-            style={styles.nextIcon}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+          {/* Hero Word Card */}
+          <View style={styles.heroSection}>
+            <View style={styles.heroImageWrapper}>
+              <BlurView intensity={40} tint="light" style={styles.heroImageGlass}>
+                <Image
+                  source={{
+                    uri: currentQuestion?.image_url || "https://lh3.googleusercontent.com/aida-public/AB6AXuBavv2QuspPsPz6xkb1pEQ7nGtD6GCoI4KOw-N_8cd9WjnOMY3VLdomQaOqrq2NCRSFEBkFpwILd04pFE3CKMnFGtwUxTc0r30oqIz3Q2qqXVYP3gqLGAWeQXiqdcaSybBWhuw5tuLlxwVxwKXxKtfvuS_Sok3SVWR8sjsyx0EN8HsMp2_wnfy3b7lPtc7awt3f0KrG8Ze0shAQRXczh16BXiSeYc4xpzro8wYDCWNPx0cxfQljUkBkGRdLtj4lEwYcmkJDvkg15X0Z",
+                  }}
+                  style={styles.heroImage}
+                  resizeMode="contain"
+                />
+              </BlurView>
+            </View>
+
+            <View style={styles.titleSection}>
+              <Text style={styles.titleText}>
+                {currentQuestion?.question_text || "Buku"}
+              </Text>
+              <Text style={styles.subtitleText}>PICK THE CORRECT TRANSLATION</Text>
+            </View>
+          </View>
+
+          {/* Multiple Choice Bento Grid */}
+          <View style={styles.optionsSection}>
+            {displayOptions.map((option, index) => (
+              <GlassOption
+                key={index}
+                label={optionLabels[index] || ""}
+                text={option.option_text}
+                isSelected={selectedOption === index}
+                onPress={() => setSelectedOption(index)}
+              />
+            ))}
+          </View>
+        </ScrollView>
+
+        {/* Sticky Action Footer */}
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={[
+              styles.nextStepButton,
+              selectedOption === null && styles.nextStepButtonDisabled
+            ]}
+            onPress={handleNext}
+            disabled={selectedOption === null}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.nextStepText}>Next Step</Text>
+            <MaterialIcons name="keyboard-arrow-right" size={24} color="#ffffff" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Phonetic Accent Highlight Background */}
+        <View pointerEvents="none" style={styles.bgAccentContainer}>
+          <Text style={styles.bgAccentText} numberOfLines={1}>
+            NUSA
+          </Text>
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9E8D1",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 16,
+    fontFamily: "SpaceGrotesk-Medium",
+    fontSize: 16,
+    color: "#121212",
+  },
+  safeArea: {
+    flex: 1,
   },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 10,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    zIndex: 10,
-  },
-  backButton: {},
-  backIcon: {
-    width: 50,
-    height: 50,
-  },
-  progressContainer: {
-    backgroundColor: "rgba(93, 58, 26, 0.1)",
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
     paddingVertical: 8,
-    borderWidth: 2,
-    borderColor: "#5D3A1A",
+    width: "100%",
   },
-  content: {
-    flex: 1,
-    paddingHorizontal: 30,
-    alignItems: "center",
-  },
-  imagePlaceholder: {
-    width: 250,
-    height: 150,
-    justifyContent: "center",
-    alignItems: "center",
-    marginVertical: 40,
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     overflow: "hidden",
   },
-  placeholderText: {
-    color: "#8a7a6a",
-    fontWeight: "bold",
-  },
-  questionContainer: {
-    width: "100%",
-    alignItems: "flex-start",
-    marginBottom: 20,
-    paddingLeft: 10,
-  },
-  questionText: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#5B4434",
-    letterSpacing: 0.5,
-    textAlign: "left",
-  },
-  optionsContainer: {
-    width: "100%",
-    gap: 16,
-    alignItems: "center",
-  },
-  optionButton: {
-    width: "100%",
-    maxWidth: 320,
-    height: 60,
-  },
-  optionBackground: {
+  backButtonGlass: {
     flex: 1,
-    width: "100%",
-    justifyContent: "center",
     alignItems: "center",
-    paddingBottom: 5,
+    justifyContent: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.45)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.5)",
   },
-  optionText: {
-    letterSpacing: 0,
+  progressWrapper: {
+    flex: 1,
+    paddingHorizontal: 24,
+  },
+  progressText: {
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 20,
+    color: "#000000",
+    letterSpacing: -0.5,
+  },
+  mainCanvas: {
+    flex: 1,
+    zIndex: 10,
+  },
+  mainCanvasContent: {
+    paddingHorizontal: 24,
+    paddingVertical: 8,
+    alignItems: "center",
+  },
+  heroSection: {
+    width: "100%",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  heroImageWrapper: {
+    width: 130,
+    height: 130,
+    borderRadius: 20,
+    overflow: "hidden",
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+    ...Platform.select({
+      android: {
+        backgroundColor: "rgba(255,255,255,0.8)",
+      }
+    })
+  },
+  heroImageGlass: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+    backgroundColor: "rgba(255, 255, 255, 0.45)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.5)",
+  },
+  heroImage: {
+    width: "100%",
+    height: "100%",
+    // In React Native we can't easily do mix-blend-multiply without SVG/special views
+    // but the image provided has a white-ish background so it will integrate reasonably.
+  },
+  titleSection: {
+    alignItems: "center",
+  },
+  titleText: {
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 32,
+    color: "#121212",
+    letterSpacing: -1,
+    marginBottom: 2,
     textAlign: "center",
+    ...(Platform.OS === 'android' ? { lineHeight: 38 } : {}),
   },
-  selectedOptionText: {
-    textShadowColor: "transparent",
+  subtitleText: {
+    fontFamily: "SpaceGrotesk-Medium",
+    fontSize: 12,
+    color: "rgba(18, 18, 18, 0.6)",
+    letterSpacing: 2.5,
+    textTransform: "uppercase",
+  },
+  optionsSection: {
+    width: "100%",
   },
   footer: {
-    paddingHorizontal: 20,
-    paddingBottom: 10,
-    alignItems: "flex-end",
+    paddingHorizontal: 24,
+    paddingVertical: 8,
+    paddingBottom: Platform.OS === 'ios' ? 12 : 8,
+    width: "100%",
+    zIndex: 10,
+    backgroundColor: "transparent",
+  },
+  nextStepButton: {
+    height: 58,
+    backgroundColor: "#000000",
+    borderRadius: 20,
+    flexDirection: "row",
+    alignItems: "center",
     justifyContent: "center",
-    height: 100,
-  },
-  nextButtonContainer: {
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
+    shadowOffset: { width: 0, height: 15 },
     shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 5,
+    shadowRadius: 20,
+    elevation: 15,
   },
-  hidden: {
-    opacity: 0,
+  nextStepButtonDisabled: {
+    opacity: 0.5,
   },
-  nextIcon: {
-    width: 100,
-    height: 45,
+  nextStepText: {
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 18,
+    color: "#ffffff",
+    marginRight: 8,
+  },
+  bgAccentContainer: {
+    position: "absolute",
+    top: "50%",
+    right: -60,
+    transform: [{ translateY: -120 }, { rotate: "90deg" }],
+    opacity: 0.03,
+    zIndex: 0,
+  },
+  bgAccentText: {
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 200,
+    color: "#000000",
+    lineHeight: 200,
   },
 });

@@ -10,7 +10,6 @@ import {
   LeaderboardScreen,
   ProfileScreen,
   SettingsScreen,
-  StageBriefingScreen,
   VocabFarmingScreen,
   GameScreen,
   ResultScreen,
@@ -90,7 +89,6 @@ export const AppNavigator = () => {
       <RootStack.Screen name="Auth" component={AuthNavigator} />
       <RootStack.Screen name="Main" component={MainNavigator} />
       {/* <RootStack.Screen name="Admin" component={AdminNavigator} /> */}
-      <RootStack.Screen name="StageBriefing" component={StageBriefingScreen} />
       <RootStack.Screen name="VocabFarming" component={VocabFarmingScreen} />
       <RootStack.Screen name="Gameplay" component={GameScreen} />
       <RootStack.Screen name="Result" component={ResultScreen} />
