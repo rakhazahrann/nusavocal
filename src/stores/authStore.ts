@@ -45,6 +45,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   error: null,
 
   initialize: async () => {
+    if (get().isInitialized || get().isLoading) return;
+
     try {
       set({ isLoading: true });
 
@@ -53,7 +55,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       if (session?.user) {
         set({ user: session.user, session });
-        await get().fetchProfile();
+        // Don't await here to let onAuthStateChange handle the initial setup if it fires
+        get().fetchProfile();
       }
 
       // Listen for auth changes
@@ -61,7 +64,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         set({ user: session?.user ?? null, session });
 
         if (event === 'SIGNED_IN' && session?.user) {
-          await get().fetchProfile();
+          // Only fetch if profile is not already loaded or if it's a different user
+          const currentProfile = get().profile;
+          if (!currentProfile || currentProfile.id !== session.user.id) {
+            await get().fetchProfile();
+          }
         } else if (event === 'SIGNED_OUT') {
           set({ profile: null });
         }
@@ -137,8 +144,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   fetchProfile: async () => {
-    const { user } = get();
+    const { user, isLoading } = get();
     if (!user) return null;
+    
+    // Simple lock to prevent concurrent fetchProfile calls
+    // We use a temporary flag or just check if it's already loading
+    // Since initialize sets isLoading: true, we should be careful.
+    // Let's use a separate logic or just rely on session check.
 
     try {
       const data = await authService.fetchProfile(user.id);

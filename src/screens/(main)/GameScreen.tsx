@@ -5,7 +5,6 @@ import {
   Text,
   TouchableOpacity,
   Image,
-  ImageBackground,
   SafeAreaView,
   Dimensions,
   ActivityIndicator,
@@ -18,22 +17,22 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useAuthStore } from "../../stores/authStore";
 import { useGameStore, GameScenario } from "../../stores/gameStore";
 
-const { width, height } = Dimensions.get("window");
+const { height } = Dimensions.get("window");
 
-// Profile images based on gender
-const PROFILE_IMAGES = {
-  man: require("../../../assets/images/characters/man-profile.png"),
-  woman: require("../../../assets/images/characters/woman-profile.png"),
-};
-
-// Placeholder modern background
-const FALLBACK_BGURI = "https://lh3.googleusercontent.com/aida-public/AB6AXuC6B-y_wMUpflzCt6Zqj1SFAWjHomIORe0fn6ZXZGP9oDnaUWoiIFpgob0_nUQlHNaEl1LonpH_hp9NMIG0hFvLUf01fTzu6Cg1gHpNJNRAabu_uL_pvvWxZW-D343ki9PGA8sBwVhpt1XkiPluf3qaafV4y15pNZKudSo-RUXuhfyQrqBdtNp6IJJDqfvDMBTvTUagIFRO_V5TraSb40MeqmYZtyPA_Qrcw1kK81TviOinOM8feD0sAY9FUR5Z_jTOrneFokpnjvqI";
+// Placeholder modern background (Airport check-in counter style)
+const FALLBACK_BGURI = "https://images.unsplash.com/photo-1569629743817-70d8db6c323b?auto=format&fit=crop&q=80&w=1200";
 
 export const GameScreen = ({ navigation, route }: any) => {
   const { stageId, vocabScore = 0 } = route?.params || {};
   const { profile } = useAuthStore();
   const { currentScenarios, fetchGameScenarios, isLoading } = useGameStore();
   const [currentScenarioIndex, setCurrentScenarioIndex] = useState(0);
+
+  // New UI States
+  const [isRecording, setIsRecording] = useState(false);
+  const [transcription, setTranscription] = useState("");
+  const [hasEvaluated, setHasEvaluated] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
 
   // Pulse animation for mic
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -47,110 +46,173 @@ export const GameScreen = ({ navigation, route }: any) => {
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1.15, duration: 1000, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1.08, duration: 1200, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 1200, useNativeDriver: true }),
       ])
     ).start();
   }, [pulseAnim]);
 
-  const scenario: GameScenario | null = currentScenarios[currentScenarioIndex] || null;
+  const handleMicPress = () => {
+    if (isRecording) return;
+    
+    setIsRecording(true);
+    setTranscription("Mendengarkan...");
+    setHasEvaluated(false);
+    setIsCorrect(false);
 
-  const profileImage = profile?.gender === "woman" ? PROFILE_IMAGES.woman : PROFILE_IMAGES.man;
+    // Mock progress to show UI state changes
+    setTimeout(() => setTranscription("Mendengarkan: Ten..."), 800);
+    setTimeout(() => setTranscription("Mendengarkan: Tentu, ini..."), 1500);
+    setTimeout(() => {
+      setTranscription("Tentu, ini dia.");
+      setIsRecording(false);
+      setHasEvaluated(true);
+      setIsCorrect(true);
+    }, 2500);
+  };
+
+  const scenario: GameScenario | null = currentScenarios[currentScenarioIndex] || null;
   const backgroundSource = scenario?.background_image_url || FALLBACK_BGURI;
 
   if (isLoading) {
     return (
       <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
-        <ActivityIndicator size="large" color="#000" />
-        <Text style={styles.loadingText}>Loading scenario...</Text>
+        <ActivityIndicator size="large" color="#ffffff" />
+        <Text style={styles.loadingText}>Memuat Skenario...</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      {/* Dynamic Background Image - Placeholder for actual stage art */}
-      <Image source={{ uri: backgroundSource }} style={StyleSheet.absoluteFillObject} blurRadius={Platform.OS === 'android' ? 8 : 12} />
       
-      {/* Dimming Overlay */}
-      <View style={styles.dimOverlay} />
+      {/* TOP HALF: SCENARIO WINDOW */}
+      <View style={styles.imageContainer}>
+        {/* We can also apply an overlay that desaturates slightly but black/white UI is enough for monochrome */}
+        <Image 
+          source={{ uri: backgroundSource }} 
+          style={styles.scenarioImage} 
+        />
+        <LinearGradient 
+          colors={['rgba(0,0,0,0.6)', 'transparent', 'rgba(0,0,0,0.4)']} 
+          locations={[0, 0.4, 1]}
+          style={StyleSheet.absoluteFillObject} 
+        />
 
-      <SafeAreaView style={styles.safeArea}>
-        {/* Top Navbar */}
-        <View style={styles.header}>
+        {/* Absolute Header inside the image area */}
+        <View style={styles.headerAbsolute}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <MaterialIcons name="arrow-back-ios" size={20} color="#ffffff" style={{ marginLeft: 6 }} />
           </TouchableOpacity>
-          <View style={styles.headerCenter}>
-            <Text style={styles.npcTitle}>{scenario?.npc_name || "NPC Placeholder"}</Text>
-            <View style={styles.statusIndicator}>
-              <View style={styles.statusDot} />
-              <Text style={styles.statusText}>Active Dialogue</Text>
-            </View>
-          </View>
-          <View style={styles.headerRight}>
-            <View style={styles.npcAvatarPlaceholder}>
-              <MaterialIcons name="person" size={24} color="#ffffff" />
-            </View>
+          <View style={styles.statusIndicator}>
+             <View style={styles.statusDot} />
+             <Text style={styles.statusText}>Live Scenario</Text>
           </View>
         </View>
+      </View>
 
-        {/* Chat Area */}
-        <View style={styles.chatContainer}>
-          
-          {/* NPC Bubble */}
-          <View style={styles.npcRow}>
-            <View style={styles.npcAvatarSmall}>
-              <MaterialIcons name="person" size={16} color="#ffffff" />
-            </View>
-            <BlurView intensity={70} tint="light" style={styles.npcBubble}>
-              <Text style={styles.npcText}>
-                {scenario?.npc_text || "Hello, welcome! Let's practice your language skills. Please respond clearly."}
-              </Text>
-            </BlurView>
+      {/* BOTTOM HALF: INTERACTION AREA */}
+      <View style={styles.interactionArea}>
+        
+        {/* OVERLAPPING DIALOGUE BOX */}
+        <View style={styles.dialogueWrapper}>
+          <View style={styles.nameTab}>
+            <Text style={styles.nameText}>{scenario?.npc_name || "Petugas Bandara"}</Text>
           </View>
+          <BlurView intensity={80} tint="dark" style={styles.dialogueBox}>
+             <Text style={styles.dialogueText}>
+                {scenario?.npc_text || "Bisa saya lihat paspor dan tiket penerbangan Anda?"}
+             </Text>
 
-          {/* User Bubble */}
-          <View style={styles.userRow}>
-             <View style={styles.userBubbleWrapper}>
-               <LinearGradient colors={["rgba(26, 28, 28, 0.9)", "rgba(0, 0, 0, 0.95)"]} style={styles.userBubble}>
-                 <Text style={styles.userText}>{"< User Guide Voice Placeholder >\n\n(Wait for prompt or speak now)"}</Text>
-               </LinearGradient>
+             {/* TARGET PHRASE & EVALUATION INDICATOR */}
+             <View style={styles.targetPhraseContainer}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.targetPhraseLabel}>TUGAS ANDA:</Text>
+                  <Text style={styles.targetPhraseText}>
+                    Ucapkan <Text style={styles.targetPhraseHighlight}>"Tentu, ini dia."</Text>
+                  </Text>
+                </View>
+                <View style={styles.indicatorContainer}>
+                  {hasEvaluated ? (
+                    isCorrect ? (
+                      <MaterialIcons name="check-circle" size={24} color="#4ADE80" />
+                    ) : (
+                      <MaterialIcons name="cancel" size={24} color="#F87171" />
+                    )
+                  ) : (
+                    <View style={styles.pendingIndicator}>
+                      <View style={styles.dot} />
+                      <View style={styles.dot} />
+                      <View style={styles.dot} />
+                    </View>
+                  )}
+                </View>
              </View>
-             {/* User Profile Avatar */}
-             <View style={styles.userAvatarContainer}>
-               <Image source={profileImage} style={styles.userAvatar} />
-             </View>
-          </View>
-
+          </BlurView>
         </View>
 
-        {/* Interaction Footer */}
-        <View style={styles.footerContainer}>
-          {/* Pulsing Mic System */}
-          <View style={styles.micArea}>
-            <Animated.View style={[styles.micPulseRing, { transform: [{ scale: pulseAnim }], opacity: pulseAnim.interpolate({ inputRange: [1, 1.15], outputRange: [0.5, 0] }) }]} />
-            <TouchableOpacity activeOpacity={0.8} style={styles.micButton}>
-              <LinearGradient colors={["#000000", "#1a1c1c"]} style={styles.micGradient}>
-                <MaterialIcons name="mic" size={32} color="#ffffff" />
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
+        {/* MIC SECTION */}
+        <View style={styles.micSection}>
+           
+           {/* LIVE TRANSCRIPTION */}
+           <View style={styles.transcriptionContainer}>
+             {(isRecording || transcription !== "") ? (
+                <Text style={styles.transcriptionText}>{transcription}</Text>
+             ) : null}
+           </View>
 
-          {/* Action Button */}
-          <View style={styles.bottomBar}>
-            <TouchableOpacity 
-              style={styles.nextButton} 
-              activeOpacity={0.8}
-              onPress={() => navigation.replace("Result", { win: true, stageId, vocabScore })}
-            >
-              <Text style={styles.nextButtonText}>CONTINUE</Text>
-              <MaterialIcons name="arrow-forward" size={18} color="#000000" />
-            </TouchableOpacity>
-          </View>
+           <View style={styles.micButtonContainer}>
+              <Animated.View style={[styles.micPulseBg, { 
+                transform: [{ scale: pulseAnim }], 
+                opacity: pulseAnim.interpolate({ inputRange: [1, 1.08], outputRange: [0.3, 0] }) 
+              }]} />
+              <TouchableOpacity 
+                activeOpacity={0.8} 
+                style={styles.micButton}
+                onPress={handleMicPress}
+                disabled={isRecording}
+              >
+                 <LinearGradient 
+                    colors={["#23262F", "#14151A"]} 
+                    style={[
+                      styles.micGradient,
+                      hasEvaluated && isCorrect ? { borderColor: "#4ADE80" } : undefined,
+                      hasEvaluated && !isCorrect ? { borderColor: "#F87171" } : undefined,
+                    ]}
+                 >
+                   {/* Waveform visual mimic - Monochrome */}
+                   <View style={styles.waveformRow}>
+                      <View style={[styles.waveLine, { height: 12 }, isRecording && { backgroundColor: "#4ADE80" }]} />
+                      <View style={[styles.waveLine, { height: 24 }, isRecording && { backgroundColor: "#4ADE80" }]} />
+                      <View style={[styles.waveLine, { height: 16 }, isRecording && { backgroundColor: "#4ADE80" }]} />
+                      <MaterialIcons name="mic" size={44} color={isRecording ? "#4ADE80" : "#ffffff"} style={styles.micIcon} />
+                      <View style={[styles.waveLine, { height: 16 }, isRecording && { backgroundColor: "#4ADE80" }]} />
+                      <View style={[styles.waveLine, { height: 24 }, isRecording && { backgroundColor: "#4ADE80" }]} />
+                      <View style={[styles.waveLine, { height: 12 }, isRecording && { backgroundColor: "#4ADE80" }]} />
+                   </View>
+                 </LinearGradient>
+              </TouchableOpacity>
+           </View>
+
+           <Text style={styles.instructionText}>
+             {isRecording ? "SEDANG MEREKAM..." : "TEKAN UNTUK MERESPON"}
+           </Text>
         </View>
 
-      </SafeAreaView>
+        {/* Action Button at the very bottom right */}
+        <View style={styles.bottomBar}>
+          <TouchableOpacity 
+            style={[styles.nextButton, !hasEvaluated && styles.nextButtonDisabled]} 
+            activeOpacity={0.8}
+            onPress={() => navigation.replace("Result", { win: true, stageId, vocabScore })}
+            disabled={!hasEvaluated}
+          >
+            <Text style={[styles.nextButtonText, !hasEvaluated && styles.nextButtonTextDisabled]}>LANJUTKAN</Text>
+            <MaterialIcons name="arrow-forward" size={16} color={!hasEvaluated ? "rgba(255,255,255,0.3)" : "#0A0D14"} />
+          </TouchableOpacity>
+        </View>
+
+      </View>
     </View>
   );
 };
@@ -158,15 +220,7 @@ export const GameScreen = ({ navigation, route }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1a1c1c",
-  },
-  dimOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.45)",
-  },
-  safeArea: {
-    flex: 1,
-    justifyContent: "space-between",
+    backgroundColor: "#050505", // Deepest monochrome back
   },
   loadingText: {
     fontFamily: "SpaceGrotesk-Medium",
@@ -176,205 +230,256 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     textTransform: "uppercase",
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+  
+  // Scenerio Top Half
+  imageContainer: {
+    height: height * 0.38,
+    width: "100%",
+    position: 'relative',
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.1)",
+    borderBottomColor: 'rgba(255,255,255,0.1)',
+  },
+  scenarioImage: {
+    ...StyleSheet.absoluteFillObject,
+    resizeMode: 'cover',
+  },
+  headerAbsolute: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 50 : 30,
+    left: 20,
+    right: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    zIndex: 20,
   },
   backButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "rgba(255,255,255,0.1)",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.15)",
-  },
-  headerCenter: {
-    alignItems: "center",
-  },
-  npcTitle: {
-    fontFamily: "SpaceGrotesk-Bold",
-    fontSize: 16,
-    color: "#ffffff",
-    letterSpacing: -0.5,
-  },
-  statusIndicator: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 4,
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#4cd964",
-    marginRight: 6,
-  },
-  statusText: {
-    fontFamily: "SpaceGrotesk-Medium",
-    fontSize: 10,
-    color: "rgba(255,255,255,0.6)",
-    textTransform: "uppercase",
-    letterSpacing: 1,
-  },
-  headerRight: {
-    width: 44,
-    height: 44,
-    alignItems: "flex-end",
-  },
-  npcAvatarPlaceholder: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(255,255,255,0.15)",
+    backgroundColor: "rgba(0,0,0,0.5)",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.3)",
   },
-  chatContainer: {
+  statusIndicator: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.3)",
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#ffffff", // Monochrome white dot
+    marginRight: 6,
+  },
+  statusText: {
+    fontFamily: "SpaceGrotesk-Medium",
+    fontSize: 12,
+    color: "#ffffff",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+
+  // Bottom Half
+  interactionArea: {
     flex: 1,
     paddingHorizontal: 20,
-    paddingTop: 30,
   },
-  npcRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    marginBottom: 24,
+  dialogueWrapper: {
+    width: '100%',
+    marginTop: -45, // Overlap the image boundary
+    zIndex: 10,
   },
-  npcAvatarSmall: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 10,
-    marginBottom: 4,
-  },
-  npcBubble: {
-    maxWidth: width * 0.75,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderRadius: 24,
-    borderBottomLeftRadius: 4,
+  nameTab: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#1E2128', // Dark grey
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.4)",
-    backgroundColor: "rgba(255,255,255,0.6)",
-    overflow: "hidden",
+    borderColor: "rgba(255,255,255,0.2)",
+    borderBottomWidth: 0,
+    marginLeft: 16,
   },
-  npcText: {
-    fontFamily: "SpaceGrotesk-Medium",
-    fontSize: 15,
-    color: "#000000",
-    lineHeight: 22,
-  },
-  userRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "flex-end",
-    marginBottom: 24,
-  },
-  userBubbleWrapper: {
-    marginRight: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 8,
-  },
-  userBubble: {
-    maxWidth: width * 0.75,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderRadius: 24,
-    borderBottomRightRadius: 4,
-  },
-  userText: {
-    fontFamily: "SpaceGrotesk-Regular",
+  nameText: {
+    fontFamily: "SpaceGrotesk-Bold",
     fontSize: 14,
-    color: "#ffffff",
-    lineHeight: 22,
-    opacity: 0.8,
+    color: "#ffffff", // Monochrome name
   },
-  userAvatarContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#ffffff",
-    padding: 2,
-    marginBottom: 4,
-  },
-  userAvatar: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 14,
-  },
-  footerContainer: {
-    paddingBottom: Platform.OS === 'ios' ? 24 : 32,
-    alignItems: "center",
-  },
-  micArea: {
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 40,
-    height: 100,
-  },
-  micPulseRing: {
-    position: "absolute",
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "rgba(255,255,255,0.5)",
-  },
-  micButton: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+  dialogueBox: {
+    width: '100%',
+    padding: 20,
+    minHeight: 110,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 20,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    backgroundColor: "rgba(20, 22, 28, 0.85)", // Glassmonochrome
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
+    overflow: 'hidden',
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
     shadowRadius: 15,
-    elevation: 10,
+  },
+  dialogueText: {
+    fontFamily: "SpaceGrotesk-Medium",
+    fontSize: 16,
+    color: "#ffffff",
+    lineHeight: 24,
+  },
+
+  micSection: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  micButtonContainer: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 200,
+    height: 80,
+  },
+  micPulseBg: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    borderRadius: 24,
+    backgroundColor: "rgba(255, 255, 255, 0.15)", // Monochrome pulse
+  },
+  micButton: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 24,
+    shadowColor: "#ffffff",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 15,
+    elevation: 8,
   },
   micGradient: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 36,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.2)",
+    width: '100%',
+    height: '100%',
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.25)",
   },
+  waveformRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  waveLine: {
+    width: 4,
+    backgroundColor: "rgba(255, 255, 255, 0.5)", // Monochrome lines
+    borderRadius: 2,
+    marginHorizontal: 4,
+  },
+  micIcon: {
+    marginHorizontal: 16,
+  },
+
+  instructionText: {
+    marginTop: 24,
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 13,
+    letterSpacing: 2,
+    color: "rgba(255,255,255,0.6)",
+  },
+
   bottomBar: {
     width: "100%",
-    paddingHorizontal: 32,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 32,
     alignItems: "flex-end",
   },
   nextButton: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#ffffff",
-    paddingHorizontal: 24,
-    paddingVertical: 14,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     borderRadius: 99,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
+  },
+  nextButtonDisabled: {
+    backgroundColor: "#1E2128",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
   },
   nextButtonText: {
     fontFamily: "SpaceGrotesk-Bold",
     fontSize: 12,
-    color: "#000000",
-    letterSpacing: 2,
-    marginRight: 8,
+    color: "#050505", // Inverse monochrome text
+    letterSpacing: 1,
+    marginRight: 6,
+  },
+  nextButtonTextDisabled: {
+    color: "rgba(255,255,255,0.3)",
+  },
+  
+  // Custom states additions
+  targetPhraseContainer: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255,255,255,0.1)",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  targetPhraseLabel: {
+    fontFamily: "SpaceGrotesk-Medium",
+    fontSize: 10,
+    color: "rgba(255,255,255,0.5)",
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  targetPhraseText: {
+    fontFamily: "SpaceGrotesk-Medium",
+    fontSize: 14,
+    color: "rgba(255,255,255,0.8)",
+  },
+  targetPhraseHighlight: {
+    fontFamily: "SpaceGrotesk-Bold",
+    color: "#60A5FA", // A soft pastel blue for visual focal
+  },
+  indicatorContainer: {
+    paddingLeft: 12,
+    justifyContent: "center",
+  },
+  pendingIndicator: {
+    flexDirection: "row",
+    gap: 4,
+    opacity: 0.3,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#ffffff",
+  },
+  transcriptionContainer: {
+    height: 24,
+    marginBottom: 12,
+    justifyContent: "center",
+  },
+  transcriptionText: {
+    fontFamily: "SpaceGrotesk-Medium",
+    fontSize: 14,
+    color: "rgba(255,255,255,0.6)",
+    fontStyle: 'italic',
+    textAlign: "center",
   },
 });
