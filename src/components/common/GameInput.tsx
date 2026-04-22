@@ -6,11 +6,11 @@ import {
   TextInputProps,
   TouchableOpacity,
 } from "react-native";
-import { PixelText } from "./PixelText";
+import { GameText } from "./GameText";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
-interface PixelInputProps extends TextInputProps {
+export interface GameInputProps extends TextInputProps {
   label: string;
   iconName?: keyof typeof MaterialIcons.glyphMap;
   communityIconName?: keyof typeof MaterialCommunityIcons.glyphMap;
@@ -18,7 +18,7 @@ interface PixelInputProps extends TextInputProps {
   variant?: "light" | "dark";
 }
 
-export const PixelInput: React.FC<PixelInputProps> = ({
+export const GameInput: React.FC<GameInputProps> = ({
   label,
   iconName,
   communityIconName,
@@ -33,13 +33,13 @@ export const PixelInput: React.FC<PixelInputProps> = ({
 
   return (
     <View style={styles.container}>
-      <PixelText
+      <GameText
         size={10}
         color={variant === "dark" ? "#FFF" : "#5d3a1a"}
         style={styles.label}
       >
         {label}
-      </PixelText>
+      </GameText>
 
       <View
         style={[

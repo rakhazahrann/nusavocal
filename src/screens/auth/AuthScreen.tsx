@@ -36,13 +36,8 @@ export const AuthScreen = ({ navigation }: any) => {
       const result = await signIn(email.trim(), password);
       if (result.success) {
         const profile = useAuthStore.getState().profile;
-        if (profile?.gender && profile?.nickname) {
+        if (profile?.nickname) {
           navigation.replace("Main");
-        } else if (profile?.gender) {
-          navigation.replace("Auth", {
-            screen: "ProfileCreation",
-            params: { characterId: profile.character_id || "ira" },
-          });
         } else {
           navigation.navigate("ProfileCreation");
         }

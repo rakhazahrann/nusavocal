@@ -1,7 +1,7 @@
 import React from "react";
 import { Text, TextProps, StyleSheet, TextStyle } from "react-native";
 
-interface PixelTextProps extends TextProps {
+export interface GameTextProps extends TextProps {
   color?: string;
   size?: number;
   family?: "pixel" | "display" | "pixelify";
@@ -9,7 +9,7 @@ interface PixelTextProps extends TextProps {
   shadow?: boolean;
 }
 
-export const PixelText: React.FC<PixelTextProps> = ({
+export const GameText: React.FC<GameTextProps> = ({
   children,
   style,
   color = "#3e2723", // default text color

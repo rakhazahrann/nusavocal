@@ -5,7 +5,6 @@ import Animated, {
   useAnimatedScrollHandler,
   runOnJS,
 } from "react-native-reanimated";
-import gsap from "gsap";
 import { TopBar } from "../../components/common/TopBar";
 import { DynamicBackground } from "../../components/map/DynamicBackground";
 import { StageNode } from "../../components/map/StageNode";
@@ -36,15 +35,9 @@ export const MainScreen = ({ navigation }: any) => {
   const { stages: dbStages, fetchStages, deleteStage, isLoading, error } = useGameStore();
 
   const scrollOffsetRef = useRef(0);
-  const scrollTweenRef = useRef<gsap.core.Tween | null>(null);
-  const scrollDataRef = useRef({ y: 0 });
 
-  const killScrollTween = React.useCallback(() => {
-    if (scrollTweenRef.current) {
-      scrollTweenRef.current.kill();
-      scrollTweenRef.current = null;
-    }
-  }, []);
+  // No-op: GSAP scroll tween removed, using native animated scroll
+  const killScrollTween = React.useCallback(() => {}, []);
 
   const setScrollOffset = React.useCallback((y: number) => {
     scrollOffsetRef.current = y;
@@ -128,9 +121,6 @@ export const MainScreen = ({ navigation }: any) => {
   const scrollToStage = (stageIndex: number, animated: boolean) => {
     if (!scrollRef.current) return;
 
-    // Kill any in-flight tween before starting a new one.
-    killScrollTween();
-
     const safeViewportHeight = Math.max(1, viewportHeight || 1);
     const desiredViewportY = safeViewportHeight * 0.65; // keep node a bit lower to fit popup above
     const stageY = getStageY(stageIndex);
@@ -139,39 +129,11 @@ export const MainScreen = ({ navigation }: any) => {
     const maxScroll = Math.max(0, totalMapHeight - safeViewportHeight);
     const clamped = Math.max(0, Math.min(rawTarget, maxScroll));
 
-    if (!animated) {
-      scrollOffsetRef.current = clamped;
-      scrollRef.current?.scrollTo({ y: clamped, animated: false });
-      return;
-    }
-
-    const startY = scrollOffsetRef.current;
-    const distance = Math.abs(clamped - startY);
-    const duration = Math.max(0.35, Math.min(0.9, 0.35 + (distance / 1200) * 0.55));
-
-    scrollDataRef.current.y = startY;
-    scrollTweenRef.current = gsap.to(scrollDataRef.current, {
-      y: clamped,
-      duration,
-      ease: "power2.inOut",
-      overwrite: true,
-      onUpdate: () => {
-        const y = scrollDataRef.current.y;
-        scrollOffsetRef.current = y;
-        scrollRef.current?.scrollTo({ y, animated: false });
-      },
-      onComplete: () => {
-        scrollOffsetRef.current = clamped;
-        scrollTweenRef.current = null;
-      },
-    });
+    scrollOffsetRef.current = clamped;
+    scrollRef.current?.scrollTo({ y: clamped, animated });
   };
 
-  useEffect(() => {
-    return () => {
-      killScrollTween();
-    };
-  }, [killScrollTween]);
+  // Cleanup no longer needed without GSAP tweens
 
   React.useEffect(() => {
     if (initialIndex < 0) return;
@@ -220,9 +182,6 @@ export const MainScreen = ({ navigation }: any) => {
         ref={scrollRef}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
-        onScrollBeginDrag={killScrollTween}
-        onMomentumScrollBegin={killScrollTween}
-        onTouchStart={killScrollTween}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ height: totalMapHeight }}
         bounces={false}

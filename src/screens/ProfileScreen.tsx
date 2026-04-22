@@ -1,15 +1,11 @@
 import React, { useEffect } from "react";
-import { Image, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { Card, Screen, Text, Button } from "../components/ui";
 import { colors, radius, spacing } from "../theme";
+import { UserAvatar } from "../components/common";
 import { useAuthStore } from "../stores/authStore";
 import { useGameStore } from "../stores/gameStore";
 import { EnterAnimatedView } from "../motion/EnterAnimatedView";
-
-const PROFILE_IMAGES = {
-  man: require("../../assets/images/characters/man-profile.png"),
-  woman: require("../../assets/images/characters/woman-profile.png"),
-};
 
 export const ProfileScreen = () => {
   const { user, profile, fetchProfile } = useAuthStore();
@@ -24,8 +20,8 @@ export const ProfileScreen = () => {
 
   const completedStages = stages.filter((s) => s.status === "completed").length;
   const currentStage = stages.find((s) => s.status === "current");
-
-  const profileImage = profile?.gender === "woman" ? PROFILE_IMAGES.woman : PROFILE_IMAGES.man;
+  const totalStages = stages.length;
+  const remainingStages = Math.max(totalStages - completedStages, 0);
 
   return (
     <Screen>
@@ -39,7 +35,11 @@ export const ProfileScreen = () => {
 
         <Card style={{ marginTop: spacing.lg }}>
           <View style={styles.profileRow}>
-            <Image source={profileImage} style={styles.avatar} />
+            <UserAvatar
+              name={profile?.nickname || profile?.username}
+              avatarUrl={profile?.avatar_url}
+              size={64}
+            />
             <View style={{ flex: 1 }}>
               <Text variant="subtitle" weight="bold">
                 {profile?.nickname || profile?.username || "User"}
@@ -72,6 +72,19 @@ export const ProfileScreen = () => {
           </View>
         </Card>
 
+        <Card style={{ marginTop: spacing.md }}>
+          <View style={styles.focusBox}>
+            <Text variant="label" weight="semibold">
+              Next Focus
+            </Text>
+            <Text variant="body" tone="muted" style={{ marginTop: spacing.xs }}>
+              {currentStage
+                ? `Lanjutkan stage "${currentStage.label}" untuk membuka ${remainingStages} stage berikutnya.`
+                : "Belum ada stage aktif. Coba refresh data atau buat stage pertama dari admin panel."}
+            </Text>
+          </View>
+        </Card>
+
         <View style={{ marginTop: spacing.lg }}>
           <Button
             label="Refresh"
@@ -94,12 +107,6 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.md,
   },
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: radius.pill,
-    backgroundColor: colors.border,
-  },
   statGrid: {
     flexDirection: "row",
     gap: spacing.md,
@@ -112,5 +119,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     padding: spacing.md,
     backgroundColor: colors.surface,
+  },
+  focusBox: {
+    padding: spacing.lg,
   },
 });

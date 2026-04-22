@@ -53,10 +53,8 @@ export const authService = {
   async updateProfile(userId: string, updates: any) {
     const { data, error } = await supabase
       .from('profiles')
-      .upsert({ 
-        id: userId,
-        ...updates,
-      })
+      .update(updates)
+      .eq('id', userId)
       .select()
       .single();
     if (error) throw error;

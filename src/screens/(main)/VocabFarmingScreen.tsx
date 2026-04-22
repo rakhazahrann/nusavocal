@@ -14,7 +14,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { useGameStore } from "../../stores/gameStore";
-import { GlassOption, GlassProgressBar } from "../../components/glass";
+import { OptionCard, ProgressBar } from "../../components/glass";
 
 export const VocabFarmingScreen = ({ navigation, route }: any) => {
   const { stageId } = route?.params || {};
@@ -96,7 +96,7 @@ export const VocabFarmingScreen = ({ navigation, route }: any) => {
           </TouchableOpacity>
 
           <View style={styles.progressWrapper}>
-            <GlassProgressBar progress={progress} />
+            <ProgressBar progress={progress} />
           </View>
 
           <Text style={styles.progressText}>
@@ -135,7 +135,7 @@ export const VocabFarmingScreen = ({ navigation, route }: any) => {
           {/* Multiple Choice Bento Grid */}
           <View style={styles.optionsSection}>
             {displayOptions.map((option, index) => (
-              <GlassOption
+              <OptionCard
                 key={index}
                 label={optionLabels[index] || ""}
                 text={option.option_text}

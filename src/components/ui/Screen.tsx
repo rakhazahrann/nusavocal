@@ -1,29 +1,29 @@
 import React from "react";
-import { SafeAreaView, StyleSheet, View, ViewProps } from "react-native";
-import { colors, spacing } from "../../theme";
+import { SafeAreaView } from "react-native";
+import { YStack } from "tamagui";
 
-export interface ScreenProps extends ViewProps {
+export interface ScreenProps {
   padded?: boolean;
+  children?: React.ReactNode;
+  style?: any;
+  [key: string]: any;
 }
 
-export const Screen: React.FC<ScreenProps> = ({ padded = true, style, children, ...props }) => {
+export const Screen: React.FC<ScreenProps> = ({
+  padded = true,
+  style,
+  children,
+  ...props
+}) => {
   return (
-    <SafeAreaView style={[styles.safeArea, style]} {...props}>
-      <View style={[styles.inner, padded ? styles.padded : null]}>{children}</View>
+    <SafeAreaView style={[{ flex: 1, backgroundColor: "#F7F7F8" }, style]} {...props}>
+      <YStack
+        flex={1}
+        paddingHorizontal={padded ? "$lg" : undefined}
+        paddingTop={padded ? "$lg" : undefined}
+      >
+        {children}
+      </YStack>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  inner: {
-    flex: 1,
-  },
-  padded: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-  },
-});

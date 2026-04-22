@@ -1,9 +1,11 @@
 import React from "react";
-import { SafeAreaView, StyleSheet, ViewProps } from "react-native";
+import { SafeAreaView, StyleProp, ViewStyle } from "react-native";
+import { YStack, GetProps } from "tamagui";
 
-interface ScreenWrapperProps extends ViewProps {
+export type ScreenWrapperProps = Omit<GetProps<typeof YStack>, "children" | "style"> & {
   children: React.ReactNode;
-}
+  style?: StyleProp<ViewStyle>;
+};
 
 export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   children,
@@ -11,15 +13,10 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   ...props
 }) => {
   return (
-    <SafeAreaView style={[styles.container, style]} {...props}>
-      {children}
+    <SafeAreaView style={[{ flex: 1, backgroundColor: "#1a1a2e" }, style]}>
+      <YStack flex={1} {...props}>
+        {children}
+      </YStack>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#1a1a2e", // Deep Navy background from design system
-  },
-});

@@ -1,28 +1,30 @@
 import React from "react";
-import { StyleSheet, View, ViewProps } from "react-native";
-import { colors, radius, spacing } from "../../theme";
+import { YStack, GetProps } from "tamagui";
 
-export interface CardProps extends ViewProps {
+export interface CardProps {
   padded?: boolean;
+  children?: React.ReactNode;
+  style?: any;
+  [key: string]: any;
 }
 
-export const Card: React.FC<CardProps> = ({ padded = true, style, ...props }) => {
+export const Card: React.FC<CardProps> = ({
+  padded = true,
+  style,
+  children,
+  ...props
+}) => {
   return (
-    <View
-      style={[styles.base, padded ? styles.padded : null, style]}
+    <YStack
+      backgroundColor="$backgroundSurface"
+      borderRadius="$lg"
+      borderWidth={1}
+      borderColor="$borderColor"
+      padding={padded ? "$lg" : undefined}
+      style={style}
       {...props}
-    />
+    >
+      {children}
+    </YStack>
   );
 };
-
-const styles = StyleSheet.create({
-  base: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  padded: {
-    padding: spacing.lg,
-  },
-});

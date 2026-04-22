@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -14,28 +14,108 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import { useAuthStore } from "../../stores/authStore";
+import Voice, {
+  SpeechEndEvent,
+  SpeechErrorEvent,
+  SpeechResultsEvent,
+  SpeechStartEvent,
+} from "@dev-amirzubair/react-native-voice";
 import { useGameStore, GameScenario } from "../../stores/gameStore";
 
 const { height } = Dimensions.get("window");
 
 // Placeholder modern background (Airport check-in counter style)
 const FALLBACK_BGURI = "https://images.unsplash.com/photo-1569629743817-70d8db6c323b?auto=format&fit=crop&q=80&w=1200";
+const DEFAULT_TARGET_PHRASE = "Tentu, ini dia.";
+const SPEECH_LOCALE = "id-ID";
+
+const normalizeSpeechText = (value?: string | null) =>
+  (value || "")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const calculateLevenshteinDistance = (a: string, b: string) => {
+  const rows = a.length + 1;
+  const cols = b.length + 1;
+  const matrix = Array.from({ length: rows }, () => Array(cols).fill(0));
+
+  for (let i = 0; i < rows; i += 1) matrix[i][0] = i;
+  for (let j = 0; j < cols; j += 1) matrix[0][j] = j;
+
+  for (let i = 1; i < rows; i += 1) {
+    for (let j = 1; j < cols; j += 1) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + cost
+      );
+    }
+  }
+
+  return matrix[a.length][b.length];
+};
+
+const calculateWordOverlap = (a: string, b: string) => {
+  if (!a || !b) return 0;
+
+  const sourceWords = a.split(" ").filter(Boolean);
+  const targetWords = b.split(" ").filter(Boolean);
+  if (!sourceWords.length || !targetWords.length) return 0;
+
+  const sourceSet = new Set(sourceWords);
+  const targetSet = new Set(targetWords);
+  let matches = 0;
+
+  sourceSet.forEach((word) => {
+    if (targetSet.has(word)) matches += 1;
+  });
+
+  return matches / Math.max(sourceSet.size, targetSet.size);
+};
+
+const getMatchScore = (spoken: string, expected: string) => {
+  const normalizedSpoken = normalizeSpeechText(spoken);
+  const normalizedExpected = normalizeSpeechText(expected);
+
+  if (!normalizedSpoken || !normalizedExpected) return 0;
+  if (normalizedSpoken === normalizedExpected) return 1;
+
+  const overlap = calculateWordOverlap(normalizedSpoken, normalizedExpected);
+  const maxLength = Math.max(normalizedSpoken.length, normalizedExpected.length);
+  const levenshtein =
+    maxLength > 0
+      ? 1 -
+        calculateLevenshteinDistance(normalizedSpoken, normalizedExpected) /
+          maxLength
+      : 0;
+  const inclusion =
+    normalizedSpoken.includes(normalizedExpected) ||
+    normalizedExpected.includes(normalizedSpoken)
+      ? 0.9
+      : 0;
+
+  return Math.max(overlap, levenshtein, inclusion);
+};
 
 export const GameScreen = ({ navigation, route }: any) => {
   const { stageId, vocabScore = 0 } = route?.params || {};
-  const { profile } = useAuthStore();
   const { currentScenarios, fetchGameScenarios, isLoading } = useGameStore();
   const [currentScenarioIndex, setCurrentScenarioIndex] = useState(0);
-
-  // New UI States
   const [isRecording, setIsRecording] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [transcription, setTranscription] = useState("");
   const [hasEvaluated, setHasEvaluated] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
+  const [speechError, setSpeechError] = useState<string | null>(null);
+  const [isVoiceAvailable, setIsVoiceAvailable] = useState(true);
+  const [speakingScore, setSpeakingScore] = useState(0);
 
   // Pulse animation for mic
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const scenarioRef = useRef<GameScenario | null>(null);
 
   useEffect(() => {
     if (stageId) {
@@ -52,27 +132,171 @@ export const GameScreen = ({ navigation, route }: any) => {
     ).start();
   }, [pulseAnim]);
 
-  const handleMicPress = () => {
-    if (isRecording) return;
-    
-    setIsRecording(true);
-    setTranscription("Mendengarkan...");
+  const scenario: GameScenario | null = currentScenarios[currentScenarioIndex] || null;
+  scenarioRef.current = scenario;
+
+  const targetPhrase = useMemo(
+    () => scenario?.expected_voice_text?.trim() || DEFAULT_TARGET_PHRASE,
+    [scenario]
+  );
+  const backgroundSource = scenario?.background_image_url || FALLBACK_BGURI;
+  const totalScenarios = currentScenarios.length || 1;
+  const isLastScenario = currentScenarioIndex >= totalScenarios - 1;
+  const canAdvance = hasEvaluated && isCorrect;
+
+  const resetAttemptState = () => {
+    setIsRecording(false);
+    setIsProcessing(false);
+    setTranscription("");
     setHasEvaluated(false);
     setIsCorrect(false);
-
-    // Mock progress to show UI state changes
-    setTimeout(() => setTranscription("Mendengarkan: Ten..."), 800);
-    setTimeout(() => setTranscription("Mendengarkan: Tentu, ini..."), 1500);
-    setTimeout(() => {
-      setTranscription("Tentu, ini dia.");
-      setIsRecording(false);
-      setHasEvaluated(true);
-      setIsCorrect(true);
-    }, 2500);
+    setSpeechError(null);
   };
 
-  const scenario: GameScenario | null = currentScenarios[currentScenarioIndex] || null;
-  const backgroundSource = scenario?.background_image_url || FALLBACK_BGURI;
+  const evaluateTranscript = (spokenText: string) => {
+    const expected = scenarioRef.current?.expected_voice_text?.trim() || DEFAULT_TARGET_PHRASE;
+    const cleaned = spokenText.trim();
+    const score = getMatchScore(cleaned, expected);
+    const passed = score >= 0.74;
+
+    setTranscription(cleaned);
+    setHasEvaluated(true);
+    setIsCorrect(passed);
+    setSpeechError(
+      passed
+        ? null
+        : `Ucapan belum cukup mirip dengan target. Coba ulangi: "${expected}".`
+    );
+  };
+
+  useEffect(() => {
+    const setupVoice = async () => {
+      try {
+        const available = await Voice.isAvailable();
+        console.log("DEBUG: Voice.isAvailable check result:", available);
+        // We set to true regardless because some devices report false/0 
+        // but actually work once Voice.start() is called.
+        setIsVoiceAvailable(true); 
+      } catch (error) {
+        console.log("DEBUG: Voice setup error:", error);
+        setIsVoiceAvailable(true); // Still allow trying
+      }
+    };
+
+    Voice.onSpeechStart = (_event: SpeechStartEvent) => {
+      setIsRecording(true);
+      setIsProcessing(false);
+      setSpeechError(null);
+      setTranscription("Mendengarkan...");
+    };
+
+    Voice.onSpeechPartialResults = (event: SpeechResultsEvent) => {
+      const partialText = event.value?.[0]?.trim();
+      if (partialText) {
+        setTranscription(`Mendengarkan: ${partialText}`);
+      }
+    };
+
+    Voice.onSpeechResults = (event: SpeechResultsEvent) => {
+      const finalText = event.value?.[0]?.trim();
+      setIsRecording(false);
+      setIsProcessing(false);
+
+      if (!finalText) {
+        setSpeechError("Ucapan tidak tertangkap. Coba bicara lebih jelas.");
+        return;
+      }
+
+      evaluateTranscript(finalText);
+    };
+
+    Voice.onSpeechEnd = (_event: SpeechEndEvent) => {
+      setIsRecording(false);
+    };
+
+    Voice.onSpeechError = (event: SpeechErrorEvent) => {
+      setIsRecording(false);
+      setIsProcessing(false);
+      const message =
+        event.error?.message ||
+        "Terjadi kendala saat mengenali suara. Coba lagi.";
+      setSpeechError(message);
+    };
+
+    setupVoice();
+
+    return () => {
+      Voice.destroy().then(Voice.removeAllListeners).catch(() => {
+        Voice.removeAllListeners();
+      });
+    };
+  }, []);
+
+  useEffect(() => {
+    resetAttemptState();
+  }, [currentScenarioIndex, stageId]);
+
+  const handleMicPress = async () => {
+    if (!isVoiceAvailable) {
+      setSpeechError("Speech recognition belum tersedia di device ini.");
+      return;
+    }
+
+    try {
+      setSpeechError(null);
+      setHasEvaluated(false);
+
+      if (!Voice) {
+        setSpeechError("Kesalahan internal: Modul suara tidak terdeteksi (Null).");
+        return;
+      }
+
+      if (isRecording) {
+        setIsProcessing(true);
+        await Voice.stop();
+        return;
+      }
+
+      setTranscription("");
+      setIsCorrect(false);
+      await Voice.start(SPEECH_LOCALE);
+    } catch (error: any) {
+      setIsRecording(false);
+      setIsProcessing(false);
+      setSpeechError(
+        error?.message || "Gagal memulai speech recognition. Coba lagi."
+      );
+    }
+  };
+
+  const handleContinue = () => {
+    if (!canAdvance) return;
+
+    const nextScore = speakingScore + 1;
+    setSpeakingScore(nextScore);
+
+    if (!isLastScenario) {
+      setCurrentScenarioIndex((prev) => prev + 1);
+      return;
+    }
+
+    navigation.replace("Result", {
+      win: true,
+      stageId,
+      vocabScore,
+      gameScore: nextScore,
+    });
+  };
+
+  const instructionText = isProcessing
+    ? "MEMPROSES UCAPAN..."
+    : isRecording
+      ? "KETUK LAGI UNTUK SELESAI"
+      : hasEvaluated && !isCorrect
+        ? "COBA UCAPKAN LAGI"
+        : hasEvaluated && isCorrect
+          ? "UCAPAN SUDAH SESUAI"
+          : "TEKAN UNTUK MERESPON";
 
   if (isLoading) {
     return (
@@ -129,7 +353,7 @@ export const GameScreen = ({ navigation, route }: any) => {
                 <View style={{ flex: 1 }}>
                   <Text style={styles.targetPhraseLabel}>TUGAS ANDA:</Text>
                   <Text style={styles.targetPhraseText}>
-                    Ucapkan <Text style={styles.targetPhraseHighlight}>"Tentu, ini dia."</Text>
+                    Ucapkan <Text style={styles.targetPhraseHighlight}>"{targetPhrase}"</Text>
                   </Text>
                 </View>
                 <View style={styles.indicatorContainer}>
@@ -156,10 +380,14 @@ export const GameScreen = ({ navigation, route }: any) => {
            
            {/* LIVE TRANSCRIPTION */}
            <View style={styles.transcriptionContainer}>
-             {(isRecording || transcription !== "") ? (
+             {(isRecording || isProcessing || transcription !== "") ? (
                 <Text style={styles.transcriptionText}>{transcription}</Text>
              ) : null}
            </View>
+
+           {speechError ? (
+             <Text style={styles.errorText}>{speechError}</Text>
+           ) : null}
 
            <View style={styles.micButtonContainer}>
               <Animated.View style={[styles.micPulseBg, { 
@@ -170,7 +398,6 @@ export const GameScreen = ({ navigation, route }: any) => {
                 activeOpacity={0.8} 
                 style={styles.micButton}
                 onPress={handleMicPress}
-                disabled={isRecording}
               >
                  <LinearGradient 
                     colors={["#23262F", "#14151A"]} 
@@ -195,20 +422,22 @@ export const GameScreen = ({ navigation, route }: any) => {
            </View>
 
            <Text style={styles.instructionText}>
-             {isRecording ? "SEDANG MEREKAM..." : "TEKAN UNTUK MERESPON"}
+             {instructionText}
            </Text>
         </View>
 
         {/* Action Button at the very bottom right */}
         <View style={styles.bottomBar}>
           <TouchableOpacity 
-            style={[styles.nextButton, !hasEvaluated && styles.nextButtonDisabled]} 
+            style={[styles.nextButton, !canAdvance && styles.nextButtonDisabled]} 
             activeOpacity={0.8}
-            onPress={() => navigation.replace("Result", { win: true, stageId, vocabScore })}
-            disabled={!hasEvaluated}
+            onPress={handleContinue}
+            disabled={!canAdvance}
           >
-            <Text style={[styles.nextButtonText, !hasEvaluated && styles.nextButtonTextDisabled]}>LANJUTKAN</Text>
-            <MaterialIcons name="arrow-forward" size={16} color={!hasEvaluated ? "rgba(255,255,255,0.3)" : "#0A0D14"} />
+            <Text style={[styles.nextButtonText, !canAdvance && styles.nextButtonTextDisabled]}>
+              {isLastScenario ? "SELESAI" : "LANJUTKAN"}
+            </Text>
+            <MaterialIcons name="arrow-forward" size={16} color={!canAdvance ? "rgba(255,255,255,0.3)" : "#0A0D14"} />
           </TouchableOpacity>
         </View>
 
@@ -471,7 +700,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
   },
   transcriptionContainer: {
-    height: 24,
+    minHeight: 24,
     marginBottom: 12,
     justifyContent: "center",
   },
@@ -481,5 +710,13 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.6)",
     fontStyle: 'italic',
     textAlign: "center",
+  },
+  errorText: {
+    fontFamily: "SpaceGrotesk-Medium",
+    fontSize: 12,
+    color: "#FCA5A5",
+    textAlign: "center",
+    marginBottom: 12,
+    paddingHorizontal: 12,
   },
 });

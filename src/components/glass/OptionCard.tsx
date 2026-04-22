@@ -2,14 +2,14 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { BlurView } from 'expo-blur';
 
-interface GlassOptionProps {
+export interface OptionCardProps {
   label: string;
   text: string;
   isSelected: boolean;
   onPress: () => void;
 }
 
-export const GlassOption: React.FC<GlassOptionProps> = ({ label, text, isSelected, onPress }) => {
+export const OptionCard: React.FC<OptionCardProps> = ({ label, text, isSelected, onPress }) => {
   return (
     <TouchableOpacity
       activeOpacity={0.8}

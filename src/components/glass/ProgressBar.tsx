@@ -2,11 +2,11 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { BlurView } from 'expo-blur';
 
-interface GlassProgressBarProps {
+export interface ProgressBarProps {
   progress: number; // 0 to 1
 }
 
-export const GlassProgressBar: React.FC<GlassProgressBarProps> = ({ progress }) => {
+export const ProgressBar: React.FC<ProgressBarProps> = ({ progress }) => {
   return (
     <View style={styles.container}>
       <BlurView intensity={20} tint="light" style={styles.track}>

@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   Alert,
-  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -17,7 +16,7 @@ import { useAuthStore } from "../../stores/authStore";
 import { supabase } from "../../api/supabase";
 
 
-export const ProfileCreationScreen = ({ navigation, route }: any) => {
+export const ProfileCreationScreen = ({ navigation }: any) => {
   const [nickname, setNickname] = useState("");
   const { updateProfile, isLoading, user } = useAuthStore();
 
@@ -29,8 +28,6 @@ export const ProfileCreationScreen = ({ navigation, route }: any) => {
 
     const result = await updateProfile({ 
       nickname: nickname.trim(),
-      username: user?.user_metadata?.username || user?.email?.split('@')[0], // Ambil dari metadata auth
-      email: user?.email,
     });
     if (result.success) {
       // Initialize first stage progress
@@ -151,26 +148,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.surface,
-  },
-  previewRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-  },
-  avatarWrap: {
-    width: 56,
-    height: 56,
-    borderRadius: radius.pill,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatar: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "contain",
   },
 });

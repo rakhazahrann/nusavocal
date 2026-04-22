@@ -1,9 +1,17 @@
-import React, { useEffect, useRef } from "react";
-import { View, StyleSheet, TouchableOpacity, Animated } from "react-native";
+import React, { useEffect } from "react";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { StageStatus, getStageX, getStageY, STAGE_NODE_SIZE } from "../../constants/stageLayout";
 import { Text } from "../ui";
-import gsap from "gsap";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withRepeat,
+  withSequence,
+  withTiming,
+  Easing,
+} from "react-native-reanimated";
 
 interface StageNodeProps {
   id: number;
@@ -19,55 +27,46 @@ export const StageNode: React.FC<StageNodeProps> = ({ id, x, stageIndex, label, 
   const top = getStageY(stageIndex) - STAGE_NODE_SIZE / 2;
   const left = getStageX(x) - STAGE_NODE_SIZE / 2;
 
-  // React Native Animated values for GSAP to drive
-  const scale = useRef(new Animated.Value(1)).current;
-  const pingScale = useRef(new Animated.Value(1)).current;
-  const pingOpacity = useRef(new Animated.Value(0.15)).current;
-
-  // Refs for GSAP to mutate directly before syncing to Animated
-  const scaleData = useRef({ s: 1 }).current;
-  const pingData = useRef({ s: 1, o: 0.15 }).current;
+  // Reanimated shared values
+  const scale = useSharedValue(1);
+  const pingScale = useSharedValue(1);
+  const pingOpacity = useSharedValue(0.15);
 
   useEffect(() => {
-    let pingTween: gsap.core.Tween | null = null;
-    
     if (status === "current") {
-      // Create a pulsating ("berdebar") heartbeat effect
-      pingTween = gsap.to(pingData, {
-        s: 1.7,
-        o: 0,
-        duration: 1.4,
-        repeat: -1,
-        ease: "sine.out",
-        onUpdate: () => {
-          pingScale.setValue(pingData.s);
-          pingOpacity.setValue(pingData.o);
-        },
-      });
+      // Pulsating "heartbeat" effect using Reanimated
+      pingScale.value = withRepeat(
+        withTiming(1.7, { duration: 1400, easing: Easing.out(Easing.sin) }),
+        -1, // infinite repeat
+        false // don't reverse
+      );
+      pingOpacity.value = withRepeat(
+        withTiming(0, { duration: 1400, easing: Easing.out(Easing.sin) }),
+        -1,
+        false
+      );
+    } else {
+      pingScale.value = 1;
+      pingOpacity.value = 0.15;
     }
-
-    return () => {
-      if (pingTween) pingTween.kill();
-    };
   }, [status]);
 
   const handlePressIn = () => {
-    gsap.to(scaleData, {
-      s: 0.9,
-      duration: 0.2,
-      ease: "power2.out",
-      onUpdate: () => scale.setValue(scaleData.s),
-    });
+    scale.value = withTiming(0.9, { duration: 200, easing: Easing.out(Easing.quad) });
   };
 
   const handlePressOut = () => {
-    gsap.to(scaleData, {
-      s: 1,
-      duration: 0.4,
-      ease: "elastic.out(1.2, 0.5)",
-      onUpdate: () => scale.setValue(scaleData.s),
-    });
+    scale.value = withSpring(1, { damping: 10, stiffness: 200 });
   };
+
+  const scaleStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const pingStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pingScale.value }],
+    opacity: pingOpacity.value,
+  }));
 
   const renderVisuals = () => {
     if (status === "completed") {
@@ -85,10 +84,7 @@ export const StageNode: React.FC<StageNodeProps> = ({ id, x, stageIndex, label, 
       return (
         <View style={styles.nodeWrapper}>
           <View style={styles.currentHalo} />
-          <Animated.View style={[styles.pingRing, { 
-            transform: [{ scale: pingScale }], 
-            opacity: pingOpacity 
-          }]} />
+          <Animated.View style={[styles.pingRing, pingStyle]} />
           
           <View style={[styles.node, styles.currentNode]}>
             <MaterialIcons name="play-arrow" size={36} color="#FFF" />
@@ -114,7 +110,7 @@ export const StageNode: React.FC<StageNodeProps> = ({ id, x, stageIndex, label, 
       style={[
         styles.absoluteContainer,
         { top, left, width: STAGE_NODE_SIZE, height: STAGE_NODE_SIZE },
-        { transform: [{ scale: scale }] }
+        scaleStyle,
       ]}
     >
       <TouchableOpacity
@@ -146,74 +142,73 @@ const styles = StyleSheet.create({
   nodeWrapper: {
     alignItems: "center",
     justifyContent: "center",
-    width: 100, 
-    height: 120, 
+    width: 120, // Increased to provide better hit area
+    height: 140, 
   },
   node: {
     alignItems: "center",
     justifyContent: "center",
-    overflow: "hidden",
   },
   completedNode: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "rgba(255,255,255,0.6)",
-    borderWidth: 1,
-    borderColor: "rgba(198,198,198,0.15)",
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "#FFFFFF", // Use solid white to prevent octagon glitch
+    borderWidth: 2,
+    borderColor: "rgba(0,0,0,0.05)",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 20 },
-    shadowOpacity: 0.03,
-    shadowRadius: 40,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 4,
   },
   currentNode: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: "#000", 
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: "#000000", 
     borderWidth: 4,
-    borderColor: "#FFF", 
+    borderColor: "#FFFFFF", 
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 20 },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 8,
   },
   currentHalo: {
     position: "absolute",
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 110,
+    height: 110,
+    borderRadius: 55,
     backgroundColor: "rgba(0,0,0,0.05)",
   },
   lockedNode: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: "rgba(243,243,243,0.4)", 
+    backgroundColor: "#F1F1F1", 
     borderWidth: 1,
-    borderColor: "rgba(198,198,198,0.1)",
+    borderColor: "rgba(0,0,0,0.05)",
+    opacity: 0.6,
   },
   pingRing: {
     position: "absolute",
-    top: 12, // (120 - 96) / 2
-    left: 2, // (100 - 96) / 2
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    width: 88,
+    height: 88,
+    borderRadius: 44,
     borderWidth: 2,
-    borderColor: "rgba(0,0,0,0.18)",
+    borderColor: "rgba(0,0,0,0.2)",
     backgroundColor: "transparent",
   },
   labelCompleted: {
     position: "absolute",
-    bottom: -16,
+    bottom: -18,
     fontFamily: "SpaceGrotesk-Bold",
     fontSize: 10,
     letterSpacing: 2,
     textTransform: "uppercase",
-    opacity: 0.4,
+    opacity: 0.6,
+    textAlign: "center",
   },
   labelLocked: {
     position: "absolute",
@@ -230,7 +225,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     letterSpacing: 2,
     textTransform: "uppercase",
-    color: "#000", 
+    color: "#000",
+    textAlign: "center",
   },
 });
-

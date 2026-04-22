@@ -12,24 +12,13 @@ export default function SplashScreen({ navigation }: any) {
     if (!isInitialized) return; // Wait for auth to initialize
 
     const timer = setTimeout(() => {
-      if (session && profile?.role === "admin") {
+      if (session && profile?.nickname) {
         navigation.replace("Main");
-      } else if (session && profile?.gender && profile?.nickname) {
-        // Fully authenticated user with complete profile
-        navigation.replace("Main");
-      } else if (session && !profile?.gender) {
-        // Authenticated but needs character selection
-        navigation.replace("Auth", {
-          screen: "CharacterSelect",
-        });
-      } else if (session && profile?.gender && !profile?.nickname) {
-        // Authenticated but needs nickname
+      } else if (session) {
         navigation.replace("Auth", {
           screen: "ProfileCreation",
-          params: { characterId: profile?.character_id || "ira" },
         });
       } else {
-        // Not authenticated
         navigation.replace("Auth");
       }
     }, 2000);

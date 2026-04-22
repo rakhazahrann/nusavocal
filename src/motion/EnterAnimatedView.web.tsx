@@ -1,52 +1,39 @@
 import React, { useEffect, useRef } from "react";
-import { View, StyleProp, ViewStyle } from "react-native";
+import { StyleProp, ViewStyle, Animated, Easing } from "react-native";
 import { motionDurations } from "./tokens";
-import { useSettingsStore } from "../stores/settingsStore";
-
-type GsapModule = {
-  gsap: {
-    fromTo: (target: any, fromVars: any, toVars: any) => any;
-  };
-};
 
 export interface EnterAnimatedViewProps {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
 }
 
+/**
+ * Web-specific enter animation using RN Animated API (no GSAP).
+ */
 export const EnterAnimatedView: React.FC<EnterAnimatedViewProps> = ({ children, style }) => {
-  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
-  const ref = useRef<any>(null);
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(12)).current;
 
   useEffect(() => {
-    if (reduceMotion) return;
-    if (!ref.current) return;
-
-    let gsap: GsapModule["gsap"] | null = null;
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const mod = require("gsap") as GsapModule;
-      gsap = mod.gsap;
-    } catch {
-      gsap = null;
-    }
-    if (!gsap) return;
-
-    gsap.fromTo(
-      ref.current,
-      { opacity: 0, y: 12 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: motionDurations.short / 1000,
-        ease: "power2.out",
-      }
-    );
-  }, [reduceMotion]);
+    Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: motionDurations.short,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: motionDurations.short,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   return (
-    <View ref={ref} style={style as any}>
+    <Animated.View style={[{ opacity, transform: [{ translateY }] }, style]}>
       {children}
-    </View>
+    </Animated.View>
   );
 };

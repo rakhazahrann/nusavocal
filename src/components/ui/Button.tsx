@@ -1,95 +1,82 @@
 import React from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  ViewStyle,
-  PressableProps,
-} from "react-native";
-import { colors, radius, spacing, typography } from "../../theme";
-import { Text } from "./Text";
-import { useSettingsStore } from "../../stores/settingsStore";
+import { ActivityIndicator, StyleProp, ViewStyle } from "react-native";
+import { GetProps, SizableText, YStack } from "tamagui";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost";
 
-export interface ButtonProps extends Omit<PressableProps, "style"> {
+export interface ButtonProps extends Omit<GetProps<typeof YStack>, "children" | "style"> {
   label: string;
   variant?: ButtonVariant;
   loading?: boolean;
-  style?: ViewStyle;
+  disabled?: boolean;
+  onPress?: () => void;
+  style?: StyleProp<ViewStyle>;
 }
+
+const variantConfig: Record<
+  ButtonVariant,
+  { bg: string; borderColor: string; textColor: string }
+> = {
+  primary: {
+    bg: "$backgroundAccent",
+    borderColor: "$backgroundAccent",
+    textColor: "#FFFFFF",
+  },
+  secondary: {
+    bg: "$backgroundSurface",
+    borderColor: "$borderColor",
+    textColor: "$color",
+  },
+  ghost: {
+    bg: "transparent",
+    borderColor: "transparent",
+    textColor: "$color",
+  },
+};
 
 export const Button: React.FC<ButtonProps> = ({
   label,
   variant = "primary",
   loading = false,
   disabled,
+  onPress,
   style,
   ...props
 }) => {
-  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
   const isDisabled = disabled || loading;
+  const config = variantConfig[variant] || variantConfig.primary;
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      disabled={isDisabled}
-      style={({ pressed }) => [
-        styles.base,
-        variantStyles[variant],
-        isDisabled && styles.disabled,
-        !reduceMotion && pressed && !isDisabled ? styles.pressed : null,
-        style,
-      ]}
+    <YStack
+      height={48}
+      paddingHorizontal="$md"
+      borderRadius="$md"
+      borderWidth={1}
+      backgroundColor={config.bg}
+      borderColor={config.borderColor}
+      alignItems="center"
+      justifyContent="center"
+      opacity={isDisabled ? 0.6 : 1}
+      pressStyle={!isDisabled ? { scale: 0.98, opacity: 0.8 } : undefined}
+      onPress={isDisabled ? undefined : onPress}
+      cursor={isDisabled ? "not-allowed" : "pointer"}
+      style={style}
       {...props}
     >
       {loading ? (
-        <ActivityIndicator color={variant === "primary" ? "#fff" : colors.text} />
+        <ActivityIndicator
+          color={variant === "primary" ? "#fff" : "#0F172A"}
+        />
       ) : (
-        <Text
-          variant="label"
-          weight="semibold"
-          tone={variant === "primary" ? "default" : "default"}
-          style={{
-            color: variant === "primary" ? "#FFFFFF" : colors.text,
-            fontFamily: typography.fontFamily.semibold,
-          }}
+        <SizableText
+          fontFamily="$body"
+          fontWeight="600"
+          size="$3"
+          color={config.textColor}
         >
           {label}
-        </Text>
+        </SizableText>
       )}
-    </Pressable>
+    </YStack>
   );
 };
-
-const variantStyles: Record<ButtonVariant, ViewStyle> = {
-  primary: {
-    backgroundColor: colors.accent,
-    borderColor: colors.accent,
-  },
-  secondary: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-  },
-  ghost: {
-    backgroundColor: "transparent",
-    borderColor: "transparent",
-  },
-};
-
-const styles = StyleSheet.create({
-  base: {
-    height: 48,
-    paddingHorizontal: spacing.lg,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  pressed: {
-    transform: [{ scale: 0.98 }],
-  },
-  disabled: {
-    opacity: 0.6,
-  },
-});

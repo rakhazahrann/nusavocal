@@ -6,9 +6,9 @@ export const motionDurations = {
 } as const;
 
 export const motionEasings = {
-  // GSAP naming; native implementation maps to Easing functions
-  default: "power2.out",
-  micro: "power1.out",
-  hero: "expo.out",
-  inOut: "power2.inOut",
+  // Reanimated Easing equivalents
+  default: "quad-out", // Easing.out(Easing.quad)
+  micro: "linear-out", // Easing.out(Easing.linear)
+  hero: "expo-out", // Easing.out(Easing.exp)
+  inOut: "quad-inOut", // Easing.inOut(Easing.quad)
 } as const;

@@ -9,14 +9,15 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   username TEXT NOT NULL,
   email TEXT NOT NULL,
-  gender TEXT CHECK (gender IN ('man', 'woman')),
-  character_id TEXT CHECK (character_id IN ('ira', 'sita')),
   nickname TEXT,
   avatar_url TEXT,
   role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+ALTER TABLE public.profiles DROP COLUMN IF EXISTS gender;
+ALTER TABLE public.profiles DROP COLUMN IF EXISTS character_id;
 
 -- ── 2. STAGES ────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.stages (
@@ -221,4 +222,3 @@ AS $$
 $$;
 
 GRANT EXECUTE ON FUNCTION public.get_leaderboard(INT) TO anon, authenticated;
-

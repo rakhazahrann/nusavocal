@@ -13,9 +13,9 @@ import {
   Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { PixelText } from "../common/PixelText";
-import { PixelButton } from "../common/PixelButton";
-import { WoodPanel } from "../common/WoodPanel";
+import { GameText } from "../common/GameText";
+import { GameButton } from "../common/GameButton";
+import { Panel } from "../common/Panel";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { stageService } from "../../services/stageService";
 import { vocabService } from "../../services/vocabService";
@@ -198,17 +198,17 @@ export const AdminStageWizardModal: React.FC<AdminStageWizardModalProps> = ({
         behavior={Platform.OS === "ios" ? "padding" : Platform.OS === "android" ? "height" : undefined}
       >
         <View style={styles.modalContainer}>
-          <WoodPanel variant="light" innerPadding={20} style={{ flex: 1 }} outerStyle={{ flex: 1 }}>
+          <Panel variant="light" innerPadding={20} style={{ flex: 1 }} outerStyle={{ flex: 1 }}>
             
             {/* Header */}
             <View style={styles.header}>
               <View style={{ flex: 1 }}>
-                <PixelText size={14} color="#5D3A1A">
+                <GameText size={14} color="#5D3A1A">
                   ADD NEW STAGE
-                </PixelText>
-                <PixelText size={8} color="#a1887f">
+                </GameText>
+                <GameText size={8} color="#a1887f">
                   STEP {step} OF 3
-                </PixelText>
+                </GameText>
               </View>
               <TouchableOpacity onPress={handleClose} disabled={isLoading}>
                 <MaterialIcons name="close" size={28} color="#5D3A1A" />
@@ -226,9 +226,9 @@ export const AdminStageWizardModal: React.FC<AdminStageWizardModalProps> = ({
               {/* STEP 1: STAGE INFO */}
               {step === 1 && (
                 <View>
-                  <PixelText size={12} color="#f48c25" style={{ marginBottom: 12 }}>
+                  <GameText size={12} color="#f48c25" style={{ marginBottom: 12 }}>
                     1. Map Details
-                  </PixelText>
+                  </GameText>
                   <AdminInput label="Stage Name *" value={stageLabel} onChangeText={setStageLabel} placeholder="e.g. Pantai Sanur" />
                   <AdminInput label="Description" value={stageDesc} onChangeText={setStageDesc} placeholder="Short description..." />
                   <ImageUploadPlaceholder label="Popup Image (Thumbnail)" value={stageImage} onSelect={setStageImage} />
@@ -238,14 +238,14 @@ export const AdminStageWizardModal: React.FC<AdminStageWizardModalProps> = ({
               {/* STEP 2: VOCAB */}
               {step === 2 && (
                 <View>
-                  <PixelText size={12} color="#f48c25" style={{ marginBottom: 12 }}>
+                  <GameText size={12} color="#f48c25" style={{ marginBottom: 12 }}>
                     2. Vocabulary Quiz
-                  </PixelText>
+                  </GameText>
                   <AdminInput label="Question *" value={vocabQuestion} onChangeText={setVocabQuestion} placeholder="e.g. What is Hello?" />
                   <ImageUploadPlaceholder label="Question Image (Optional)" value={vocabImage} onSelect={setVocabImage} />
                   
                   <View style={styles.optionsWrapper}>
-                    <PixelText size={10} color="#5D3A1A" style={{ marginBottom: 8 }}>Options (Select Correct)</PixelText>
+                    <GameText size={10} color="#5D3A1A" style={{ marginBottom: 8 }}>Options (Select Correct)</GameText>
                     
                     {[ { v: opt1, s: setOpt1, idx: 0 }, { v: opt2, s: setOpt2, idx: 1 }, { v: opt3, s: setOpt3, idx: 2 } ].map((opt, i) => (
                       <View key={i} style={styles.optionRow}>
@@ -270,9 +270,9 @@ export const AdminStageWizardModal: React.FC<AdminStageWizardModalProps> = ({
               {/* STEP 3: SCENARIO */}
               {step === 3 && (
                 <View>
-                  <PixelText size={12} color="#f48c25" style={{ marginBottom: 12 }}>
+                  <GameText size={12} color="#f48c25" style={{ marginBottom: 12 }}>
                     3. Game Scenario (ASR)
-                  </PixelText>
+                  </GameText>
                   <ImageUploadPlaceholder label="Background Image" value={scenarioBg} onSelect={setScenarioBg} />
                   <AdminInput label="NPC Name *" value={npcName} onChangeText={setNpcName} placeholder="SITA" />
                   <AdminInput label="NPC Text *" value={npcText} onChangeText={setNpcText} placeholder="Selamat Pagi!" />
@@ -285,12 +285,12 @@ export const AdminStageWizardModal: React.FC<AdminStageWizardModalProps> = ({
             {/* Footer Buttons */}
             <View style={styles.footer}>
               {step > 1 && (
-                <PixelButton title="BACK" onPress={handlePrev} variant="secondary" style={styles.btnHalf} disabled={isLoading} />
+                <GameButton title="BACK" onPress={handlePrev} variant="secondary" style={styles.btnHalf} disabled={isLoading} />
               )}
               {step < 3 ? (
-                <PixelButton title="NEXT" onPress={handleNext} style={[styles.btnHalf, step === 1 && { width: "100%" }]} />
+                <GameButton title="NEXT" onPress={handleNext} style={[styles.btnHalf, step === 1 && { width: "100%" }]} />
               ) : (
-                <PixelButton
+                <GameButton
                   title={isLoading ? "SAVING..." : "SUBMIT"}
                   onPress={handleSubmit}
                   style={styles.btnHalf}
@@ -299,7 +299,7 @@ export const AdminStageWizardModal: React.FC<AdminStageWizardModalProps> = ({
               )}
             </View>
 
-          </WoodPanel>
+          </Panel>
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -309,9 +309,9 @@ export const AdminStageWizardModal: React.FC<AdminStageWizardModalProps> = ({
 // Moved outside to prevent re-mounting and losing focus
 const AdminInput = ({ label, value, onChangeText, placeholder }: any) => (
   <View style={styles.inputContainer}>
-    <PixelText size={10} color="#5D3A1A" style={{ marginBottom: 4 }}>
+    <GameText size={10} color="#5D3A1A" style={{ marginBottom: 4 }}>
       {label}
-    </PixelText>
+    </GameText>
     <TextInput
       style={styles.input}
       value={value}
@@ -342,9 +342,9 @@ const ImageUploadPlaceholder = ({ label, value, onSelect }: any) => {
 
   return (
     <View style={styles.inputContainer}>
-      <PixelText size={10} color="#5D3A1A" style={{ marginBottom: 4 }}>
+      <GameText size={10} color="#5D3A1A" style={{ marginBottom: 4 }}>
         {label}
-      </PixelText>
+      </GameText>
       <TouchableOpacity 
         style={styles.imageUploadBox} 
         onPress={handlePickImage}
@@ -355,9 +355,9 @@ const ImageUploadPlaceholder = ({ label, value, onSelect }: any) => {
         ) : (
           <>
             <MaterialIcons name="add-photo-alternate" size={32} color="#a1887f" />
-            <PixelText size={10} color="#a1887f" style={{ marginTop: 8 }}>
+            <GameText size={10} color="#a1887f" style={{ marginTop: 8 }}>
               TAP TO UPLOAD IMAGE (2:1 RATIO)
-            </PixelText>
+            </GameText>
           </>
         )}
       </TouchableOpacity>

@@ -6,10 +6,10 @@ import {
   TouchableOpacityProps,
   ActivityIndicator,
 } from "react-native";
-import { PixelText } from "./PixelText";
+import { GameText } from "./GameText";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
-interface PixelButtonProps extends TouchableOpacityProps {
+export interface GameButtonProps extends TouchableOpacityProps {
   title: string;
   icon?: keyof typeof MaterialCommunityIcons.glyphMap;
   communityIconName?: keyof typeof MaterialCommunityIcons.glyphMap;
@@ -17,7 +17,7 @@ interface PixelButtonProps extends TouchableOpacityProps {
   isLoading?: boolean;
 }
 
-export const PixelButton: React.FC<PixelButtonProps> = ({
+export const GameButton: React.FC<GameButtonProps> = ({
   title,
   icon,
   communityIconName,
@@ -99,9 +99,9 @@ export const PixelButton: React.FC<PixelButtonProps> = ({
           <ActivityIndicator color={theme.text} size="small" />
         ) : (
           <>
-            <PixelText size={12} color={theme.text} shadow={variant !== "outline"}>
+            <GameText size={12} color={theme.text} shadow={variant !== "outline"}>
               {title}
-            </PixelText>
+            </GameText>
             {icon && (
               <MaterialCommunityIcons
                 name={icon}

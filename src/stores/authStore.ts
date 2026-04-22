@@ -3,14 +3,10 @@ import { supabase } from '../api/supabase';
 import { Session, User } from '@supabase/supabase-js';
 import { authService } from '../services/authService';
 
-export type Gender = 'man' | 'woman';
-
 export interface Profile {
   id: string;
   username: string;
   email: string;
-  gender: Gender | null;
-  character_id: string | null;
   nickname: string | null;
   avatar_url: string | null;
   role: 'user' | 'admin';
@@ -32,7 +28,7 @@ interface AuthState {
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   fetchProfile: () => Promise<Profile | null>;
-  updateProfile: (updates: Partial<Pick<Profile, 'gender' | 'character_id' | 'nickname' | 'username' | 'email'>>) => Promise<{ success: boolean; error?: string }>;
+  updateProfile: (updates: Partial<Pick<Profile, 'nickname' | 'username' | 'email' | 'avatar_url'>>) => Promise<{ success: boolean; error?: string }>;
   clearError: () => void;
 }
 
@@ -55,8 +51,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       if (session?.user) {
         set({ user: session.user, session });
-        // Don't await here to let onAuthStateChange handle the initial setup if it fires
-        get().fetchProfile();
+        await get().fetchProfile();
       }
 
       // Listen for auth changes
@@ -87,19 +82,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const data = await authService.signUp(email, password, username);
 
       if (data.user) {
-        // Profile creation is already partly handled by Supabase Auth metadata or triggers
-        // but our authService.signUp doesn't create the profile row yet.
-        // Wait, in the previous implementation it manually inserted into 'profiles'.
-        // Let's keep that logic but move the profile insertion to authService.
-        
-        // Actually, let's update authService.signUp to also handle profile creation if needed,
-        // or just call authService.updateProfile.
-        // The original code did:
-        // await supabase.from('profiles').insert({ id: data.user.id, username, email, role: 'user' });
-        
-        // I will update authService to handle this cleanly.
-        // For now, let's just use the service for the auth part.
-        
         set({ user: data.user, session: data.session });
         await get().fetchProfile();
       }
@@ -144,13 +126,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   fetchProfile: async () => {
-    const { user, isLoading } = get();
+    const { user } = get();
     if (!user) return null;
-    
-    // Simple lock to prevent concurrent fetchProfile calls
-    // We use a temporary flag or just check if it's already loading
-    // Since initialize sets isLoading: true, we should be careful.
-    // Let's use a separate logic or just rely on session check.
 
     try {
       const data = await authService.fetchProfile(user.id);

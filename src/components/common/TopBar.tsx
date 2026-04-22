@@ -1,20 +1,13 @@
 import React from "react";
-import { View, StyleSheet, TouchableOpacity, Image } from "react-native";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { BlurView } from "expo-blur";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Text } from "../ui/Text";
+import { UserAvatar } from "./UserAvatar";
 import { useAuthStore } from "../../stores/authStore";
-
-// Profile images based on gender
-const PROFILE_IMAGES = {
-  man: require("../../../assets/images/characters/man-profile.png"),
-  woman: require("../../../assets/images/characters/woman-profile.png"),
-};
 
 export const TopBar = () => {
   const { profile } = useAuthStore();
-  const profileImage =
-    profile?.gender === "woman" ? PROFILE_IMAGES.woman : PROFILE_IMAGES.man;
 
   return (
     <View style={styles.container}>
@@ -33,7 +26,11 @@ export const TopBar = () => {
           </View>
           
           <View style={styles.avatarContainer}>
-            <Image source={profileImage} style={styles.avatar} />
+            <UserAvatar
+              name={profile?.nickname || profile?.username}
+              avatarUrl={profile?.avatar_url}
+              size={32}
+            />
           </View>
         </View>
       </BlurView>
@@ -105,11 +102,6 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "rgba(198,198,198,0.3)",
-  },
-  avatar: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
   },
 });
 

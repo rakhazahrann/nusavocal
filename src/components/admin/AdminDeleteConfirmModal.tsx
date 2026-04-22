@@ -5,9 +5,9 @@ import {
   Modal,
   TouchableOpacity,
 } from "react-native";
-import { PixelText } from "../common/PixelText";
-import { PixelButton } from "../common/PixelButton";
-import { WoodPanel } from "../common/WoodPanel";
+import { GameText } from "../common/GameText";
+import { GameButton } from "../common/GameButton";
+import { Panel } from "../common/Panel";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 interface AdminDeleteConfirmModalProps {
@@ -29,28 +29,28 @@ export const AdminDeleteConfirmModal: React.FC<AdminDeleteConfirmModalProps> = (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>
-          <WoodPanel variant="light" innerPadding={24}>
+          <Panel variant="light" innerPadding={24}>
             <View style={styles.header}>
               <MaterialIcons name="warning" size={32} color="#d9534f" />
-              <PixelText size={14} color="#5D3A1A" style={{ marginTop: 12 }}>
+              <GameText size={14} color="#5D3A1A" style={{ marginTop: 12 }}>
                 KONFIRMASI HAPUS
-              </PixelText>
+              </GameText>
             </View>
 
             <View style={styles.body}>
-              <PixelText size={10} color="#5D3A1A" style={styles.message}>
+              <GameText size={10} color="#5D3A1A" style={styles.message}>
                 Apakah Anda yakin ingin menghapus stage {"\n"}
-                <PixelText size={11} color="#d9534f">"{stageLabel}"</PixelText>?
-              </PixelText>
+                <GameText size={11} color="#d9534f">"{stageLabel}"</GameText>?
+              </GameText>
               
-              <PixelText size={8} color="#a1887f" style={styles.subMessage}>
+              <GameText size={8} color="#a1887f" style={styles.subMessage}>
                 Tindakan ini juga akan menghapus quiz Vocab dan Skenario terkait secara permanen.
-              </PixelText>
+              </GameText>
             </View>
 
             <View style={styles.footer}>
               <View style={styles.buttonContainer}>
-                <PixelButton
+                <GameButton
                   title="BATAL"
                   onPress={onClose}
                   variant="secondary"
@@ -58,7 +58,7 @@ export const AdminDeleteConfirmModal: React.FC<AdminDeleteConfirmModalProps> = (
                 />
               </View>
               <View style={styles.buttonContainer}>
-                <PixelButton
+                <GameButton
                   title="HAPUS"
                   onPress={onConfirm}
                   variant="danger"
@@ -67,7 +67,7 @@ export const AdminDeleteConfirmModal: React.FC<AdminDeleteConfirmModalProps> = (
                 />
               </View>
             </View>
-          </WoodPanel>
+          </Panel>
         </View>
       </View>
     </Modal>

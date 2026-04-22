@@ -2,14 +2,14 @@ import React from "react";
 import { View, StyleSheet, ViewProps, ViewStyle } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
-interface WoodPanelProps extends ViewProps {
+export interface PanelProps extends ViewProps {
   children: React.ReactNode;
   innerPadding?: number;
   outerStyle?: ViewStyle;
   variant?: "wood" | "light";
 }
 
-export const WoodPanel: React.FC<WoodPanelProps> = ({
+export const Panel: React.FC<PanelProps> = ({
   children,
   innerPadding = 24,
   outerStyle,
@@ -157,7 +157,3 @@ const styles = StyleSheet.create({
     backgroundColor: "#D1C4B5",
   },
 });
-
-function insetShadowFallback(value: number) {
-  return value;
-}

@@ -19,6 +19,8 @@ import {
   PixelifySans_700Bold,
 } from "@expo-google-fonts/pixelify-sans";
 import { useAuthStore } from "./src/stores/authStore";
+import { TamaguiProvider } from "tamagui";
+import { tamaguiConfig } from "./tamagui.config";
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -67,9 +69,11 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer>
-      <StatusBar style="dark" />
-      <AppNavigator />
-    </NavigationContainer>
+    <TamaguiProvider config={tamaguiConfig} defaultTheme="light">
+      <NavigationContainer>
+        <StatusBar style="dark" />
+        <AppNavigator />
+      </NavigationContainer>
+    </TamaguiProvider>
   );
 }

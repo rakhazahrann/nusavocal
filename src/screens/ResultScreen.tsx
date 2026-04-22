@@ -6,7 +6,7 @@ import {
   View,
 } from "react-native";
 import { ScreenWrapper } from "../components/common/ScreenWrapper";
-import { PixelText } from "../components/common/PixelText";
+import { GameText } from "../components/common/GameText";
 import { useAuthStore } from "../stores/authStore";
 import { useGameStore } from "../stores/gameStore";
 
@@ -44,13 +44,13 @@ export const ResultScreen = ({ route, navigation }: any) => {
       {isSaving ? (
         <View style={styles.loadingBox}>
           <ActivityIndicator size="large" color="#f48c25" />
-          <PixelText size={10} color="#5D3A1A" style={{ marginTop: 12 }}>
+          <GameText size={10} color="#5D3A1A" style={{ marginTop: 12 }}>
             MENYIMPAN PROGRESS...
-          </PixelText>
+          </GameText>
         </View>
       ) : (
         <>
-          <PixelText
+          <GameText
             family="pixelify"
             weight="700"
             size={22}
@@ -58,31 +58,40 @@ export const ResultScreen = ({ route, navigation }: any) => {
             style={styles.title}
           >
             {win ? "✨ STAGE CLEAR! ✨" : "💀 GAME OVER 💀"}
-          </PixelText>
+          </GameText>
 
           {/* Tampilkan skor vocab */}
           <View style={styles.scoreBox}>
-            <PixelText size={12} color="#5B4434" style={{ marginBottom: 4 }}>
+            <GameText size={12} color="#5B4434" style={{ marginBottom: 4 }}>
               VOCAB SCORE
-            </PixelText>
-            <PixelText family="pixelify" weight="700" size={28} color="#f48c25">
+            </GameText>
+            <GameText family="pixelify" weight="700" size={28} color="#f48c25">
               {vocabScore}
-            </PixelText>
+            </GameText>
+          </View>
+
+          <View style={styles.scoreBox}>
+            <GameText size={12} color="#5B4434" style={{ marginBottom: 4 }}>
+              SPEAKING SCORE
+            </GameText>
+            <GameText family="pixelify" weight="700" size={28} color="#f48c25">
+              {gameScore}
+            </GameText>
           </View>
 
           {saveError && (
-            <PixelText size={9} color="#C0392B" style={styles.errorText}>
+            <GameText size={9} color="#C0392B" style={styles.errorText}>
               ⚠ {saveError}
-            </PixelText>
+            </GameText>
           )}
 
           <TouchableOpacity
             style={styles.button}
             onPress={() => navigation.popToTop()}
           >
-            <PixelText family="pixelify" weight="600" size={14} color="#FFFFFF">
+            <GameText family="pixelify" weight="600" size={14} color="#FFFFFF">
               KEMBALI KE PETA
-            </PixelText>
+            </GameText>
           </TouchableOpacity>
         </>
       )}
