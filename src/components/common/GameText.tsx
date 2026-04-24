@@ -1,13 +1,8 @@
 import React from "react";
 import { Text, TextProps, StyleSheet, TextStyle } from "react-native";
+import { GameTextProps } from "@/types/components";
 
-export interface GameTextProps extends TextProps {
-  color?: string;
-  size?: number;
-  family?: "pixel" | "display" | "pixelify";
-  weight?: "300" | "400" | "500" | "600" | "700";
-  shadow?: boolean;
-}
+
 
 export const GameText: React.FC<GameTextProps> = ({
   children,

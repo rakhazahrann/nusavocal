@@ -8,14 +8,9 @@ import {
 } from "react-native";
 import { GameText } from "./GameText";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { GameButtonProps } from "@/types/components";
 
-export interface GameButtonProps extends TouchableOpacityProps {
-  title: string;
-  icon?: keyof typeof MaterialCommunityIcons.glyphMap;
-  communityIconName?: keyof typeof MaterialCommunityIcons.glyphMap;
-  variant?: "primary" | "secondary" | "outline" | "adventure" | "danger";
-  isLoading?: boolean;
-}
+
 
 export const GameButton: React.FC<GameButtonProps> = ({
   title,

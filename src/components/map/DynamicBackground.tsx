@@ -1,16 +1,20 @@
 import React from "react";
-import { View, StyleSheet, Dimensions } from "react-native";
+import { View, StyleSheet, useWindowDimensions } from "react-native";
 
-const { width } = Dimensions.get("window");
+
 
 export const DynamicBackground = () => {
+  const { width } = useWindowDimensions();
   return (
     <View style={styles.container}>
       {/* Base Background Color from Tailwind */}
       <View style={[StyleSheet.absoluteFill, { backgroundColor: "#f9f9f9" }]} />
       
-      {/* Top Left Blob - Simplified to prevent sharp gradient box issues on Web */}
-      <View style={[styles.blob, styles.topLeftBlob]} />
+      {/* Top Left Blob */}
+      <View style={[styles.blob, styles.topLeftBlob, { width: width * 0.8, height: width * 0.8 }]} />
+
+      {/* Bottom Right Blob */}
+      <View style={[styles.blob, styles.bottomRightBlob, { width: width * 0.6, height: width * 0.6 }]} />
 
       {/* Subtle Grain Overlay approximation */}
       <View style={[StyleSheet.absoluteFill, styles.grainOverlay]} />
@@ -35,15 +39,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#e8e8e8",
     top: -100,
     left: -100,
-    width: width * 0.8,
-    height: width * 0.8,
   },
   bottomRightBlob: {
     backgroundColor: "#c6c6c6",
     bottom: -100,
     right: -100,
-    width: width * 0.6,
-    height: width * 0.6,
   },
   grainOverlay: {
     backgroundColor: "transparent",

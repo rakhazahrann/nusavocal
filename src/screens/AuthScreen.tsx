@@ -1,3 +1,5 @@
+import { colors } from "@/constants/colors";
+import { spacing, radius } from "@/constants/spacing";
 import React, { useMemo, useState } from "react";
 import {
   Alert,
@@ -6,12 +8,15 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  View,
-} from "react-native";
-import { Button, Card, Input, Screen, Text } from "../../components/ui";
-import { EnterAnimatedView } from "../../motion/EnterAnimatedView";
-import { colors, radius, spacing } from "../../theme";
-import { useAuthStore } from "../../stores/authStore";
+  View } from "react-native";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import { Screen } from "@/components/ui/Screen";
+import { Text } from "@/components/ui/Text";
+import { EnterAnimatedView } from "@/components/motion/EnterAnimatedView";
+
+import { useAuthStore } from "@/store/authStore";
 
 export const AuthScreen = ({ navigation }: any) => {
   const [isLogin, setIsLogin] = useState(true);
@@ -201,11 +206,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xxl,
     paddingBottom: spacing.xxl,
-    backgroundColor: colors.background,
-  },
+    backgroundColor: colors.background },
   header: {
-    alignItems: "flex-start",
-  },
+    alignItems: "flex-start" },
   segment: {
     flexDirection: "row",
     backgroundColor: colors.surface,
@@ -213,18 +216,14 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: radius.pill,
     padding: 4,
-    marginTop: spacing.lg,
-  },
+    marginTop: spacing.lg },
   segmentItem: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: spacing.sm,
-    borderRadius: radius.pill,
-  },
+    borderRadius: radius.pill },
   segmentItemActive: {
     backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: colors.border,
-  },
-});
+    borderColor: colors.border } });

@@ -1,27 +1,14 @@
 import React from "react";
 import { StyleProp, TextStyle } from "react-native";
 import { Text as TamaguiText } from "tamagui";
+import { TextVariant, TextTone, TextWeight, AppTextProps } from "@/types/components";
 
-export type TextVariant =
-  | "hero"
-  | "title"
-  | "subtitle"
-  | "body"
-  | "label"
-  | "caption";
 
-export type TextTone = "default" | "muted" | "accent" | "danger" | "success";
-export type TextWeight = "regular" | "medium" | "semibold" | "bold";
 
-export interface AppTextProps {
-  variant?: TextVariant;
-  tone?: TextTone;
-  weight?: TextWeight;
-  children?: React.ReactNode;
-  style?: StyleProp<TextStyle>;
-  numberOfLines?: number;
-  [key: string]: any;
-}
+
+
+
+
 
 const variantMap: Record<TextVariant, { fontSize: number; lineHeight: number }> = {
   hero: { fontSize: 32, lineHeight: 40 },

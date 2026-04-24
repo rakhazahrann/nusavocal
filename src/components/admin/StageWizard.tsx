@@ -13,14 +13,14 @@ import {
   Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { GameText } from "../common/GameText";
-import { GameButton } from "../common/GameButton";
-import { Panel } from "../common/Panel";
+import { GameText } from "@/components/common/GameText";
+import { GameButton } from "@/components/common/GameButton";
+import { Panel } from "@/components/common/Panel";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { stageService } from "../../services/stageService";
-import { vocabService } from "../../services/vocabService";
-import { scenarioService } from "../../services/scenarioService";
-import { mediaService } from "../../services/mediaService";
+import { stageService } from "@/services/stageService";
+import { vocabService } from "@/services/vocabService";
+import { scenarioService } from "@/services/scenarioService";
+import { mediaService } from "@/services/mediaService";
 
 export const AdminStageWizardModal: React.FC<AdminStageWizardModalProps> = ({
   visible,

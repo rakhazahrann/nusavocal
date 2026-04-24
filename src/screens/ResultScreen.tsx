@@ -5,10 +5,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { ScreenWrapper } from "../components/common/ScreenWrapper";
-import { GameText } from "../components/common/GameText";
-import { useAuthStore } from "../stores/authStore";
-import { useGameStore } from "../stores/gameStore";
+import { ScreenWrapper } from "@/components/common/Wrapper";
+import { GameText } from "@/components/common/GameText";
+import { useAuthStore } from "@/store/authStore";
+import { useGameStore } from "@/store/gameStore";
 
 export const ResultScreen = ({ route, navigation }: any) => {
   const { stageId, vocabScore = 0, gameScore = 0, win } = route.params || {};

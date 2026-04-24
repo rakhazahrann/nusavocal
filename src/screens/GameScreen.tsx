@@ -5,112 +5,43 @@ import {
   Text,
   TouchableOpacity,
   Image,
-  SafeAreaView,
-  Dimensions,
   ActivityIndicator,
   Animated,
   Platform,
+  useWindowDimensions,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import Voice, {
-  SpeechEndEvent,
-  SpeechErrorEvent,
-  SpeechResultsEvent,
-  SpeechStartEvent,
-} from "@dev-amirzubair/react-native-voice";
-import { useGameStore, GameScenario } from "../../stores/gameStore";
+import { useGameStore } from "@/store/gameStore";
+import { GameScenario } from "@/types/store";
+import { useVoiceRecognition } from "@/hooks/useVoiceRecognition";
+import { getMatchScore } from "@/utils/scoring";
 
-const { height } = Dimensions.get("window");
+
 
 // Placeholder modern background (Airport check-in counter style)
 const FALLBACK_BGURI = "https://images.unsplash.com/photo-1569629743817-70d8db6c323b?auto=format&fit=crop&q=80&w=1200";
 const DEFAULT_TARGET_PHRASE = "Tentu, ini dia.";
 const SPEECH_LOCALE = "id-ID";
-
-const normalizeSpeechText = (value?: string | null) =>
-  (value || "")
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}\s]/gu, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-
-const calculateLevenshteinDistance = (a: string, b: string) => {
-  const rows = a.length + 1;
-  const cols = b.length + 1;
-  const matrix = Array.from({ length: rows }, () => Array(cols).fill(0));
-
-  for (let i = 0; i < rows; i += 1) matrix[i][0] = i;
-  for (let j = 0; j < cols; j += 1) matrix[0][j] = j;
-
-  for (let i = 1; i < rows; i += 1) {
-    for (let j = 1; j < cols; j += 1) {
-      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-      matrix[i][j] = Math.min(
-        matrix[i - 1][j] + 1,
-        matrix[i][j - 1] + 1,
-        matrix[i - 1][j - 1] + cost
-      );
-    }
-  }
-
-  return matrix[a.length][b.length];
-};
-
-const calculateWordOverlap = (a: string, b: string) => {
-  if (!a || !b) return 0;
-
-  const sourceWords = a.split(" ").filter(Boolean);
-  const targetWords = b.split(" ").filter(Boolean);
-  if (!sourceWords.length || !targetWords.length) return 0;
-
-  const sourceSet = new Set(sourceWords);
-  const targetSet = new Set(targetWords);
-  let matches = 0;
-
-  sourceSet.forEach((word) => {
-    if (targetSet.has(word)) matches += 1;
-  });
-
-  return matches / Math.max(sourceSet.size, targetSet.size);
-};
-
-const getMatchScore = (spoken: string, expected: string) => {
-  const normalizedSpoken = normalizeSpeechText(spoken);
-  const normalizedExpected = normalizeSpeechText(expected);
-
-  if (!normalizedSpoken || !normalizedExpected) return 0;
-  if (normalizedSpoken === normalizedExpected) return 1;
-
-  const overlap = calculateWordOverlap(normalizedSpoken, normalizedExpected);
-  const maxLength = Math.max(normalizedSpoken.length, normalizedExpected.length);
-  const levenshtein =
-    maxLength > 0
-      ? 1 -
-        calculateLevenshteinDistance(normalizedSpoken, normalizedExpected) /
-          maxLength
-      : 0;
-  const inclusion =
-    normalizedSpoken.includes(normalizedExpected) ||
-    normalizedExpected.includes(normalizedSpoken)
-      ? 0.9
-      : 0;
-
-  return Math.max(overlap, levenshtein, inclusion);
-};
-
 export const GameScreen = ({ navigation, route }: any) => {
   const { stageId, vocabScore = 0 } = route?.params || {};
   const { currentScenarios, fetchGameScenarios, isLoading } = useGameStore();
   const [currentScenarioIndex, setCurrentScenarioIndex] = useState(0);
-  const [isRecording, setIsRecording] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [transcription, setTranscription] = useState("");
+  const {
+    isRecording,
+    isProcessing,
+    transcription,
+    finalResults,
+    speechError,
+    isVoiceAvailable,
+    startRecording,
+    stopRecording,
+    resetTranscription
+  } = useVoiceRecognition();
+
   const [hasEvaluated, setHasEvaluated] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
-  const [speechError, setSpeechError] = useState<string | null>(null);
-  const [isVoiceAvailable, setIsVoiceAvailable] = useState(true);
   const [speakingScore, setSpeakingScore] = useState(0);
 
   // Pulse animation for mic
@@ -145,12 +76,9 @@ export const GameScreen = ({ navigation, route }: any) => {
   const canAdvance = hasEvaluated && isCorrect;
 
   const resetAttemptState = () => {
-    setIsRecording(false);
-    setIsProcessing(false);
-    setTranscription("");
+    resetTranscription();
     setHasEvaluated(false);
     setIsCorrect(false);
-    setSpeechError(null);
   };
 
   const evaluateTranscript = (spokenText: string) => {
@@ -159,113 +87,29 @@ export const GameScreen = ({ navigation, route }: any) => {
     const score = getMatchScore(cleaned, expected);
     const passed = score >= 0.74;
 
-    setTranscription(cleaned);
     setHasEvaluated(true);
     setIsCorrect(passed);
-    setSpeechError(
-      passed
-        ? null
-        : `Ucapan belum cukup mirip dengan target. Coba ulangi: "${expected}".`
-    );
   };
 
   useEffect(() => {
-    const setupVoice = async () => {
-      try {
-        const available = await Voice.isAvailable();
-        console.log("DEBUG: Voice.isAvailable check result:", available);
-        // We set to true regardless because some devices report false/0 
-        // but actually work once Voice.start() is called.
-        setIsVoiceAvailable(true); 
-      } catch (error) {
-        console.log("DEBUG: Voice setup error:", error);
-        setIsVoiceAvailable(true); // Still allow trying
-      }
-    };
-
-    Voice.onSpeechStart = (_event: SpeechStartEvent) => {
-      setIsRecording(true);
-      setIsProcessing(false);
-      setSpeechError(null);
-      setTranscription("Mendengarkan...");
-    };
-
-    Voice.onSpeechPartialResults = (event: SpeechResultsEvent) => {
-      const partialText = event.value?.[0]?.trim();
-      if (partialText) {
-        setTranscription(`Mendengarkan: ${partialText}`);
-      }
-    };
-
-    Voice.onSpeechResults = (event: SpeechResultsEvent) => {
-      const finalText = event.value?.[0]?.trim();
-      setIsRecording(false);
-      setIsProcessing(false);
-
-      if (!finalText) {
-        setSpeechError("Ucapan tidak tertangkap. Coba bicara lebih jelas.");
-        return;
-      }
-
-      evaluateTranscript(finalText);
-    };
-
-    Voice.onSpeechEnd = (_event: SpeechEndEvent) => {
-      setIsRecording(false);
-    };
-
-    Voice.onSpeechError = (event: SpeechErrorEvent) => {
-      setIsRecording(false);
-      setIsProcessing(false);
-      const message =
-        event.error?.message ||
-        "Terjadi kendala saat mengenali suara. Coba lagi.";
-      setSpeechError(message);
-    };
-
-    setupVoice();
-
-    return () => {
-      Voice.destroy().then(Voice.removeAllListeners).catch(() => {
-        Voice.removeAllListeners();
-      });
-    };
-  }, []);
+    if (finalResults && !isRecording && !isProcessing) {
+      evaluateTranscript(finalResults);
+    }
+  }, [finalResults, isRecording, isProcessing]);
 
   useEffect(() => {
     resetAttemptState();
   }, [currentScenarioIndex, stageId]);
 
   const handleMicPress = async () => {
-    if (!isVoiceAvailable) {
-      setSpeechError("Speech recognition belum tersedia di device ini.");
-      return;
-    }
+    if (!isVoiceAvailable) return;
 
-    try {
-      setSpeechError(null);
+    if (isRecording) {
+      await stopRecording();
+    } else {
       setHasEvaluated(false);
-
-      if (!Voice) {
-        setSpeechError("Kesalahan internal: Modul suara tidak terdeteksi (Null).");
-        return;
-      }
-
-      if (isRecording) {
-        setIsProcessing(true);
-        await Voice.stop();
-        return;
-      }
-
-      setTranscription("");
       setIsCorrect(false);
-      await Voice.start(SPEECH_LOCALE);
-    } catch (error: any) {
-      setIsRecording(false);
-      setIsProcessing(false);
-      setSpeechError(
-        error?.message || "Gagal memulai speech recognition. Coba lagi."
-      );
+      await startRecording(SPEECH_LOCALE);
     }
   };
 
@@ -298,6 +142,8 @@ export const GameScreen = ({ navigation, route }: any) => {
           ? "UCAPAN SUDAH SESUAI"
           : "TEKAN UNTUK MERESPON";
 
+  const { height } = useWindowDimensions();
+
   if (isLoading) {
     return (
       <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
@@ -311,7 +157,7 @@ export const GameScreen = ({ navigation, route }: any) => {
     <View style={styles.container}>
       
       {/* TOP HALF: SCENARIO WINDOW */}
-      <View style={styles.imageContainer}>
+      <View style={[styles.imageContainer, { height: height * 0.38 }]}>
         {/* We can also apply an overlay that desaturates slightly but black/white UI is enough for monochrome */}
         <Image 
           source={{ uri: backgroundSource }} 
@@ -462,7 +308,6 @@ const styles = StyleSheet.create({
   
   // Scenerio Top Half
   imageContainer: {
-    height: height * 0.38,
     width: "100%",
     position: 'relative',
     borderBottomWidth: 1,

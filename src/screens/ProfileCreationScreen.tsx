@@ -1,3 +1,5 @@
+import { colors } from "@/constants/colors";
+import { spacing, radius } from "@/constants/spacing";
 import React, { useState } from "react";
 import {
   Alert,
@@ -6,14 +8,17 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  View,
-} from "react-native";
+  View } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { Button, Card, Input, Screen, Text } from "../../components/ui";
-import { EnterAnimatedView } from "../../motion/EnterAnimatedView";
-import { colors, radius, spacing } from "../../theme";
-import { useAuthStore } from "../../stores/authStore";
-import { supabase } from "../../api/supabase";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import { Screen } from "@/components/ui/Screen";
+import { Text } from "@/components/ui/Text";
+import { EnterAnimatedView } from "@/components/motion/EnterAnimatedView";
+
+import { useAuthStore } from "@/store/authStore";
+import { supabase } from "@/services/supabase";
 
 
 export const ProfileCreationScreen = ({ navigation }: any) => {
@@ -27,8 +32,7 @@ export const ProfileCreationScreen = ({ navigation }: any) => {
     }
 
     const result = await updateProfile({ 
-      nickname: nickname.trim(),
-    });
+      nickname: nickname.trim() });
     if (result.success) {
       // Initialize first stage progress
       if (user) {
@@ -56,8 +60,7 @@ export const ProfileCreationScreen = ({ navigation }: any) => {
                 .insert({
                   user_id: user.id,
                   stage_id: firstStage.id,
-                  status: 'current',
-                });
+                  status: 'current' });
             }
           }
         } catch (e) {
@@ -132,13 +135,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xxl,
     paddingBottom: spacing.xxl,
-    backgroundColor: colors.background,
-  },
+    backgroundColor: colors.background },
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-  },
+    justifyContent: "space-between" },
   backBtn: {
     width: 40,
     height: 40,
@@ -147,6 +148,4 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.surface,
-  },
-});
+    backgroundColor: colors.surface } });

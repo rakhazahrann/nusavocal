@@ -1,17 +1,11 @@
 import React from "react";
 import { ActivityIndicator, StyleProp, ViewStyle } from "react-native";
 import { GetProps, SizableText, YStack } from "tamagui";
+import { ButtonVariant, ButtonProps } from "@/types/components";
 
-export type ButtonVariant = "primary" | "secondary" | "ghost";
 
-export interface ButtonProps extends Omit<GetProps<typeof YStack>, "children" | "style"> {
-  label: string;
-  variant?: ButtonVariant;
-  loading?: boolean;
-  disabled?: boolean;
-  onPress?: () => void;
-  style?: StyleProp<ViewStyle>;
-}
+
+
 
 const variantConfig: Record<
   ButtonVariant,

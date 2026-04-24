@@ -5,9 +5,9 @@ import {
   Modal,
   TouchableOpacity,
 } from "react-native";
-import { GameText } from "../common/GameText";
-import { GameButton } from "../common/GameButton";
-import { Panel } from "../common/Panel";
+import { GameText } from "@/components/common/GameText";
+import { GameButton } from "@/components/common/GameButton";
+import { Panel } from "@/components/common/Panel";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 interface AdminDeleteConfirmModalProps {

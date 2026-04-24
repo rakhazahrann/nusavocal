@@ -1,4 +1,4 @@
-import { supabase } from '../api/supabase';
+import { supabase } from './supabase';
 
 export const mediaService = {
   async uploadImage(uri: string, folder: string): Promise<string> {

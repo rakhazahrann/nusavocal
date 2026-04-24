@@ -5,11 +5,11 @@ import {
   Text,
   Image,
   TouchableOpacity,
-  SafeAreaView,
-  Dimensions,
   Platform,
   Modal,
+  useWindowDimensions,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
@@ -23,7 +23,7 @@ interface StagePopupProps {
   onStart: (stageId: number) => void;
 }
 
-const { width } = Dimensions.get("window");
+
 
 export const StagePopup: React.FC<StagePopupProps> = ({
   visible,
@@ -33,6 +33,8 @@ export const StagePopup: React.FC<StagePopupProps> = ({
   onCancel,
   onStart,
 }) => {
+  const { width } = useWindowDimensions();
+
   if (!visible || stageId === null) return null;
 
   return (

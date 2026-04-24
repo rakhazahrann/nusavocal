@@ -1,11 +1,9 @@
 import React, { useEffect, useRef } from "react";
 import { StyleProp, ViewStyle, Animated, Easing } from "react-native";
-import { motionDurations } from "./tokens";
+import { motionDurations } from "@/theme/motionTokens";
+import { EnterAnimatedViewProps } from "@/types/components";
 
-export interface EnterAnimatedViewProps {
-  children: React.ReactNode;
-  style?: StyleProp<ViewStyle>;
-}
+
 
 /**
  * Web-specific enter animation using RN Animated API (no GSAP).

@@ -1,9 +1,13 @@
+import { colors } from "@/constants/colors";
+import { spacing } from "@/constants/spacing";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native";
-import { Card, Screen, Text } from "../components/ui";
-import { colors, spacing } from "../theme";
-import { EnterAnimatedView } from "../motion/EnterAnimatedView";
-import { leaderboardService, LeaderboardEntry } from "../services/leaderboardService";
+import { Card } from "@/components/ui/Card";
+import { Screen } from "@/components/ui/Screen";
+import { Text } from "@/components/ui/Text";
+import { EnterAnimatedView } from "@/components/motion/EnterAnimatedView";
+import { leaderboardService } from "@/services/leaderboardService";
+import { LeaderboardEntry } from "@/types/services";
 
 export const LeaderboardScreen = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -95,8 +99,7 @@ const styles = StyleSheet.create({
   center: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "center",
-  },
+    justifyContent: "center" },
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -105,6 +108,4 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 16,
-    backgroundColor: colors.surface,
-  },
-});
+    backgroundColor: colors.surface } });

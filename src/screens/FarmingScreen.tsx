@@ -4,17 +4,18 @@ import {
   View,
   TouchableOpacity,
   Image,
-  SafeAreaView,
   ActivityIndicator,
   Text,
   Platform,
   ScrollView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import { useGameStore } from "../../stores/gameStore";
-import { OptionCard, ProgressBar } from "../../components/glass";
+import { useGameStore } from "@/store/gameStore";
+import { OptionCard } from "@/components/glass/OptionCard";
+import { ProgressBar } from "@/components/glass/ProgressBar";
 
 export const VocabFarmingScreen = ({ navigation, route }: any) => {
   const { stageId } = route?.params || {};

@@ -1,13 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { BlurView } from 'expo-blur';
+import { OptionCardProps } from "@/types/components";
 
-export interface OptionCardProps {
-  label: string;
-  text: string;
-  isSelected: boolean;
-  onPress: () => void;
-}
+
 
 export const OptionCard: React.FC<OptionCardProps> = ({ label, text, isSelected, onPress }) => {
   return (

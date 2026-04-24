@@ -1,11 +1,10 @@
 import React from "react";
-import { SafeAreaView, StyleProp, ViewStyle } from "react-native";
+import { StyleProp, ViewStyle } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { YStack, GetProps } from "tamagui";
+import { ScreenWrapperProps } from "@/types/components";
 
-export type ScreenWrapperProps = Omit<GetProps<typeof YStack>, "children" | "style"> & {
-  children: React.ReactNode;
-  style?: StyleProp<ViewStyle>;
-};
+
 
 export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   children,

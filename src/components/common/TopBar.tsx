@@ -2,9 +2,9 @@ import React from "react";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { BlurView } from "expo-blur";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { Text } from "../ui/Text";
+import { Text } from "@/components/ui/Text";
 import { UserAvatar } from "./UserAvatar";
-import { useAuthStore } from "../../stores/authStore";
+import { useAuthStore } from "@/store/authStore";
 
 export const TopBar = () => {
   const { profile } = useAuthStore();

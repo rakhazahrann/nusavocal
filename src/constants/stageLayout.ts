@@ -1,12 +1,13 @@
 import { Dimensions } from "react-native";
+import { DecoType, Decoration, StageStatus, StageData } from "@/types/constants";
 
-export const SCREEN_WIDTH = Dimensions.get("window").width;
-export const SCREEN_HEIGHT = Dimensions.get("window").height;
+export const getScreenWidth = () => Dimensions.get("window").width;
+export const getScreenHeight = () => Dimensions.get("window").height;
 
 // ── Background strip config ──────────────────────────────────────
 const MAP_IMAGE_WIDTH = 816;
 const MAP_IMAGE_HEIGHT = 1216;
-export const STRIP_HEIGHT = (SCREEN_WIDTH * MAP_IMAGE_HEIGHT) / MAP_IMAGE_WIDTH;
+export const getStripHeight = () => (getScreenWidth() * MAP_IMAGE_HEIGHT) / MAP_IMAGE_WIDTH;
 export const NUM_COPIES = 3; // Number of background copies for seamless loop
 
 // ── Stage layout config ──────────────────────────────────────────
@@ -16,23 +17,12 @@ export const MAP_PADDING_BOTTOM = 200; // Space below the bottom-most stage
 export const STAGE_NODE_SIZE = 150; // Size of each stage node sprite
 
 // ── Decoration positions (relative to each stage) ────────────────
-export type DecoType = "palm" | "bush" | "rumah";
-export interface Decoration {
-  type: DecoType;
-  offsetX: number; // Offset from stage X (fraction of screen width)
-  offsetY: number; // Offset from stage Y
-  scale?: number;
-}
+
+
 
 // ── Stage data ───────────────────────────────────────────────────
-export type StageStatus = "locked" | "current" | "completed";
-export interface StageData {
-  id: number;
-  x: number; // Fraction of screen width (0=left, 1=right)
-  label: string;
-  status: StageStatus;
-  decorations?: Decoration[];
-}
+
+
 
 // Pola huruf "S" (Kiri -> Kanan -> Kiri -> Kanan)
 export const STAGES: StageData[] = [
@@ -142,6 +132,5 @@ export const getStageY = (index: number): number => {
  * Now returns the center position directly.
  */
 export const getStageX = (xFraction: number): number => {
-  return xFraction * SCREEN_WIDTH;
+  return xFraction * getScreenWidth();
 };
-

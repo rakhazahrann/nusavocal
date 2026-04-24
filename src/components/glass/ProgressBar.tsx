@@ -1,10 +1,9 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { BlurView } from 'expo-blur';
+import { ProgressBarProps } from "@/types/components";
 
-export interface ProgressBarProps {
-  progress: number; // 0 to 1
-}
+
 
 export const ProgressBar: React.FC<ProgressBarProps> = ({ progress }) => {
   return (

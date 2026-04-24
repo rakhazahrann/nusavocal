@@ -9,14 +9,9 @@ import {
 import { GameText } from "./GameText";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { GameInputProps } from "@/types/components";
 
-export interface GameInputProps extends TextInputProps {
-  label: string;
-  iconName?: keyof typeof MaterialIcons.glyphMap;
-  communityIconName?: keyof typeof MaterialCommunityIcons.glyphMap;
-  showPasswordToggle?: boolean;
-  variant?: "light" | "dark";
-}
+
 
 export const GameInput: React.FC<GameInputProps> = ({
   label,

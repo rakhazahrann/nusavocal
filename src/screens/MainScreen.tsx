@@ -5,12 +5,12 @@ import Animated, {
   useAnimatedScrollHandler,
   runOnJS,
 } from "react-native-reanimated";
-import { TopBar } from "../../components/common/TopBar";
-import { DynamicBackground } from "../../components/map/DynamicBackground";
-import { StageNode } from "../../components/map/StageNode";
-import { StagePath } from "../../components/map/StagePath";
-import { MapDecorations } from "../../components/map/MapDecorations";
-import { StagePopup } from "../../components/map/StagePopup";
+import { TopBar } from "@/components/common/TopBar";
+import { DynamicBackground } from "@/components/map/DynamicBackground";
+import { StageNode } from "@/components/map/StageNode";
+import { StagePath } from "@/components/map/StagePath";
+import { MapDecorations } from "@/components/map/MapDecorations";
+import { StagePopup } from "@/components/map/StagePopup";
 import {
   TOTAL_MAP_HEIGHT,
   STAGE_SPACING,
@@ -19,13 +19,15 @@ import {
   getStageY,
   getStageX,
   STAGES as FALLBACK_STAGES,
-} from "../../constants/stageLayout";
-import { useAuthStore } from "../../stores/authStore";
-import { useGameStore, Stage } from "../../stores/gameStore";
+} from "@/constants/stageLayout";
+import { useAuthStore } from "@/store/authStore";
+import { useGameStore } from "@/store/gameStore";
+import { Stage } from "@/types/store";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { AdminStageWizardModal } from "../../components/admin/AdminStageWizardModal";
-import { AdminDeleteConfirmModal } from "../../components/admin/AdminDeleteConfirmModal";
-import { Text, Card } from "../../components/ui";
+import { AdminStageWizardModal } from "@/components/admin/StageWizard";
+import { AdminDeleteConfirmModal } from "@/components/admin/DeleteModal";
+import { Text } from "@/components/ui/Text";
+import { Card } from "@/components/ui/Card";
 
 
 export const MainScreen = ({ navigation }: any) => {

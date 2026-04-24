@@ -1,13 +1,9 @@
 import React from "react";
-import { SafeAreaView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { YStack } from "tamagui";
+import { ScreenProps } from "@/types/components";
 
-export interface ScreenProps {
-  padded?: boolean;
-  children?: React.ReactNode;
-  style?: any;
-  [key: string]: any;
-}
+
 
 export const Screen: React.FC<ScreenProps> = ({
   padded = true,

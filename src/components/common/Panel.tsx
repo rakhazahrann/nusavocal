@@ -1,13 +1,9 @@
 import React from "react";
 import { View, StyleSheet, ViewProps, ViewStyle } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { PanelProps } from "@/types/components";
 
-export interface PanelProps extends ViewProps {
-  children: React.ReactNode;
-  innerPadding?: number;
-  outerStyle?: ViewStyle;
-  variant?: "wood" | "light";
-}
+
 
 export const Panel: React.FC<PanelProps> = ({
   children,

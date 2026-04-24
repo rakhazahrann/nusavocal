@@ -1,10 +1,8 @@
 import React from "react";
 import { TouchableOpacity, Image, StyleSheet, TouchableOpacityProps, ViewStyle } from "react-native";
+import { NextButtonProps } from "@/types/components";
 
-export interface NextButtonProps extends TouchableOpacityProps {
-  style?: ViewStyle | ViewStyle[];
-  hidden?: boolean;
-}
+
 
 export const NextButton: React.FC<NextButtonProps> = ({ 
   style, 

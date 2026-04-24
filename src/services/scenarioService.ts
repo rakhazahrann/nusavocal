@@ -1,4 +1,4 @@
-import { supabase } from '../api/supabase';
+import { supabase } from './supabase';
 
 export const scenarioService = {
   async getScenarios(stageId: number) {

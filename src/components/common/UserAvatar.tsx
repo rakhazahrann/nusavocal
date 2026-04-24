@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { Image, StyleSheet, View } from "react-native";
-import { Text } from "../ui";
+import { Text } from "@/components/ui/Text";
 
 interface UserAvatarProps {
   name?: string | null;

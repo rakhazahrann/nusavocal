@@ -1,11 +1,14 @@
+import { colors } from "@/constants/colors";
+import { spacing } from "@/constants/spacing";
 import React, { useEffect } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
-import { Screen, Text } from "../components/ui";
-import { colors, spacing } from "../theme";
-import { useAuthStore } from "../stores/authStore";
-import { EnterAnimatedView } from "../motion/EnterAnimatedView";
+import { Screen } from "@/components/ui/Screen";
+import { Text } from "@/components/ui/Text";
 
-export default function SplashScreen({ navigation }: any) {
+import { useAuthStore } from "@/store/authStore";
+import { EnterAnimatedView } from "@/components/motion/EnterAnimatedView";
+
+export const SplashScreen = ({ navigation }: any) => {
   const { session, profile, isInitialized } = useAuthStore();
 
   useEffect(() => {
@@ -16,8 +19,7 @@ export default function SplashScreen({ navigation }: any) {
         navigation.replace("Main");
       } else if (session) {
         navigation.replace("Auth", {
-          screen: "ProfileCreation",
-        });
+          screen: "ProfileCreation" });
       } else {
         navigation.replace("Auth");
       }
@@ -53,6 +55,4 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     flex: 1,
-    backgroundColor: colors.background,
-  },
-});
+    backgroundColor: colors.background } });

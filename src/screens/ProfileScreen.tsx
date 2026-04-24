@@ -1,11 +1,16 @@
+import { colors } from "@/constants/colors";
+import { spacing, radius } from "@/constants/spacing";
 import React, { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
-import { Card, Screen, Text, Button } from "../components/ui";
-import { colors, radius, spacing } from "../theme";
-import { UserAvatar } from "../components/common";
-import { useAuthStore } from "../stores/authStore";
-import { useGameStore } from "../stores/gameStore";
-import { EnterAnimatedView } from "../motion/EnterAnimatedView";
+import { Card } from "@/components/ui/Card";
+import { Screen } from "@/components/ui/Screen";
+import { Text } from "@/components/ui/Text";
+import { Button } from "@/components/ui/Button";
+
+import { UserAvatar } from "@/components/common/UserAvatar";
+import { useAuthStore } from "@/store/authStore";
+import { useGameStore } from "@/store/gameStore";
+import { EnterAnimatedView } from "@/components/motion/EnterAnimatedView";
 
 export const ProfileScreen = () => {
   const { user, profile, fetchProfile } = useAuthStore();
@@ -105,22 +110,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: spacing.lg,
-    gap: spacing.md,
-  },
+    gap: spacing.md },
   statGrid: {
     flexDirection: "row",
     gap: spacing.md,
-    padding: spacing.lg,
-  },
+    padding: spacing.lg },
   statItem: {
     flex: 1,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.md,
     padding: spacing.md,
-    backgroundColor: colors.surface,
-  },
+    backgroundColor: colors.surface },
   focusBox: {
-    padding: spacing.lg,
-  },
-});
+    padding: spacing.lg } });

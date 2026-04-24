@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
-import { AppNavigator } from "./src/navigation/AppNavigator";
+import { AppNavigator } from "@/navigation/AppNavigator";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
@@ -18,8 +18,9 @@ import {
   PixelifySans_600SemiBold,
   PixelifySans_700Bold,
 } from "@expo-google-fonts/pixelify-sans";
-import { useAuthStore } from "./src/stores/authStore";
+import { useAuthStore } from "@/store/authStore";
 import { TamaguiProvider } from "tamagui";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { tamaguiConfig } from "./tamagui.config";
 
 // Keep the splash screen visible while we fetch resources
@@ -70,10 +71,12 @@ export default function App() {
 
   return (
     <TamaguiProvider config={tamaguiConfig} defaultTheme="light">
-      <NavigationContainer>
-        <StatusBar style="dark" />
-        <AppNavigator />
-      </NavigationContainer>
+      <SafeAreaProvider>
+        <NavigationContainer>
+          <StatusBar style="dark" />
+          <AppNavigator />
+        </NavigationContainer>
+      </SafeAreaProvider>
     </TamaguiProvider>
   );
 }

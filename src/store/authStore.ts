@@ -1,18 +1,10 @@
 const { create } = require('zustand') as typeof import('zustand');
-import { supabase } from '../api/supabase';
+import { supabase } from '@/services/supabase';
 import { Session, User } from '@supabase/supabase-js';
-import { authService } from '../services/authService';
+import { authService } from '@/services/authService';
+import { Profile } from "@/types/store";
 
-export interface Profile {
-  id: string;
-  username: string;
-  email: string;
-  nickname: string | null;
-  avatar_url: string | null;
-  role: 'user' | 'admin';
-  created_at: string;
-  updated_at: string;
-}
+
 
 interface AuthState {
   user: User | null;

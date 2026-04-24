@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
-import { getStageX, getStageY } from "../../constants/stageLayout";
+import { getStageX, getStageY } from "@/constants/stageLayout";
 
 interface Stage {
   id: number;

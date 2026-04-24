@@ -1,10 +1,15 @@
+import { colors } from "@/constants/colors";
+import { spacing } from "@/constants/spacing";
 import React from "react";
 import { StyleSheet, Switch, View } from "react-native";
-import { Screen, Text, Card, Button } from "../components/ui";
-import { colors, spacing } from "../theme";
-import { useSettingsStore } from "../stores/settingsStore";
-import { useAuthStore } from "../stores/authStore";
-import { EnterAnimatedView } from "../motion/EnterAnimatedView";
+import { Screen } from "@/components/ui/Screen";
+import { Text } from "@/components/ui/Text";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+
+import { useSettingsStore } from "@/store/settingsStore";
+import { useAuthStore } from "@/store/authStore";
+import { EnterAnimatedView } from "@/components/motion/EnterAnimatedView";
 
 export const SettingsScreen = () => {
   const { signOut } = useAuthStore();
@@ -14,8 +19,7 @@ export const SettingsScreen = () => {
     reduceMotion,
     setSfxEnabled,
     setMusicEnabled,
-    setReduceMotion,
-  } = useSettingsStore();
+    setReduceMotion } = useSettingsStore();
 
   return (
     <Screen>
@@ -97,14 +101,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-  },
+    paddingHorizontal: spacing.lg },
   rowBorder: {
     borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
+    borderTopColor: colors.border },
   rowText: {
     flex: 1,
-    marginRight: spacing.lg,
-  },
-});
+    marginRight: spacing.lg } });

@@ -6,13 +6,11 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import { motionDurations } from "./tokens";
-import { useSettingsStore } from "../stores/settingsStore";
+import { motionDurations } from "@/theme/motionTokens";
+import { useSettingsStore } from "@/store/settingsStore";
+import { EnterAnimatedViewProps } from "@/types/components";
 
-export interface EnterAnimatedViewProps {
-  children: React.ReactNode;
-  style?: StyleProp<ViewStyle>;
-}
+
 
 export const EnterAnimatedView: React.FC<EnterAnimatedViewProps> = ({ children, style }) => {
   const reduceMotion = useSettingsStore((s) => s.reduceMotion);

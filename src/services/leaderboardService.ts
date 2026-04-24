@@ -1,12 +1,7 @@
-import { supabase } from "../api/supabase";
+import { supabase } from "./supabase";
+import { LeaderboardEntry } from "@/types/services";
 
-export type LeaderboardEntry = {
-  user_id: string;
-  username: string;
-  nickname: string | null;
-  completed_stages: number;
-  total_vocab_score: number;
-};
+
 
 export const leaderboardService = {
   async getLeaderboard(limit = 50): Promise<LeaderboardEntry[]> {

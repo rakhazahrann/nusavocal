@@ -1,12 +1,8 @@
 import React from "react";
 import { YStack, GetProps } from "tamagui";
+import { CardProps } from "@/types/components";
 
-export interface CardProps {
-  padded?: boolean;
-  children?: React.ReactNode;
-  style?: any;
-  [key: string]: any;
-}
+
 
 export const Card: React.FC<CardProps> = ({
   padded = true,

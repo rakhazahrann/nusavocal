@@ -1,4 +1,4 @@
-import { supabase } from '../api/supabase';
+import { supabase } from './supabase';
 
 export const stageService = {
   async getStages() {

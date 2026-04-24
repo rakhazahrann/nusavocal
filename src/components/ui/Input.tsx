@@ -1,15 +1,13 @@
+import { colors } from "@/constants/colors";
+import { spacing, radius } from "@/constants/spacing";
 import React from "react";
 import { TextInput, TextInputProps, ViewStyle } from "react-native";
 import { YStack } from "tamagui";
 import { Text } from "./Text";
-import { colors, radius, spacing, typography } from "../../theme";
+import { typography } from "@/theme/tokens";
+import { InputProps } from "@/types/components";
 
-export interface InputProps extends TextInputProps {
-  label?: string;
-  helperText?: string;
-  errorText?: string;
-  containerStyle?: ViewStyle;
-}
+
 
 export const Input: React.FC<InputProps> = ({
   label,
@@ -44,8 +42,7 @@ export const Input: React.FC<InputProps> = ({
             paddingHorizontal: spacing.md,
             fontFamily: typography.fontFamily.regular,
             fontSize: typography.size.body,
-            color: colors.text,
-          },
+            color: colors.text },
           style,
         ]}
         {...props}

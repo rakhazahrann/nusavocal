@@ -1,8 +1,9 @@
 import React, { useEffect } from "react";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { StageStatus, getStageX, getStageY, STAGE_NODE_SIZE } from "../../constants/stageLayout";
-import { Text } from "../ui";
+import { StageStatus } from "@/types/constants";
+import { getStageX, getStageY, STAGE_NODE_SIZE } from "@/constants/stageLayout";
+import { Text } from "@/components/ui/Text";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
