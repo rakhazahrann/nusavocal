@@ -1,10 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
-import Voice, {
-  SpeechEndEvent,
-  SpeechErrorEvent,
-  SpeechResultsEvent,
-  SpeechStartEvent,
-} from "@react-native-voice/voice";
+import { useState, useCallback } from "react";
+import { Platform } from "react-native";
+import {
+  ExpoSpeechRecognitionModule,
+  useSpeechRecognitionEvent,
+} from "expo-speech-recognition";
 
 export interface VoiceRecognitionHook {
   isRecording: boolean;
@@ -24,70 +23,64 @@ export const useVoiceRecognition = (): VoiceRecognitionHook => {
   const [transcription, setTranscription] = useState("");
   const [finalResults, setFinalResults] = useState<string | null>(null);
   const [speechError, setSpeechError] = useState<string | null>(null);
-  const [isVoiceAvailable, setIsVoiceAvailable] = useState(true);
+  
+  // Listen to events
+  useSpeechRecognitionEvent("start", () => {
+    setIsRecording(true);
+    setIsProcessing(false);
+    setSpeechError(null);
+    setFinalResults(null);
+    setTranscription("Mendengarkan...");
+  });
 
-  useEffect(() => {
-    const setupVoice = async () => {
-      try {
-        await Voice.isAvailable();
-        setIsVoiceAvailable(true);
-      } catch (error) {
-        setIsVoiceAvailable(true); // Still allow trying
+  useSpeechRecognitionEvent("result", (event) => {
+    const resultText = event.results[0]?.transcript?.trim();
+    if (resultText) {
+      setTranscription(resultText);
+      if (event.isFinal) {
+        setFinalResults(resultText);
       }
-    };
+    }
+  });
 
-    Voice.onSpeechStart = (_event: SpeechStartEvent) => {
-      setIsRecording(true);
-      setIsProcessing(false);
-      setSpeechError(null);
-      setFinalResults(null);
-      setTranscription("Mendengarkan...");
-    };
+  useSpeechRecognitionEvent("end", () => {
+    setIsRecording(false);
+    setIsProcessing(false);
+  });
 
-    Voice.onSpeechPartialResults = (event: SpeechResultsEvent) => {
-      const partialText = event.value?.[0]?.trim();
-      if (partialText) {
-        setTranscription(`Mendengarkan: ${partialText}`);
-      }
-    };
-
-    Voice.onSpeechResults = (event: SpeechResultsEvent) => {
-      const finalText = event.value?.[0]?.trim();
-      setIsRecording(false);
-      setIsProcessing(false);
-      if (finalText) {
-        setTranscription(finalText);
-        setFinalResults(finalText);
-      }
-    };
-
-    Voice.onSpeechEnd = (_event: SpeechEndEvent) => {
-      setIsRecording(false);
-    };
-
-    Voice.onSpeechError = (event: SpeechErrorEvent) => {
-      setIsRecording(false);
-      setIsProcessing(false);
-      const message =
-        event.error?.message ||
-        "Terjadi kendala saat mengenali suara. Coba lagi.";
-      setSpeechError(message);
-    };
-
-    setupVoice();
-
-    return () => {
-      Voice.destroy().then(Voice.removeAllListeners).catch(() => {
-        Voice.removeAllListeners();
-      });
-    };
-  }, []);
+  useSpeechRecognitionEvent("error", (event) => {
+    setIsRecording(false);
+    setIsProcessing(false);
+    // Map errors to nice UI messages
+    const message = event.error === "not-allowed" 
+      ? "Izin mikrofon ditolak." 
+      : event.message || "Terjadi kendala saat mengenali suara.";
+    setSpeechError(message);
+  });
 
   const startRecording = useCallback(async (locale: string = "id-ID") => {
     setSpeechError(null);
     setTranscription("");
+    
     try {
-      await Voice.start(locale);
+      // Request permissions first
+      const result = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+      if (!result.granted) {
+        setSpeechError("Izin mikrofon tidak diberikan.");
+        return;
+      }
+
+      await ExpoSpeechRecognitionModule.start({
+        lang: locale,
+        interimResults: true,
+        continuous: false, // One-shot like the old behavior
+        // iOS-specific hint for better single word recognition
+        iosTaskHint: "confirmation",
+        // Prevent Android default beeping if required by creating new intent
+        androidIntentOptions: {
+          EXTRA_LANGUAGE_MODEL: "web_search",
+        },
+      });
     } catch (error: any) {
       setIsRecording(false);
       setIsProcessing(false);
@@ -98,7 +91,7 @@ export const useVoiceRecognition = (): VoiceRecognitionHook => {
   const stopRecording = useCallback(async () => {
     setIsProcessing(true);
     try {
-      await Voice.stop();
+      await ExpoSpeechRecognitionModule.stop();
     } catch (error) {
       setIsProcessing(false);
     }
@@ -107,6 +100,7 @@ export const useVoiceRecognition = (): VoiceRecognitionHook => {
   const resetTranscription = useCallback(() => {
     setTranscription("");
     setSpeechError(null);
+    setFinalResults(null);
   }, []);
 
   return {
@@ -115,7 +109,7 @@ export const useVoiceRecognition = (): VoiceRecognitionHook => {
     transcription,
     finalResults,
     speechError,
-    isVoiceAvailable,
+    isVoiceAvailable: true, // It's generally safe to assume it works if compiled correctly
     startRecording,
     stopRecording,
     resetTranscription,

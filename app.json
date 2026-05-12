@@ -31,10 +31,10 @@
     "plugins": [
       "expo-font",
       [
-        "@dev-amirzubair/react-native-voice",
+        "expo-speech-recognition",
         {
           "microphonePermission": "Izinkan NusaVocal mengakses mikrofon untuk latihan pengucapan bahasa Indonesia.",
-          "speechRecognitionPermission": "Izinkan NusaVocal mengenali ucapan Anda untuk latihan pronunciation."
+          "speechRecognitionPermission": "Izinkan NusaVocal mengenali ucapan Anda untuk latihan pengucapan."
         }
       ]
     ]
