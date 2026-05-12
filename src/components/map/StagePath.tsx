@@ -18,8 +18,8 @@ export const StagePath: React.FC<StagePathProps> = ({ stages }) => {
   // Calculate the total bounding box for the SVG
   const minX = 0;
   const maxX = 400; // Map width
-  const topY = getStageY(stages.length - 1);
-  const bottomY = getStageY(0);
+  const topY = getStageY(stages.length - 1, stages.length);
+  const bottomY = getStageY(0, stages.length);
   const height = bottomY - topY + 200; // Add padding
 
   // Generate SVG path string
@@ -30,9 +30,9 @@ export const StagePath: React.FC<StagePathProps> = ({ stages }) => {
     const next = stages[i + 1];
 
     const startX = getStageX(current.x);
-    const startY = getStageY(i) - topY + 100; // Adjust for top padding
+    const startY = getStageY(i, stages.length) - topY + 100; // Adjust for top padding
     const endX = getStageX(next.x);
-    const endY = getStageY(i + 1) - topY + 100;
+    const endY = getStageY(i + 1, stages.length) - topY + 100;
 
     if (i === 0) {
       pathStr += `M ${startX} ${startY} `;

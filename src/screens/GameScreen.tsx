@@ -10,24 +10,149 @@ import {
   Platform,
   useWindowDimensions,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
-import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { useGameStore } from "@/store/gameStore";
 import { GameScenario } from "@/types/store";
 import { useVoiceRecognition } from "@/hooks/useVoiceRecognition";
 import { getMatchScore } from "@/utils/scoring";
 
-
-
-// Placeholder modern background (Airport check-in counter style)
-const FALLBACK_BGURI = "https://images.unsplash.com/photo-1569629743817-70d8db6c323b?auto=format&fit=crop&q=80&w=1200";
-const DEFAULT_TARGET_PHRASE = "Tentu, ini dia.";
+const FALLBACK_BG =
+  "https://images.unsplash.com/photo-1569629743817-70d8db6c323b?auto=format&fit=crop&q=80&w=1200";
+const DEFAULT_TARGET = "Tentu, ini dia.";
 const SPEECH_LOCALE = "id-ID";
+
+/* ================================================================
+   Animated waveform bar used during recording
+   ================================================================ */
+const WaveBar = ({ h, active, d }: { h: number; active: boolean; d: number }) => {
+  const a = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    if (active) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(a, { toValue: 1.35, duration: 250 + d, useNativeDriver: true }),
+          Animated.timing(a, { toValue: 0.65, duration: 250 + d, useNativeDriver: true }),
+        ])
+      ).start();
+    } else {
+      a.stopAnimation();
+      Animated.timing(a, { toValue: 1, duration: 150, useNativeDriver: true }).start();
+    }
+  }, [active]);
+  return (
+    <Animated.View
+      style={{
+        width: 2,
+        height: h,
+        borderRadius: 1,
+        marginHorizontal: 2.5,
+        backgroundColor: active ? "#1E293B" : "#E2E8F0",
+        transform: [{ scaleY: a }],
+      }}
+    />
+  );
+};
+
+/* ================================================================
+   Feedback overlay after evaluation
+   ================================================================ */
+const FeedbackOverlay = ({
+  score,
+  onRetry,
+}: {
+  score: number;
+  onRetry: () => void;
+}) => {
+  const pct = Math.round(score * 100);
+  const good = pct >= 74;
+  const mid = pct >= 50 && pct < 74;
+
+  const emoji = good ? "😄" : mid ? "😊" : "😕";
+  const label = good ? "Bagus!" : mid ? "Lumayan!" : "Coba Lagi";
+  const accent = good ? "#22C55E" : mid ? "#F48C25" : "#EF4444";
+
+  return (
+    <View style={fb.wrap}>
+      <Text style={{ fontSize: 40, marginBottom: 4 }}>{emoji}</Text>
+      <Text style={[fb.label, { color: accent }]}>{label}</Text>
+
+      <View style={fb.row}>
+        <View style={fb.statBox}>
+          <Text style={[fb.pct, { color: accent }]}>{pct}%</Text>
+          <Text style={fb.statLabel}>Pengucapan</Text>
+        </View>
+        {good && (
+          <View style={fb.statBox}>
+            <Text style={[fb.pct, { color: "#22C55E" }]}>+20</Text>
+            <Text style={fb.statLabel}>XP</Text>
+          </View>
+        )}
+      </View>
+
+      {!good && (
+        <TouchableOpacity style={fb.retry} onPress={onRetry} activeOpacity={0.7}>
+          <MaterialIcons name="refresh" size={16} color="#64748B" />
+          <Text style={fb.retryText}>Coba Lagi</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+};
+
+const fb = StyleSheet.create({
+  wrap: {
+    alignItems: "center",
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+  },
+  label: {
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 22,
+    marginBottom: 12,
+  },
+  row: {
+    flexDirection: "row",
+    gap: 24,
+  },
+  statBox: { alignItems: "center" },
+  pct: {
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 28,
+  },
+  statLabel: {
+    fontFamily: "SpaceGrotesk-Regular",
+    fontSize: 11,
+    color: "#64748B",
+    marginTop: 2,
+  },
+  retry: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 18,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 99,
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  retryText: {
+    fontFamily: "SpaceGrotesk-SemiBold",
+    fontSize: 13,
+    color: "#0F172A",
+  },
+});
+
+/* ================================================================
+   MAIN GAME SCREEN
+   ================================================================ */
 export const GameScreen = ({ navigation, route }: any) => {
   const { stageId, vocabScore = 0 } = route?.params || {};
   const { currentScenarios, fetchGameScenarios, isLoading } = useGameStore();
-  const [currentScenarioIndex, setCurrentScenarioIndex] = useState(0);
+  const [idx, setIdx] = useState(0);
   const {
     isRecording,
     isProcessing,
@@ -37,531 +162,672 @@ export const GameScreen = ({ navigation, route }: any) => {
     isVoiceAvailable,
     startRecording,
     stopRecording,
-    resetTranscription
+    resetTranscription,
   } = useVoiceRecognition();
 
-  const [hasEvaluated, setHasEvaluated] = useState(false);
+  const [hasEval, setHasEval] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
-  const [speakingScore, setSpeakingScore] = useState(0);
+  const [matchScore, setMatchScore] = useState(0);
+  const [speakScore, setSpeakScore] = useState(0);
 
-  // Pulse animation for mic
   const pulseAnim = useRef(new Animated.Value(1)).current;
-  const scenarioRef = useRef<GameScenario | null>(null);
+  const scenRef = useRef<GameScenario | null>(null);
+  const { height, width } = useWindowDimensions();
 
   useEffect(() => {
-    if (stageId) {
-      fetchGameScenarios(stageId);
-    }
+    if (stageId) fetchGameScenarios(stageId);
   }, [stageId]);
 
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1.08, duration: 1200, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 1200, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1.2, duration: 900, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 900, useNativeDriver: true }),
       ])
     ).start();
-  }, [pulseAnim]);
+  }, []);
 
-  const scenario: GameScenario | null = currentScenarios[currentScenarioIndex] || null;
-  scenarioRef.current = scenario;
+  const scenario = currentScenarios[idx] || null;
+  scenRef.current = scenario;
 
-  const targetPhrase = useMemo(
-    () => scenario?.expected_voice_text?.trim() || DEFAULT_TARGET_PHRASE,
+  const target = useMemo(
+    () => scenario?.expected_voice_text?.trim() || DEFAULT_TARGET,
     [scenario]
   );
-  const backgroundSource = scenario?.background_image_url || FALLBACK_BGURI;
-  const totalScenarios = currentScenarios.length || 1;
-  const isLastScenario = currentScenarioIndex >= totalScenarios - 1;
-  const canAdvance = hasEvaluated && isCorrect;
+  const bg = scenario?.background_image_url || FALLBACK_BG;
+  const total = currentScenarios.length || 1;
+  const isLast = idx >= total - 1;
+  const canGo = hasEval && isCorrect;
 
-  const resetAttemptState = () => {
+  const stages = useGameStore((s) => s.stages);
+  const stageLabel = stages.find((s) => s.id === stageId)?.label || "Percakapan";
+
+  const resetAttempt = () => {
     resetTranscription();
-    setHasEvaluated(false);
+    setHasEval(false);
     setIsCorrect(false);
+    setMatchScore(0);
   };
 
-  const evaluateTranscript = (spokenText: string) => {
-    const expected = scenarioRef.current?.expected_voice_text?.trim() || DEFAULT_TARGET_PHRASE;
-    const cleaned = spokenText.trim();
-    const score = getMatchScore(cleaned, expected);
-    const passed = score >= 0.74;
-
-    setHasEvaluated(true);
-    setIsCorrect(passed);
+  const evaluate = (spoken: string) => {
+    const expected = scenRef.current?.expected_voice_text?.trim() || DEFAULT_TARGET;
+    const s = getMatchScore(spoken.trim(), expected);
+    setMatchScore(s);
+    setHasEval(true);
+    setIsCorrect(s >= 0.74);
   };
 
   useEffect(() => {
-    if (finalResults && !isRecording && !isProcessing) {
-      evaluateTranscript(finalResults);
-    }
+    if (finalResults && !isRecording && !isProcessing) evaluate(finalResults);
   }, [finalResults, isRecording, isProcessing]);
 
   useEffect(() => {
-    resetAttemptState();
-  }, [currentScenarioIndex, stageId]);
+    resetAttempt();
+  }, [idx, stageId]);
 
-  const handleMicPress = async () => {
+  const handleMic = async () => {
     if (!isVoiceAvailable) return;
-
     if (isRecording) {
       await stopRecording();
     } else {
-      setHasEvaluated(false);
+      setHasEval(false);
       setIsCorrect(false);
+      setMatchScore(0);
       await startRecording(SPEECH_LOCALE);
     }
   };
 
   const handleContinue = () => {
-    if (!canAdvance) return;
-
-    const nextScore = speakingScore + 1;
-    setSpeakingScore(nextScore);
-
-    if (!isLastScenario) {
-      setCurrentScenarioIndex((prev) => prev + 1);
-      return;
+    if (!canGo) return;
+    const n = speakScore + 1;
+    setSpeakScore(n);
+    if (!isLast) {
+      setIdx((p) => p + 1);
+    } else {
+      navigation.replace("Result", {
+        win: true,
+        stageId,
+        vocabScore,
+        gameScore: n,
+      });
     }
-
-    navigation.replace("Result", {
-      win: true,
-      stageId,
-      vocabScore,
-      gameScore: nextScore,
-    });
   };
 
-  const instructionText = isProcessing
-    ? "MEMPROSES UCAPAN..."
-    : isRecording
-      ? "KETUK LAGI UNTUK SELESAI"
-      : hasEvaluated && !isCorrect
-        ? "COBA UCAPKAN LAGI"
-        : hasEvaluated && isCorrect
-          ? "UCAPAN SUDAH SESUAI"
-          : "TEKAN UNTUK MERESPON";
-
-  const { height } = useWindowDimensions();
-
+  // ── Loading ──
   if (isLoading) {
     return (
-      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
-        <ActivityIndicator size="large" color="#ffffff" />
-        <Text style={styles.loadingText}>Memuat Skenario...</Text>
+      <View style={[s.root, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color="#F48C25" />
+        <Text style={s.loadingTxt}>Memuat Percakapan...</Text>
       </View>
     );
   }
 
-  return (
-    <View style={styles.container}>
-      
-      {/* TOP HALF: SCENARIO WINDOW */}
-      <View style={[styles.imageContainer, { height: height * 0.38 }]}>
-        {/* We can also apply an overlay that desaturates slightly but black/white UI is enough for monochrome */}
-        <Image 
-          source={{ uri: backgroundSource }} 
-          style={styles.scenarioImage} 
-        />
-        <LinearGradient 
-          colors={['rgba(0,0,0,0.6)', 'transparent', 'rgba(0,0,0,0.4)']} 
-          locations={[0, 0.4, 1]}
-          style={StyleSheet.absoluteFillObject} 
-        />
+  const recording = isRecording || isProcessing;
 
-        {/* Absolute Header inside the image area */}
-        <View style={styles.headerAbsolute}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <MaterialIcons name="arrow-back-ios" size={20} color="#ffffff" style={{ marginLeft: 6 }} />
-          </TouchableOpacity>
-          <View style={styles.statusIndicator}>
-             <View style={styles.statusDot} />
-             <Text style={styles.statusText}>Live Scenario</Text>
+  return (
+    <View style={s.root}>
+      {/* ─────────── TOP HALF: White bg ─────────── */}
+      <View style={[s.sceneWrap, { height: height * 0.6 }]}>
+        {/* Header */}
+        <SafeAreaView edges={["top"]} style={s.safeTop}>
+          <View style={s.header}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={s.backBtn}
+              activeOpacity={0.7}
+            >
+              <MaterialIcons name="chevron-left" size={28} color="#0F172A" />
+            </TouchableOpacity>
+
+            <View style={s.headerCenter}>
+              <Text style={s.headerTitle}>{stageLabel}</Text>
+              <Text style={s.headerSub}>
+                Percakapan {idx + 1} / {total}
+              </Text>
+            </View>
+
+            <TouchableOpacity style={s.reportBtn} activeOpacity={0.7}>
+              <MaterialIcons name="flag" size={18} color="#94A3B8" />
+              <Text style={s.reportTxt}>Laporkan</Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+
+        {/* Scene Image */}
+        <View style={[s.sceneWrap, { height: height * 0.24 }]}>
+          <Image source={{ uri: bg }} style={s.sceneImg} />
+          <LinearGradient
+            colors={["transparent", "rgba(255,255,255,0.6)", "#FFFFFF"]}
+            locations={[0.4, 0.8, 1]}
+            style={StyleSheet.absoluteFillObject}
+          />
+          {/* NPC Name Badge */}
+          <View style={s.npcBadge}>
+            <Text style={s.npcBadgeText}>{scenario?.npc_name || "NPC"}</Text>
+          </View>
+        </View>
+
+        {/* NPC Dialog Bubble */}
+        <View style={s.bubbleWrap}>
+          <View style={s.bubble}>
+            <View style={{ flex: 1 }}>
+              <Text style={s.bubbleMain}>
+                {scenario?.npc_text ||
+                  "Wilujeng sumping di Bandung!\nKamana tujuan anjeun?"}
+              </Text>
+              <Text style={s.bubbleSub}>
+                Selamat datang di Bandung!{"\n"}Mau ke mana tujuanmu?
+              </Text>
+            </View>
+            <TouchableOpacity style={s.speakerBtn} activeOpacity={0.7}>
+              <MaterialIcons name="volume-up" size={22} color="#64748B" />
+            </TouchableOpacity>
           </View>
         </View>
       </View>
 
-      {/* BOTTOM HALF: INTERACTION AREA */}
-      <View style={styles.interactionArea}>
-        
-        {/* OVERLAPPING DIALOGUE BOX */}
-        <View style={styles.dialogueWrapper}>
-          <View style={styles.nameTab}>
-            <Text style={styles.nameText}>{scenario?.npc_name || "Petugas Bandara"}</Text>
+      {/* ─────────── BOTTOM HALF: White Floating Card ─────────── */}
+      <View style={s.bottomHalf}>
+        {/* User Task Header */}
+        <View style={s.taskHeader}>
+          <View style={s.taskLabelRow}>
+            <View style={s.taskIcon}>
+              <MaterialIcons name="assignment" size={14} color="#64748B" />
+            </View>
+            <Text style={s.taskLabel}>Tugas Kamu</Text>
           </View>
-          <BlurView intensity={80} tint="dark" style={styles.dialogueBox}>
-             <Text style={styles.dialogueText}>
-                {scenario?.npc_text || "Bisa saya lihat paspor dan tiket penerbangan Anda?"}
-             </Text>
-
-             {/* TARGET PHRASE & EVALUATION INDICATOR */}
-             <View style={styles.targetPhraseContainer}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.targetPhraseLabel}>TUGAS ANDA:</Text>
-                  <Text style={styles.targetPhraseText}>
-                    Ucapkan <Text style={styles.targetPhraseHighlight}>"{targetPhrase}"</Text>
-                  </Text>
-                </View>
-                <View style={styles.indicatorContainer}>
-                  {hasEvaluated ? (
-                    isCorrect ? (
-                      <MaterialIcons name="check-circle" size={24} color="#4ADE80" />
-                    ) : (
-                      <MaterialIcons name="cancel" size={24} color="#F87171" />
-                    )
-                  ) : (
-                    <View style={styles.pendingIndicator}>
-                      <View style={styles.dot} />
-                      <View style={styles.dot} />
-                      <View style={styles.dot} />
-                    </View>
-                  )}
-                </View>
-             </View>
-          </BlurView>
+          <Text style={s.taskHint}>Ucapkan jawabanmu</Text>
         </View>
 
-        {/* MIC SECTION */}
-        <View style={styles.micSection}>
-           
-           {/* LIVE TRANSCRIPTION */}
-           <View style={styles.transcriptionContainer}>
-             {(isRecording || isProcessing || transcription !== "") ? (
-                <Text style={styles.transcriptionText}>{transcription}</Text>
-             ) : null}
-           </View>
-
-           {speechError ? (
-             <Text style={styles.errorText}>{speechError}</Text>
-           ) : null}
-
-           <View style={styles.micButtonContainer}>
-              <Animated.View style={[styles.micPulseBg, { 
-                transform: [{ scale: pulseAnim }], 
-                opacity: pulseAnim.interpolate({ inputRange: [1, 1.08], outputRange: [0.3, 0] }) 
-              }]} />
-              <TouchableOpacity 
-                activeOpacity={0.8} 
-                style={styles.micButton}
-                onPress={handleMicPress}
-              >
-                 <LinearGradient 
-                    colors={["#23262F", "#14151A"]} 
-                    style={[
-                      styles.micGradient,
-                      hasEvaluated && isCorrect ? { borderColor: "#4ADE80" } : undefined,
-                      hasEvaluated && !isCorrect ? { borderColor: "#F87171" } : undefined,
-                    ]}
-                 >
-                   {/* Waveform visual mimic - Monochrome */}
-                   <View style={styles.waveformRow}>
-                      <View style={[styles.waveLine, { height: 12 }, isRecording && { backgroundColor: "#4ADE80" }]} />
-                      <View style={[styles.waveLine, { height: 24 }, isRecording && { backgroundColor: "#4ADE80" }]} />
-                      <View style={[styles.waveLine, { height: 16 }, isRecording && { backgroundColor: "#4ADE80" }]} />
-                      <MaterialIcons name="mic" size={44} color={isRecording ? "#4ADE80" : "#ffffff"} style={styles.micIcon} />
-                      <View style={[styles.waveLine, { height: 16 }, isRecording && { backgroundColor: "#4ADE80" }]} />
-                      <View style={[styles.waveLine, { height: 24 }, isRecording && { backgroundColor: "#4ADE80" }]} />
-                      <View style={[styles.waveLine, { height: 12 }, isRecording && { backgroundColor: "#4ADE80" }]} />
-                   </View>
-                 </LinearGradient>
-              </TouchableOpacity>
-           </View>
-
-           <Text style={styles.instructionText}>
-             {instructionText}
-           </Text>
+        {/* Target Phrase */}
+        <View style={s.targetWrap}>
+          <Text style={s.targetMain}>{target}</Text>
+          <Text style={s.targetSub}>
+            Saya mau ke pusat kota.
+          </Text>
         </View>
 
-        {/* Action Button at the very bottom right */}
-        <View style={styles.bottomBar}>
-          <TouchableOpacity 
-            style={[styles.nextButton, !canAdvance && styles.nextButtonDisabled]} 
-            activeOpacity={0.8}
-            onPress={handleContinue}
-            disabled={!canAdvance}
-          >
-            <Text style={[styles.nextButtonText, !canAdvance && styles.nextButtonTextDisabled]}>
-              {isLastScenario ? "SELESAI" : "LANJUTKAN"}
+        {/* Transcription feedback */}
+        {(transcription !== "" || recording) && !hasEval && (
+          <View style={s.liveBox}>
+            <MaterialIcons
+              name={isProcessing ? "hourglass-top" : "graphic-eq"}
+              size={14}
+              color="#F48C25"
+            />
+            <Text style={s.liveTxt}>
+              {isProcessing ? "Sedang memproses..." : transcription}
             </Text>
-            <MaterialIcons name="arrow-forward" size={16} color={!canAdvance ? "rgba(255,255,255,0.3)" : "#0A0D14"} />
-          </TouchableOpacity>
+          </View>
+        )}
+
+        {speechError && !hasEval ? (
+          <View style={s.errBox}>
+            <MaterialIcons name="error-outline" size={14} color="#F87171" />
+            <Text style={s.errTxt}>{speechError}</Text>
+          </View>
+        ) : null}
+
+        {/* MIC / FEEDBACK area */}
+        <View style={s.micArea}>
+          {hasEval ? (
+            <FeedbackOverlay score={matchScore} onRetry={resetAttempt} />
+          ) : (
+            <>
+              {/* Waveform and Mic Layout */}
+              <View style={s.waveRow}>
+                {/* Waveform Left */}
+                <View style={s.waveSide}>
+                  {[3, 6, 4, 8, 5, 7].map((h, i) => (
+                    <WaveBar key={`l-${i}`} h={h} active={isRecording} d={i * 35} />
+                  ))}
+                </View>
+
+                {/* Mic button */}
+                <View style={s.micBtnWrap}>
+                  <Animated.View
+                    style={[
+                      s.micPulse,
+                      isRecording && {
+                        transform: [{ scale: pulseAnim }],
+                        opacity: 0.2,
+                        backgroundColor: "#1E293B",
+                      },
+                    ]}
+                  />
+                  <TouchableOpacity
+                    style={[s.micBtn, isRecording && s.micBtnRec]}
+                    onPress={handleMic}
+                    activeOpacity={0.8}
+                  >
+                    <View style={[s.micInner, isRecording && { backgroundColor: "#EF4444" }]}>
+                      <MaterialIcons
+                        name={isRecording ? "stop" : "mic"}
+                        size={32}
+                        color="#FFFFFF"
+                      />
+                    </View>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Waveform Right */}
+                <View style={s.waveSide}>
+                  {[7, 5, 8, 4, 6, 3].map((h, i) => (
+                    <WaveBar key={`r-${i}`} h={h} active={isRecording} d={i * 35 + 200} />
+                  ))}
+                </View>
+              </View>
+
+              <Text style={s.micHint}>
+                {isProcessing
+                  ? "Sedang memproses..."
+                  : isRecording
+                    ? "Sedang mendengarkan..."
+                    : "Ketuk untuk mulai berbicara"}
+              </Text>
+            </>
+          )}
         </View>
 
+        {/* DEBUG: Temporary Test Result Screen Button */}
+        <TouchableOpacity
+          style={{
+            alignSelf: "center",
+            paddingVertical: 6,
+            paddingHorizontal: 12,
+            marginBottom: 8,
+            backgroundColor: "#F1F5F9",
+            borderRadius: 8,
+          }}
+          activeOpacity={0.7}
+          onPress={() =>
+            navigation.replace("Result", {
+              win: true,
+              stageId: stageId || 1,
+              vocabScore: 85,
+              gameScore: 90,
+            })
+          }
+        >
+          <Text style={{ fontSize: 11, fontFamily: "SpaceGrotesk-Bold", color: "#F48C25" }}>
+            🛠️ TEST RESULT SCREEN
+          </Text>
+        </TouchableOpacity>
+
+        {/* Continue button */}
+        <SafeAreaView edges={["bottom"]} style={s.safeBottom}>
+          <TouchableOpacity
+            style={[s.contBtn, !canGo && s.contBtnOff]}
+            onPress={handleContinue}
+            disabled={!canGo}
+            activeOpacity={0.8}
+          >
+            <Text style={[s.contTxt, !canGo && s.contTxtOff]}>
+              {isLast ? "Selesai" : "Lanjut"}
+            </Text>
+            <MaterialIcons
+              name="arrow-forward"
+              size={18}
+              color={canGo ? "#1E293B" : "rgba(255,255,255,0.25)"}
+            />
+          </TouchableOpacity>
+        </SafeAreaView>
       </View>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#050505", // Deepest monochrome back
-  },
-  loadingText: {
+/* ================================================================
+   STYLES — two-tone split layout matching the Figma mockup
+   ================================================================ */
+const DARK = "#1E1E2E";
+const DARK_SURFACE = "#282838";
+
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: "#FFFFFF" },
+
+  // ── Loading ──
+  loadingTxt: {
     fontFamily: "SpaceGrotesk-Medium",
     fontSize: 14,
-    color: "#ffffff",
-    marginTop: 16,
-    letterSpacing: 2,
-    textTransform: "uppercase",
+    color: "#94A3B8",
+    marginTop: 14,
   },
-  
-  // Scenerio Top Half
-  imageContainer: {
-    width: "100%",
-    position: 'relative',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
+
+  /* ──────── TOP HALF ──────── */
+  topHalf: {
+    backgroundColor: "#FFFFFF",
   },
-  scenarioImage: {
-    ...StyleSheet.absoluteFillObject,
-    resizeMode: 'cover',
+  safeTop: {
+    backgroundColor: "#FFFFFF",
   },
-  headerAbsolute: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 50 : 30,
-    left: 20,
-    right: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    zIndex: 20,
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
-  backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "rgba(0,0,0,0.5)",
+  backBtn: {
+    width: 40,
+    height: 40,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.3)",
   },
-  statusIndicator: {
+  headerCenter: {
+    flex: 1,
+    alignItems: "center",
+  },
+  headerTitle: {
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 18,
+    color: "#0F172A",
+  },
+  headerSub: {
+    fontFamily: "SpaceGrotesk-Regular",
+    fontSize: 12,
+    color: "#94A3B8",
+    marginTop: 1,
+  },
+  reportBtn: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.3)",
+    gap: 3,
+    paddingRight: 4,
   },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#ffffff", // Monochrome white dot
-    marginRight: 6,
-  },
-  statusText: {
+  reportTxt: {
     fontFamily: "SpaceGrotesk-Medium",
-    fontSize: 12,
-    color: "#ffffff",
-    textTransform: "uppercase",
-    letterSpacing: 1,
+    fontSize: 11,
+    color: "#94A3B8",
   },
 
-  // Bottom Half
-  interactionArea: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  dialogueWrapper: {
-    width: '100%',
-    marginTop: -45, // Overlap the image boundary
-    zIndex: 10,
-  },
-  nameTab: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#1E2128', // Dark grey
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
-    borderBottomWidth: 0,
-    marginLeft: 16,
-  },
-  nameText: {
-    fontFamily: "SpaceGrotesk-Bold",
-    fontSize: 14,
-    color: "#ffffff", // Monochrome name
-  },
-  dialogueBox: {
-    width: '100%',
-    padding: 20,
-    minHeight: 110,
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 20,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    backgroundColor: "rgba(20, 22, 28, 0.85)", // Glassmonochrome
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
-    overflow: 'hidden',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
-  },
-  dialogueText: {
-    fontFamily: "SpaceGrotesk-Medium",
-    fontSize: 16,
-    color: "#ffffff",
-    lineHeight: 24,
-  },
-
-  micSection: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  micButtonContainer: {
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 200,
-    height: 80,
-  },
-  micPulseBg: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    borderRadius: 24,
-    backgroundColor: "rgba(255, 255, 255, 0.15)", // Monochrome pulse
-  },
-  micButton: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 24,
-    shadowColor: "#ffffff",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 15,
-    elevation: 8,
-  },
-  micGradient: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.25)",
-  },
-  waveformRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  waveLine: {
-    width: 4,
-    backgroundColor: "rgba(255, 255, 255, 0.5)", // Monochrome lines
-    borderRadius: 2,
-    marginHorizontal: 4,
-  },
-  micIcon: {
-    marginHorizontal: 16,
-  },
-
-  instructionText: {
-    marginTop: 24,
-    fontFamily: "SpaceGrotesk-Bold",
-    fontSize: 13,
-    letterSpacing: 2,
-    color: "rgba(255,255,255,0.6)",
-  },
-
-  bottomBar: {
+  // Scene
+  sceneWrap: {
     width: "100%",
-    paddingBottom: Platform.OS === 'ios' ? 24 : 32,
-    alignItems: "flex-end",
+    position: "relative",
   },
-  nextButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#ffffff",
+  sceneImg: {
+    ...StyleSheet.absoluteFillObject,
+    resizeMode: "cover",
+  },
+  npcBadge: {
+    position: "absolute",
+    bottom: 12,
+    left: 20,
+    backgroundColor: "#1E293B",
+    paddingHorizontal: 14,
+    paddingVertical: 5,
+    borderRadius: 20,
+  },
+  npcBadgeText: {
+    fontFamily: "SpaceGrotesk-SemiBold",
+    fontSize: 13,
+    color: "#FFFFFF",
+  },
+
+  // Bubble
+  bubbleWrap: {
     paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 99,
+    marginTop: -8,
+    paddingBottom: 16,
   },
-  nextButtonDisabled: {
-    backgroundColor: "#1E2128",
+  bubble: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: "row",
+    alignItems: "flex-start",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
+    borderColor: "#E2E8F0",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.06,
+        shadowRadius: 12,
+      },
+      android: { elevation: 3 },
+    }),
   },
-  nextButtonText: {
+  bubbleMain: {
     fontFamily: "SpaceGrotesk-Bold",
-    fontSize: 12,
-    color: "#050505", // Inverse monochrome text
-    letterSpacing: 1,
-    marginRight: 6,
+    fontSize: 16,
+    color: "#0F172A",
+    lineHeight: 24,
+    marginBottom: 6,
   },
-  nextButtonTextDisabled: {
-    color: "rgba(255,255,255,0.3)",
+  bubbleSub: {
+    fontFamily: "SpaceGrotesk-Regular",
+    fontSize: 13,
+    color: "#94A3B8",
+    lineHeight: 20,
+    fontStyle: "italic",
   },
-  
-  // Custom states additions
-  targetPhraseContainer: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(255,255,255,0.1)",
+  speakerBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "#F8FAFC",
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 10,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+
+  /* ──────── BOTTOM HALF ──────── */
+  bottomHalf: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    marginTop: -16, // Pull up to overlap scene
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 16,
+      },
+      android: { elevation: 12 },
+    }),
+  },
+
+  // Task header
+  taskHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    marginBottom: 14,
   },
-  targetPhraseLabel: {
-    fontFamily: "SpaceGrotesk-Medium",
-    fontSize: 10,
-    color: "rgba(255,255,255,0.5)",
-    letterSpacing: 1,
-    marginBottom: 4,
-  },
-  targetPhraseText: {
-    fontFamily: "SpaceGrotesk-Medium",
-    fontSize: 14,
-    color: "rgba(255,255,255,0.8)",
-  },
-  targetPhraseHighlight: {
-    fontFamily: "SpaceGrotesk-Bold",
-    color: "#60A5FA", // A soft pastel blue for visual focal
-  },
-  indicatorContainer: {
-    paddingLeft: 12,
-    justifyContent: "center",
-  },
-  pendingIndicator: {
+  taskLabelRow: {
     flexDirection: "row",
-    gap: 4,
-    opacity: 0.3,
+    alignItems: "center",
+    gap: 8,
   },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#ffffff",
-  },
-  transcriptionContainer: {
-    minHeight: 24,
-    marginBottom: 12,
+  taskIcon: {
+    width: 26,
+    height: 26,
+    borderRadius: 6,
+    backgroundColor: "#F1F5F9",
+    alignItems: "center",
     justifyContent: "center",
   },
-  transcriptionText: {
-    fontFamily: "SpaceGrotesk-Medium",
+  taskLabel: {
+    fontFamily: "SpaceGrotesk-SemiBold",
     fontSize: 14,
-    color: "rgba(255,255,255,0.6)",
-    fontStyle: 'italic',
+    color: "#475569",
+  },
+  taskHint: {
+    fontFamily: "SpaceGrotesk-Regular",
+    fontSize: 12,
+    color: "#94A3B8",
+  },
+
+  // Target
+  targetWrap: {
+    alignItems: "center",
+    marginBottom: 20,
+    marginTop: 8,
+  },
+  targetMain: {
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 18,
+    color: "#0F172A",
+    lineHeight: 26,
+    marginBottom: 4,
     textAlign: "center",
   },
-  errorText: {
+  targetSub: {
+    fontFamily: "SpaceGrotesk-Regular",
+    fontSize: 14,
+    color: "#64748B",
+    fontStyle: "italic",
+    textAlign: "center",
+  },
+
+  // Live transcription
+  liveBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "rgba(244,140,37,0.08)",
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: "rgba(244,140,37,0.15)",
+  },
+  liveTxt: {
+    fontFamily: "SpaceGrotesk-Medium",
+    fontSize: 13,
+    color: "#F48C25",
+    fontStyle: "italic",
+    flex: 1,
+  },
+
+  // Error
+  errBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "rgba(239,68,68,0.08)",
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: "rgba(239,68,68,0.15)",
+  },
+  errTxt: {
     fontFamily: "SpaceGrotesk-Medium",
     fontSize: 12,
-    color: "#FCA5A5",
+    color: "#F87171",
+    flex: 1,
+  },
+
+  // Mic area
+  micArea: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "flex-start",
+    paddingTop: 10,
+  },
+  waveRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+  },
+  waveSide: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 80,
+  },
+  micBtnWrap: {
+    width: 84,
+    height: 84,
+    alignItems: "center",
+    justifyContent: "center",
+    marginHorizontal: 12,
+  },
+  micPulse: {
+    position: "absolute",
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    backgroundColor: "transparent",
+  },
+  micBtn: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    overflow: "hidden",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 10,
+      },
+      android: { elevation: 6 },
+    }),
+  },
+  micBtnRec: {},
+  micInner: {
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#1E293B",
+  },
+  micHint: {
+    fontFamily: "SpaceGrotesk-Medium",
+    fontSize: 13,
+    color: "#94A3B8",
+    marginTop: 16,
     textAlign: "center",
-    marginBottom: 12,
-    paddingHorizontal: 12,
+  },
+
+  // Continue
+  safeBottom: {
+    paddingBottom: Platform.OS === "ios" ? 0 : 8,
+  },
+  contBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F48C25",
+    paddingVertical: 14,
+    borderRadius: 14,
+    gap: 6,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#F48C25",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.35,
+        shadowRadius: 8,
+      },
+      android: { elevation: 6 },
+    }),
+  },
+  contBtnOff: {
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  contTxt: {
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 16,
+    color: "#FFFFFF",
+  },
+  contTxtOff: {
+    color: "rgba(255,255,255,0.4)",
   },
 });

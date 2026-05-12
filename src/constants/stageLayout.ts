@@ -108,10 +108,10 @@ export const STAGES: StageData[] = [
   },
 ];
 
-// Total height of the scrollable map content
+// Total height of the scrollable map content for fallback stages
 export const TOTAL_MAP_HEIGHT =
   MAP_PADDING_TOP +
-  (STAGES.length - 1) * STAGE_SPACING +
+  (STAGES.length > 0 ? (STAGES.length - 1) * STAGE_SPACING : 0) +
   MAP_PADDING_BOTTOM;
 
 /**
@@ -119,12 +119,8 @@ export const TOTAL_MAP_HEIGHT =
  * Stage 1 is at the BOTTOM, higher stages go UP (visually).
  * In scroll coordinates: stage 1 has the LARGEST Y, stage N has the smallest.
  */
-export const getStageY = (index: number): number => {
-  return (
-    TOTAL_MAP_HEIGHT -
-    MAP_PADDING_BOTTOM -
-    index * STAGE_SPACING
-  );
+export const getStageY = (index: number, totalStages: number): number => {
+  return MAP_PADDING_TOP + (totalStages - 1 - index) * STAGE_SPACING;
 };
 
 /**

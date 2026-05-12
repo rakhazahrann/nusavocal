@@ -12,7 +12,6 @@ import { StagePath } from "@/components/map/StagePath";
 import { MapDecorations } from "@/components/map/MapDecorations";
 import { StagePopup } from "@/components/map/StagePopup";
 import {
-  TOTAL_MAP_HEIGHT,
   STAGE_SPACING,
   MAP_PADDING_TOP,
   MAP_PADDING_BOTTOM,
@@ -125,7 +124,7 @@ export const MainScreen = ({ navigation }: any) => {
 
     const safeViewportHeight = Math.max(1, viewportHeight || 1);
     const desiredViewportY = safeViewportHeight * 0.65; // keep node a bit lower to fit popup above
-    const stageY = getStageY(stageIndex);
+    const stageY = getStageY(stageIndex, stages.length);
 
     const rawTarget = stageY - desiredViewportY;
     const maxScroll = Math.max(0, totalMapHeight - safeViewportHeight);
@@ -201,16 +200,17 @@ export const MainScreen = ({ navigation }: any) => {
           const isAdmin = profile?.role === "admin";
 
           return (
-          <StageNode
-            key={stage.id}
-            id={stage.id}
-            x={stage.x}
-            stageIndex={index}
-            label={stage.label}
-            status={nodeStatus}
-            onPress={() => handleStagePress(stage.id, stage.label, index)}
-            onDelete={isAdmin ? () => handleDeleteStage(stage.id, stage.label) : undefined}
-          />
+            <StageNode
+              key={stage.id}
+              id={stage.id}
+              x={stage.x}
+              stageIndex={index}
+              totalStages={stages.length}
+              label={stage.label}
+              status={nodeStatus}
+              onPress={() => handleStagePress(stage.id, stage.label, index)}
+              onDelete={isAdmin ? () => handleDeleteStage(stage.id, stage.label) : undefined}
+            />
           );
         })}
 

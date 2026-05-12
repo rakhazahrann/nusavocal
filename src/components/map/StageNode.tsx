@@ -18,14 +18,15 @@ interface StageNodeProps {
   id: number;
   x: number;
   stageIndex: number;
+  totalStages: number;
   label: string;
   status: StageStatus;
   onPress: () => void;
   onDelete?: () => void;
 }
 
-export const StageNode: React.FC<StageNodeProps> = ({ id, x, stageIndex, label, status, onPress, onDelete }) => {
-  const top = getStageY(stageIndex) - STAGE_NODE_SIZE / 2;
+export const StageNode: React.FC<StageNodeProps> = ({ id, x, stageIndex, totalStages, label, status, onPress, onDelete }) => {
+  const top = getStageY(stageIndex, totalStages) - STAGE_NODE_SIZE / 2;
   const left = getStageX(x) - STAGE_NODE_SIZE / 2;
 
   // Reanimated shared values

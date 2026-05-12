@@ -13,7 +13,6 @@ module.exports = function (api) {
           },
         },
       ],
-      'react-native-reanimated/plugin',
       [
         "@tamagui/babel-plugin",
         {
@@ -21,6 +20,7 @@ module.exports = function (api) {
           components: ["tamagui"],
         },
       ],
+      'react-native-reanimated/plugin',
     ],
   };
 };

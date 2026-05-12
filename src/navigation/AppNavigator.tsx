@@ -24,7 +24,7 @@ import { ResultScreen } from "@/screens/ResultScreen";
 
 
 
-
+import { VocabScreen } from "@/screens/VocabScreen";
 import { CustomTabBar } from "@/components/common/TabBar";
 import { useAuthStore } from "@/store/authStore";
 
@@ -49,9 +49,10 @@ const MainNavigator = () => (
     }}
   >
     <MainTab.Screen name={ROUTES.MAP} component={MapNavigator} />
+    <MainTab.Screen name={ROUTES.VOCAB} component={VocabScreen} />
     <MainTab.Screen name={ROUTES.LEADERBOARD} component={LeaderboardScreen} />
     <MainTab.Screen name={ROUTES.PROFILE} component={ProfileScreen} />
-    <MainTab.Screen name={ROUTES.SETTINGS} component={SettingsScreen} />
+    {/* Settings screen removed from tabs */}
   </MainTab.Navigator>
 );
 

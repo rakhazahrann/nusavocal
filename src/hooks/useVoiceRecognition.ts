@@ -4,7 +4,7 @@ import Voice, {
   SpeechErrorEvent,
   SpeechResultsEvent,
   SpeechStartEvent,
-} from "@dev-amirzubair/react-native-voice";
+} from "@react-native-voice/voice";
 
 export interface VoiceRecognitionHook {
   isRecording: boolean;
