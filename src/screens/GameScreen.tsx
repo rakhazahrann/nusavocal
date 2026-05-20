@@ -21,6 +21,7 @@ import { getMatchScore } from "@/utils/scoring";
 import { WaveBar } from "@/components/game/WaveBar";
 import { EvaluationModal } from "@/components/game/EvaluationModal";
 import { DUMMY_SCENARIOS, FALLBACK_BG } from "@/constants/gameMock";
+import { GameHeader } from "@/components/glass/ProgressBar";
 
 const DEFAULT_TARGET = "Tentu, ini dia.";
 const SPEECH_LOCALE = "id-ID";
@@ -225,25 +226,11 @@ export const GameScreen = ({ navigation, route }: any) => {
         />
         
         <SafeAreaView edges={["top"]} style={{ flex: 1 }}>
-          <View style={s.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={s.headerCircleBtn}>
-              <MaterialIcons name="chevron-left" size={24} color="#000" />
-            </TouchableOpacity>
-            
-            <View style={s.headerCenterPill}>
-               <Text style={s.pillStageTxt}>Stage {idx + 1} / {total}</Text>
-               <Text style={s.pillTitleTxt} numberOfLines={1}>{stageLabel}</Text>
-            </View>
-
-            <View style={s.headerRightWrap}>
-               <View style={s.streakPill}>
-                  <Text style={s.streakTxt}>🔥 12</Text>
-               </View>
-               <TouchableOpacity style={s.headerCircleBtn}>
-                 <MaterialIcons name="settings" size={20} color="#000" />
-               </TouchableOpacity>
-            </View>
-          </View>
+          <GameHeader
+            progress={total > 0 ? (idx + 1) / total : 0}
+            onBack={() => navigation.goBack()}
+            hearts={5}
+          />
         </SafeAreaView>
       </View>
 

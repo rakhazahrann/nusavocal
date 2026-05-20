@@ -15,7 +15,7 @@ import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { useGameStore } from "@/store/gameStore";
 import { OptionCard } from "@/components/glass/OptionCard";
-import { ProgressBar } from "@/components/glass/ProgressBar";
+import { GameHeader } from "@/components/glass/ProgressBar";
 
 export const VocabFarmingScreen = ({ navigation, route }: any) => {
   const { stageId } = route?.params || {};
@@ -85,25 +85,11 @@ export const VocabFarmingScreen = ({ navigation, route }: any) => {
     <LinearGradient colors={["#ffffff", "#f0f0f0"]} style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         {/* Top Navigation Shell */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.7}
-          >
-            <BlurView intensity={45} tint="light" style={styles.backButtonGlass}>
-              <MaterialIcons name="arrow-back" size={24} color="#000000" />
-            </BlurView>
-          </TouchableOpacity>
-
-          <View style={styles.progressWrapper}>
-            <ProgressBar progress={progress} />
-          </View>
-
-          <Text style={styles.progressText}>
-            {currentQuestionIndex + 1}/{currentVocabQuestions.length || 1}
-          </Text>
-        </View>
+        <GameHeader
+          progress={progress}
+          onBack={() => navigation.goBack()}
+          hearts={5}
+        />
 
         {/* Main Canvas */}
         <ScrollView 

@@ -52,7 +52,16 @@ export interface OptionCardProps {
 
 export interface ProgressBarProps {
   progress: number; // 0 to 1
+  style?: any;
 }
+
+export interface GameHeaderProps {
+  progress: number; // 0 to 1
+  onBack?: () => void;
+  hearts?: number;
+  showHearts?: boolean;
+}
+
 
 export interface EnterAnimatedViewProps {
   children: React.ReactNode;
