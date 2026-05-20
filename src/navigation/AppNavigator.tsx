@@ -14,17 +14,6 @@ import { VocabFarmingScreen } from "@/screens/FarmingScreen";
 import { GameScreen } from "@/screens/GameScreen";
 import { ResultScreen } from "@/screens/ResultScreen";
 
-
-
-
-
-
-
-
-
-
-
-import { VocabScreen } from "@/screens/VocabScreen";
 import { CustomTabBar } from "@/components/common/TabBar";
 import { useAuthStore } from "@/store/authStore";
 
@@ -49,7 +38,6 @@ const MainNavigator = () => (
     }}
   >
     <MainTab.Screen name={ROUTES.MAP} component={MapNavigator} />
-    <MainTab.Screen name={ROUTES.VOCAB} component={VocabScreen} />
     <MainTab.Screen name={ROUTES.LEADERBOARD} component={LeaderboardScreen} />
     <MainTab.Screen name={ROUTES.PROFILE} component={ProfileScreen} />
     {/* Settings screen removed from tabs */}

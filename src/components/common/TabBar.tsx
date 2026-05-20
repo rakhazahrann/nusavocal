@@ -134,7 +134,6 @@ export const CustomTabBar = ({
 
           let Icon = Map;
           if (route.name === ROUTES.MAP) Icon = Map;
-          else if (route.name === ROUTES.VOCAB) Icon = BookOpen;
           else if (route.name === ROUTES.LEADERBOARD) Icon = Trophy;
           else if (route.name === ROUTES.PROFILE) Icon = User;
 

@@ -13,7 +13,6 @@ export const ROUTES = {
 
   // Main Tab
   MAP: "Map",
-  VOCAB: "Vocab",
   LEADERBOARD: "Leaderboard",
   PROFILE: "Profile",
   SETTINGS: "Settings",
