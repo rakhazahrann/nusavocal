@@ -1,76 +1,101 @@
-import React from "react";
-import { ActivityIndicator, StyleProp, ViewStyle } from "react-native";
-import { GetProps, SizableText, YStack } from "tamagui";
-import { ButtonVariant, ButtonProps } from "@/types/components";
+import { TextClassContext } from "@/components/ui/Text";
+import { cn } from "@/lib/utils";
+import { ButtonProps as LegacyButtonProps, ButtonVariant } from "@/types/components";
+import { cva, type VariantProps } from "class-variance-authority";
+import * as React from "react";
+import { ActivityIndicator, Platform, Pressable } from "react-native";
+import { Text } from "./Text";
 
+const buttonVariants = cva(
+  cn(
+    "group shrink-0 flex-row items-center justify-center gap-2 rounded-md shadow-none",
+    Platform.select({
+      web: "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 aria-invalid:border-destructive whitespace-nowrap outline-none transition-all focus-visible:ring-[3px] disabled:pointer-events-none",
+    })
+  ),
+  {
+    variants: {
+      variant: {
+        primary: cn("bg-primary active:bg-primary/90 shadow-sm shadow-black/5", Platform.select({ web: "hover:bg-primary/90" })),
+        secondary: cn("bg-secondary active:bg-secondary/80 shadow-sm shadow-black/5", Platform.select({ web: "hover:bg-secondary/80" })),
+        ghost: cn("active:bg-accent/10", Platform.select({ web: "hover:bg-accent/10" })),
+        default: cn("bg-primary active:bg-primary/90 shadow-sm shadow-black/5", Platform.select({ web: "hover:bg-primary/90" })),
+        destructive: cn("bg-destructive active:bg-destructive/90 shadow-sm shadow-black/5", Platform.select({ web: "hover:bg-destructive/90" })),
+        outline: cn("border-border bg-background active:bg-accent/10 border shadow-sm shadow-black/5", Platform.select({ web: "hover:bg-accent/10" })),
+        link: "",
+      },
+      size: {
+        default: "h-12 px-4 py-2",
+        sm: "h-9 gap-1.5 rounded-md px-3",
+        lg: "h-11 rounded-md px-6",
+        icon: "h-10 w-10",
+      },
+    },
+    defaultVariants: {
+      variant: "primary",
+      size: "default",
+    },
+  }
+);
 
-
-
-
-const variantConfig: Record<
-  ButtonVariant,
-  { bg: string; borderColor: string; textColor: string }
-> = {
-  primary: {
-    bg: "$backgroundAccent",
-    borderColor: "$backgroundAccent",
-    textColor: "#FFFFFF",
+const buttonTextVariants = cva("font-body text-sm font-semibold", {
+  variants: {
+    variant: {
+      primary: "text-primary-foreground",
+      secondary: "text-secondary-foreground",
+      ghost: "text-foreground",
+      default: "text-primary-foreground",
+      destructive: "text-destructive-foreground",
+      outline: "text-foreground",
+      link: "text-primary underline-offset-4",
+    },
+    size: {
+      default: "",
+      sm: "",
+      lg: "",
+      icon: "",
+    },
   },
-  secondary: {
-    bg: "$backgroundSurface",
-    borderColor: "$borderColor",
-    textColor: "$color",
+  defaultVariants: {
+    variant: "primary",
+    size: "default",
   },
-  ghost: {
-    bg: "transparent",
-    borderColor: "transparent",
-    textColor: "$color",
-  },
-};
+});
 
-export const Button: React.FC<ButtonProps> = ({
-  label,
+type ButtonStyleProps = VariantProps<typeof buttonVariants>;
+
+type ButtonProps = Omit<React.ComponentProps<typeof Pressable>, "children"> &
+  Omit<LegacyButtonProps, "variant"> &
+  ButtonStyleProps & {
+    variant?: ButtonVariant | ButtonStyleProps["variant"];
+    children?: React.ReactNode;
+  };
+
+function Button({
+  className,
   variant = "primary",
+  size = "default",
+  label,
   loading = false,
   disabled,
-  onPress,
-  style,
+  children,
   ...props
-}) => {
+}: ButtonProps) {
   const isDisabled = disabled || loading;
-  const config = variantConfig[variant] || variantConfig.primary;
 
   return (
-    <YStack
-      height={48}
-      paddingHorizontal="$md"
-      borderRadius="$md"
-      borderWidth={1}
-      backgroundColor={config.bg}
-      borderColor={config.borderColor}
-      alignItems="center"
-      justifyContent="center"
-      opacity={isDisabled ? 0.6 : 1}
-      pressStyle={!isDisabled ? { scale: 0.98, opacity: 0.8 } : undefined}
-      onPress={isDisabled ? undefined : onPress}
-      cursor={isDisabled ? "not-allowed" : "pointer"}
-      style={style}
-      {...props}
-    >
-      {loading ? (
-        <ActivityIndicator
-          color={variant === "primary" ? "#fff" : "#0F172A"}
-        />
-      ) : (
-        <SizableText
-          fontFamily="$body"
-          fontWeight="600"
-          size="$3"
-          color={config.textColor}
-        >
-          {label}
-        </SizableText>
-      )}
-    </YStack>
+    <TextClassContext.Provider value={buttonTextVariants({ variant, size })}>
+      <Pressable
+        className={cn(isDisabled && "opacity-50", buttonVariants({ variant, size }), className)}
+        role="button"
+        disabled={isDisabled}
+        {...props}
+      >
+        {loading ? <ActivityIndicator color={variant === "primary" || variant === "default" ? "#FFFFFF" : "#0F172A"} /> : children ?? <Text>{label}</Text>}
+      </Pressable>
+    </TextClassContext.Provider>
   );
-};
+}
+
+export { Button, buttonTextVariants, buttonVariants };
+export type { ButtonProps };

@@ -1,6 +1,5 @@
 import React from "react";
 import { StyleProp, ViewStyle, TextStyle, ViewProps, TextProps, TouchableOpacityProps, TextInputProps } from "react-native";
-import { GetProps, YStack } from "tamagui";
 import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 export interface GameButtonProps extends TouchableOpacityProps {
@@ -39,7 +38,7 @@ export interface PanelProps extends ViewProps {
   variant?: "wood" | "light";
 }
 
-export type ScreenWrapperProps = Omit<GetProps<typeof YStack>, "children" | "style"> & {
+export type ScreenWrapperProps = ViewProps & {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
 };
@@ -67,19 +66,22 @@ export interface EnterAnimatedViewProps {
 
 export type ButtonVariant = "primary" | "secondary" | "ghost";
 
-export interface ButtonProps extends Omit<GetProps<typeof YStack>, "children" | "style"> {
-  label: string;
+export interface ButtonProps extends TouchableOpacityProps {
+  label?: string;
   variant?: ButtonVariant;
   loading?: boolean;
   disabled?: boolean;
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
+  children?: React.ReactNode;
+  className?: string;
 }
 
 export interface CardProps {
   padded?: boolean;
   children?: React.ReactNode;
   style?: any;
+  className?: string;
   [key: string]: any;
 }
 
@@ -88,12 +90,14 @@ export interface InputProps extends TextInputProps {
   helperText?: string;
   errorText?: string;
   containerStyle?: ViewStyle;
+  className?: string;
 }
 
 export interface ScreenProps {
   padded?: boolean;
   children?: React.ReactNode;
   style?: any;
+  className?: string;
   [key: string]: any;
 }
 

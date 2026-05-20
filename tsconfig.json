@@ -8,6 +8,7 @@
     "lib": ["dom", "dom.iterable", "esnext"],
     "baseUrl": "./",
     "paths": {
+      "@/lib/*": ["lib/*"],
       "@/*": ["src/*"]
     }
   }

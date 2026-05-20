@@ -1,70 +1,60 @@
-import { colors } from "@/constants/colors";
-import { spacing, radius } from "@/constants/spacing";
-import React from "react";
-import { TextInput, TextInputProps, ViewStyle } from "react-native";
-import { YStack } from "tamagui";
-import { Text } from "./Text";
-import { typography } from "@/theme/tokens";
+import * as React from "react";
+import { Platform, TextInput, View } from "react-native";
+import { cn } from "@/lib/utils";
 import { InputProps } from "@/types/components";
+import { Text } from "./Text";
 
-
-
-export const Input: React.FC<InputProps> = ({
+function Input({
+  className,
   label,
   helperText,
   errorText,
   containerStyle,
   style,
   ...props
-}) => {
+}: InputProps & React.RefAttributes<TextInput>) {
   const hasError = Boolean(errorText);
+
   return (
-    <YStack width="100%" style={containerStyle}>
+    <View className="w-full" style={containerStyle}>
       {label ? (
-        <Text
-          variant="caption"
-          tone="muted"
-          style={{ marginBottom: spacing.xs }}
-        >
+        <Text variant="caption" tone="muted" className="mb-xs">
           {label}
         </Text>
       ) : null}
 
       <TextInput
-        placeholderTextColor={colors.mutedText}
-        style={[
-          {
-            height: 48,
-            borderRadius: radius.md,
-            borderWidth: 1,
-            borderColor: hasError ? colors.danger : colors.border,
-            backgroundColor: colors.surface,
-            paddingHorizontal: spacing.md,
-            fontFamily: typography.fontFamily.regular,
-            fontSize: typography.size.body,
-            color: colors.text },
-          style,
-        ]}
+        placeholderTextColor="#64748B"
+        className={cn(
+          "border-input bg-background text-foreground font-body flex h-12 w-full min-w-0 flex-row items-center rounded-md border px-md py-1 text-base leading-5 shadow-sm shadow-black/5",
+          hasError && "border-destructive",
+          props.editable === false &&
+            cn("opacity-50", Platform.select({ web: "disabled:pointer-events-none disabled:cursor-not-allowed" })),
+          Platform.select({
+            web: cn(
+              "placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground outline-none transition-[color,box-shadow] md:text-sm",
+              "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+              "aria-invalid:ring-destructive/20 aria-invalid:border-destructive"
+            ),
+            native: "placeholder:text-muted-foreground/50",
+          }),
+          className
+        )}
+        style={style}
         {...props}
       />
 
       {hasError ? (
-        <Text
-          variant="caption"
-          tone="danger"
-          style={{ marginTop: spacing.xs }}
-        >
+        <Text variant="caption" tone="danger" className="mt-xs">
           {errorText}
         </Text>
       ) : helperText ? (
-        <Text
-          variant="caption"
-          tone="muted"
-          style={{ marginTop: spacing.xs }}
-        >
+        <Text variant="caption" tone="muted" className="mt-xs">
           {helperText}
         </Text>
       ) : null}
-    </YStack>
+    </View>
   );
-};
+}
+
+export { Input };

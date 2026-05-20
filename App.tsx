@@ -1,3 +1,4 @@
+import "./src/global.css";
 import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { AppNavigator } from "@/navigation/AppNavigator";
@@ -22,6 +23,7 @@ import { useAuthStore } from "@/store/authStore";
 import { TamaguiProvider } from "tamagui";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { tamaguiConfig } from "./tamagui.config";
+import { PortalHost } from "@rn-primitives/portal";
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -75,6 +77,7 @@ export default function App() {
         <NavigationContainer>
           <StatusBar style="dark" />
           <AppNavigator />
+          <PortalHost />
         </NavigationContainer>
       </SafeAreaProvider>
     </TamaguiProvider>
