@@ -220,13 +220,13 @@ const styles = StyleSheet.create({
     alignItems: "baseline",
   },
   greetingText: {
-    fontFamily: "SpaceGrotesk-Regular",
+    fontFamily: "Poppins-Regular",
     fontSize: 13,
     color: "#6B7280",
     lineHeight: 18,
   },
   nameText: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 14,
     color: colors.text,
     lineHeight: 18,
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   levelNumber: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 12,
     color: ACCENT_GREEN,
     lineHeight: 16,
@@ -272,13 +272,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   expValue: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 10,
     color: ACCENT_GREEN,
     lineHeight: 14,
   },
   expTotal: {
-    fontFamily: "SpaceGrotesk-Regular",
+    fontFamily: "Poppins-Regular",
     fontSize: 10,
     color: "#9CA3AF",
     lineHeight: 14,

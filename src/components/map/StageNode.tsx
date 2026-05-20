@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
   labelCompleted: {
     position: "absolute",
     bottom: -18,
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 10,
     letterSpacing: 2,
     textTransform: "uppercase",
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
   labelLocked: {
     position: "absolute",
     bottom: 8,
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 10,
     letterSpacing: 2,
     textTransform: "uppercase",
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
   labelCurrent: {
     position: "absolute",
     bottom: -10,
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 11,
     letterSpacing: 2,
     textTransform: "uppercase",

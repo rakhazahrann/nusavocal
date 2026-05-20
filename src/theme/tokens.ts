@@ -1,9 +1,9 @@
 export const typography = {
   fontFamily: {
-    regular: "SpaceGrotesk-Regular",
-    medium: "SpaceGrotesk-Medium",
-    semibold: "SpaceGrotesk-SemiBold",
-    bold: "SpaceGrotesk-Bold",
+    regular: "Poppins-Regular",
+    medium: "Poppins-Medium",
+    semibold: "Poppins-SemiBold",
+    bold: "Poppins-Bold",
   },
   size: {
     caption: 12,

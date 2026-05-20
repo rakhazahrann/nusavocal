@@ -73,7 +73,7 @@ export const EvaluationModal = ({
             <MaterialIcons name={good ? "check-circle" : "error"} size={24} color={good ? "#FFFFFF" : "#000000"} />
             <View style={{ flex: 1 }}>
                <Text style={[fb.feedbackText, { color: good ? "#FFFFFF" : "#000000" }]}>
-                 <Text style={{ fontFamily: "SpaceGrotesk-Bold" }}>{label}!</Text> {good ? "Pelafalan kamu sudah jelas dan natural. Terus pertahankan ya!" : "Coba ulangi sekali lagi dengan lebih jelas."}
+                 <Text style={{ fontFamily: "Poppins-Bold" }}>{label}!</Text> {good ? "Pelafalan kamu sudah jelas dan natural. Terus pertahankan ya!" : "Coba ulangi sekali lagi dengan lebih jelas."}
                </Text>
             </View>
           </View>
@@ -157,17 +157,17 @@ const fb = StyleSheet.create({
     backgroundColor: "#F1F5F9",
   },
   smLabel: {
-    fontFamily: "SpaceGrotesk-Regular",
+    fontFamily: "Poppins-Regular",
     fontSize: 14,
     color: "#666666",
   },
   mainQuote: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 28,
     color: "#000000",
   },
   syllableTxt: {
-    fontFamily: "SpaceGrotesk-Medium",
+    fontFamily: "Poppins-Medium",
     fontSize: 18,
     color: "#888888",
     marginTop: 8,
@@ -182,11 +182,11 @@ const fb = StyleSheet.create({
     alignItems: "center",
   },
   ringValue: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 26,
   },
   ringLabel: {
-    fontFamily: "SpaceGrotesk-Medium",
+    fontFamily: "Poppins-Medium",
     fontSize: 10,
     marginTop: -2,
   },
@@ -199,7 +199,7 @@ const fb = StyleSheet.create({
     marginBottom: 20,
   },
   feedbackText: {
-    fontFamily: "SpaceGrotesk-Regular",
+    fontFamily: "Poppins-Regular",
     fontSize: 14,
     lineHeight: 20,
   },
@@ -226,7 +226,7 @@ const fb = StyleSheet.create({
   },
   audioMainTxt: {
     flex: 1,
-    fontFamily: "SpaceGrotesk-SemiBold",
+    fontFamily: "Poppins-SemiBold",
     fontSize: 13,
     color: "#000000",
   },
@@ -247,7 +247,7 @@ const fb = StyleSheet.create({
     alignItems: "center",
   },
   secBtnTxt: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 16,
     color: "#000000",
   },
@@ -262,7 +262,7 @@ const fb = StyleSheet.create({
     gap: 8,
   },
   priBtnTxt: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 16,
     color: "#FFFFFF",
   },

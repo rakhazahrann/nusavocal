@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#D1C4B5",
     padding: 10,
-    fontFamily: "SpaceGrotesk-Medium",
+    fontFamily: "Poppins-Medium",
     color: "#5D3A1A",
     fontSize: 14,
   },

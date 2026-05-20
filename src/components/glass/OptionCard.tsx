@@ -88,22 +88,22 @@ const styles = StyleSheet.create({
     marginRight: 14,
   },
   selectedLabelText: {
-    fontFamily: 'SpaceGrotesk-Bold',
+    fontFamily: 'Poppins-Bold',
     fontSize: 13,
     color: '#000000',
   },
   unselectedLabelText: {
-    fontFamily: 'SpaceGrotesk-Bold',
+    fontFamily: 'Poppins-Bold',
     fontSize: 13,
     color: 'rgba(0, 0, 0, 0.4)',
   },
   selectedText: {
-    fontFamily: 'SpaceGrotesk-SemiBold',
+    fontFamily: 'Poppins-SemiBold',
     fontSize: 15,
     color: '#ffffff',
   },
   unselectedText: {
-    fontFamily: 'SpaceGrotesk-SemiBold',
+    fontFamily: 'Poppins-SemiBold',
     fontSize: 15,
     color: '#121212',
   },

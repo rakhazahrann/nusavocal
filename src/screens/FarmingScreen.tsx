@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 16,
-    fontFamily: "SpaceGrotesk-Medium",
+    fontFamily: "Poppins-Medium",
     fontSize: 16,
     color: "#121212",
   },
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   progressText: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 20,
     color: "#000000",
     letterSpacing: -0.5,
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   titleText: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 32,
     color: "#121212",
     letterSpacing: -1,
@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'android' ? { lineHeight: 38 } : {}),
   },
   subtitleText: {
-    fontFamily: "SpaceGrotesk-Medium",
+    fontFamily: "Poppins-Medium",
     fontSize: 12,
     color: "rgba(18, 18, 18, 0.6)",
     letterSpacing: 2.5,
@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   nextStepText: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 18,
     color: "#ffffff",
     marginRight: 8,
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
     zIndex: 0,
   },
   bgAccentText: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 200,
     color: "#000000",
     lineHeight: 200,

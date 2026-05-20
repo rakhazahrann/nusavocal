@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 16,
-    fontFamily: "SpaceGrotesk-Medium",
+    fontFamily: "Poppins-Medium",
     fontSize: 15,
     color: "#1F2937",
   },
@@ -293,13 +293,13 @@ const styles = StyleSheet.create({
     borderColor: "rgba(0,0,0,0.05)",
   },
   statusBadgeText: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 11,
     letterSpacing: 1.5,
     color: "#000000",
   },
   titleText: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 36,
     color: "#000000",
     textAlign: "center",
@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
     letterSpacing: -1,
   },
   subtitleText: {
-    fontFamily: "SpaceGrotesk-Medium",
+    fontFamily: "Poppins-Medium",
     fontSize: 14,
     color: "rgba(0,0,0,0.6)",
     textAlign: "center",
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cardLabel: {
-    fontFamily: "SpaceGrotesk-Medium",
+    fontFamily: "Poppins-Medium",
     fontSize: 12,
     color: "rgba(0,0,0,0.5)",
     marginBottom: 2,
@@ -369,14 +369,14 @@ const styles = StyleSheet.create({
     alignItems: "baseline",
   },
   cardValue: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 28,
     color: "#000000",
     marginRight: 6,
     letterSpacing: -0.5,
   },
   cardUnit: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 10,
     color: "rgba(0,0,0,0.3)",
     letterSpacing: 1,
@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
   },
   totalLeft: {},
   totalLabel: {
-    fontFamily: "SpaceGrotesk-Medium",
+    fontFamily: "Poppins-Medium",
     fontSize: 13,
     color: "rgba(255,255,255,0.6)",
     marginBottom: 4,
@@ -411,7 +411,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   totalValue: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 38,
     color: "#FFFFFF",
     letterSpacing: -1.5,
@@ -425,7 +425,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   xpPillText: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 14,
     color: "#FFFFFF",
   },
@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   errorText: {
-    fontFamily: "SpaceGrotesk-Medium",
+    fontFamily: "Poppins-Medium",
     fontSize: 12,
     color: COLORS.error,
     flex: 1,
@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
     }),
   },
   mainButtonText: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 18,
     color: "#FFFFFF",
   },

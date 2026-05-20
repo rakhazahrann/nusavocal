@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     height: 48,
-    fontFamily: "SpaceGrotesk_400Regular",
+    fontFamily: "Poppins-Regular",
     fontSize: 16, // Slightly larger for better readability
     color: "#5D3A1A",
     backgroundColor: "transparent",

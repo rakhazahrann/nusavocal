@@ -5,20 +5,11 @@ import { AppNavigator } from "@/navigation/AppNavigator";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
-import {
-  SpaceGrotesk_300Light,
-  SpaceGrotesk_400Regular,
-  SpaceGrotesk_500Medium,
-  SpaceGrotesk_600SemiBold,
-  SpaceGrotesk_700Bold,
-} from "@expo-google-fonts/space-grotesk";
-import { PressStart2P_400Regular } from "@expo-google-fonts/press-start-2p";
-import {
-  PixelifySans_400Regular,
-  PixelifySans_500Medium,
-  PixelifySans_600SemiBold,
-  PixelifySans_700Bold,
-} from "@expo-google-fonts/pixelify-sans";
+import { Poppins_300Light } from "@expo-google-fonts/poppins/300Light";
+import { Poppins_400Regular } from "@expo-google-fonts/poppins/400Regular";
+import { Poppins_500Medium } from "@expo-google-fonts/poppins/500Medium";
+import { Poppins_600SemiBold } from "@expo-google-fonts/poppins/600SemiBold";
+import { Poppins_700Bold } from "@expo-google-fonts/poppins/700Bold";
 import { useAuthStore } from "@/store/authStore";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { PortalHost } from "@rn-primitives/portal";
@@ -31,16 +22,11 @@ export default function App() {
   const [fontTimeoutReached, setFontTimeoutReached] = useState(false);
 
   const [fontsLoaded, fontError] = useFonts({
-    "SpaceGrotesk-Light": SpaceGrotesk_300Light,
-    "SpaceGrotesk-Regular": SpaceGrotesk_400Regular,
-    "SpaceGrotesk-Medium": SpaceGrotesk_500Medium,
-    "SpaceGrotesk-SemiBold": SpaceGrotesk_600SemiBold,
-    "SpaceGrotesk-Bold": SpaceGrotesk_700Bold,
-    "PressStart2P-Regular": PressStart2P_400Regular,
-    "PixelifySans-Regular": PixelifySans_400Regular,
-    "PixelifySans-Medium": PixelifySans_500Medium,
-    "PixelifySans-SemiBold": PixelifySans_600SemiBold,
-    "PixelifySans-Bold": PixelifySans_700Bold,
+    "Poppins-Light": Poppins_300Light,
+    "Poppins-Regular": Poppins_400Regular,
+    "Poppins-Medium": Poppins_500Medium,
+    "Poppins-SemiBold": Poppins_600SemiBold,
+    "Poppins-Bold": Poppins_700Bold,
   });
 
   useEffect(() => {

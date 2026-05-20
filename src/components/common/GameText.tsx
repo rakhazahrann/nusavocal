@@ -1,55 +1,26 @@
 import React from "react";
-import { Text, TextProps, StyleSheet, TextStyle } from "react-native";
+import { Text, TextStyle } from "react-native";
 import { GameTextProps } from "@/types/components";
 
-
+const fontFamilyByWeight: Record<NonNullable<GameTextProps["weight"]>, string> = {
+  "300": "Poppins-Light",
+  "400": "Poppins-Regular",
+  "500": "Poppins-Medium",
+  "600": "Poppins-SemiBold",
+  "700": "Poppins-Bold",
+};
 
 export const GameText: React.FC<GameTextProps> = ({
   children,
   style,
   color = "#3e2723", // default text color
   size = 12,
-  family = "pixel",
+  family = "game",
   weight = "400",
   shadow = false,
   ...props
 }) => {
-  let fontFamily = "PressStart2P-Regular";
-
-  if (family === "display") {
-    switch (weight) {
-      case "300":
-        fontFamily = "SpaceGrotesk-Light";
-        break;
-      case "500":
-        fontFamily = "SpaceGrotesk-Medium";
-        break;
-      case "600":
-        fontFamily = "SpaceGrotesk-SemiBold";
-        break;
-      case "700":
-        fontFamily = "SpaceGrotesk-Bold";
-        break;
-      default:
-        fontFamily = "SpaceGrotesk-Regular";
-        break;
-    }
-  } else if (family === "pixelify") {
-    switch (weight) {
-      case "500":
-        fontFamily = "PixelifySans-Medium";
-        break;
-      case "600":
-        fontFamily = "PixelifySans-SemiBold";
-        break;
-      case "700":
-        fontFamily = "PixelifySans-Bold";
-        break;
-      default:
-        fontFamily = "PixelifySans-Regular";
-        break;
-    }
-  }
+  const fontFamily = fontFamilyByWeight[weight];
 
   const shadowStyle: TextStyle = shadow
     ? {
@@ -66,7 +37,7 @@ export const GameText: React.FC<GameTextProps> = ({
           fontFamily,
           fontSize: size,
           color,
-          lineHeight: family === "pixel" ? size * 1.5 : undefined,
+          lineHeight: family === "game" ? size * 1.5 : undefined,
         },
         shadowStyle,
         style,

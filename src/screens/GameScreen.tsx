@@ -317,7 +317,7 @@ export const GameScreen = ({ navigation, route }: any) => {
                                   const spokenWords = transcription.toLowerCase().replace(/[^\w\s]/g, "").split(/\s+/);
                                   const isSpoken = spokenWords.includes(cleanWord);
                                   return (
-                                    <Text key={wIdx} style={isSpoken ? { color: "#000000", fontFamily: "SpaceGrotesk-Bold" } : { color: "rgba(0,0,0,0.3)" }}>
+                                    <Text key={wIdx} style={isSpoken ? { color: "#000000", fontFamily: "Poppins-Bold" } : { color: "rgba(0,0,0,0.3)" }}>
                                       {word}{" "}
                                     </Text>
                                   );
@@ -445,7 +445,7 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#FFFFFF" },
 
   loadingTxt: {
-    fontFamily: "SpaceGrotesk-Medium",
+    fontFamily: "Poppins-Medium",
     fontSize: 14,
     color: "#666666",
     marginTop: 14,
@@ -488,12 +488,12 @@ const s = StyleSheet.create({
     borderColor: "#E5E5EA",
   },
   pillStageTxt: {
-    fontFamily: "SpaceGrotesk-Regular",
+    fontFamily: "Poppins-Regular",
     fontSize: 10,
     color: "rgba(0, 0, 0, 0.5)",
   },
   pillTitleTxt: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 13,
     color: "#000000",
     marginTop: 1,
@@ -511,7 +511,7 @@ const s = StyleSheet.create({
     borderColor: "#E5E5EA",
   },
   streakTxt: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     color: "#000000",
     fontSize: 13,
   },
@@ -572,7 +572,7 @@ const s = StyleSheet.create({
   },
   numBadgeTxt: {
     fontSize: 9,
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     color: "rgba(0, 0, 0, 0.4)",
   },
 
@@ -586,7 +586,7 @@ const s = StyleSheet.create({
     borderColor: "#E5E5EA",
   },
   npcTxtMain: {
-    fontFamily: "SpaceGrotesk-Medium",
+    fontFamily: "Poppins-Medium",
     fontSize: 15,
     color: "#000000",
     lineHeight: 22,
@@ -619,7 +619,7 @@ const s = StyleSheet.create({
     gap: 8,
   },
   userTxtMain: {
-    fontFamily: "SpaceGrotesk-Medium",
+    fontFamily: "Poppins-Medium",
     fontSize: 15,
     color: "#000000",
     textAlign: "right",
@@ -633,7 +633,7 @@ const s = StyleSheet.create({
   },
   tinyScoreTxt: {
     fontSize: 9,
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     color: "#FFFFFF",
   },
   fakeMiniWaveRow: {
@@ -711,7 +711,7 @@ const s = StyleSheet.create({
     elevation: 4,
   },
   fancyContinueTxt: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 16,
     color: "#FFFFFF",
   },

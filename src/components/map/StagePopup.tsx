@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   heroSubtitle: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 9,
     color: "rgba(255, 255, 255, 0.7)",
     textTransform: "uppercase",
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   heroTitle: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 24,
     color: "#ffffff",
     letterSpacing: -0.5,
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.2)",
   },
   badgeText: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 9,
     color: "#ffffff",
     letterSpacing: 1,
@@ -256,13 +256,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listTitle: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 13,
     color: "#1a1c1c",
     marginBottom: 2,
   },
   listDesc: {
-    fontFamily: "SpaceGrotesk-Regular",
+    fontFamily: "Poppins-Regular",
     fontSize: 11,
     color: "rgba(26, 28, 28, 0.6)",
     lineHeight: 16,
@@ -299,13 +299,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   avatarPlusText: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 7,
     color: "#1a1c1c",
   },
   statsText: {
     flex: 1,
-    fontFamily: "SpaceGrotesk-Medium",
+    fontFamily: "Poppins-Medium",
     fontSize: 11,
     color: "rgba(26, 28, 28, 0.5)",
   },
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   startButtonText: {
-    fontFamily: "SpaceGrotesk-Bold",
+    fontFamily: "Poppins-Bold",
     fontSize: 12,
     color: "#ffffff",
     letterSpacing: 2,

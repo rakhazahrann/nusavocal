@@ -35,9 +35,9 @@ module.exports = {
         ring: "hsl(var(--ring))",
       },
       fontFamily: {
-        heading: ["SpaceGrotesk-Bold"],
-        body: ["SpaceGrotesk-Regular"],
-        game: ["PixelifySans-Regular"],
+        heading: ["Poppins-Bold"],
+        body: ["Poppins-Regular"],
+        game: ["Poppins-Regular"],
       },
       spacing: {
         xs: "4px",

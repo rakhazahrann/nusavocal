@@ -21,7 +21,7 @@ export interface GameInputProps extends TextInputProps {
 export interface GameTextProps extends TextProps {
   color?: string;
   size?: number;
-  family?: "pixel" | "display" | "pixelify";
+  family?: "body" | "display" | "game";
   weight?: "300" | "400" | "500" | "600" | "700";
   shadow?: boolean;
 }
