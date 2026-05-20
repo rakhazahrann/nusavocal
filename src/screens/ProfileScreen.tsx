@@ -1,16 +1,13 @@
-import { colors } from "@/constants/colors";
-import { spacing, radius } from "@/constants/spacing";
 import React, { useEffect } from "react";
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
+import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
-import { Button } from "@/components/ui/Button";
-
 import { UserAvatar } from "@/components/common/UserAvatar";
+import { EnterAnimatedView } from "@/components/motion/EnterAnimatedView";
 import { useAuthStore } from "@/store/authStore";
 import { useGameStore } from "@/store/gameStore";
-import { EnterAnimatedView } from "@/components/motion/EnterAnimatedView";
 
 export const ProfileScreen = () => {
   const { user, profile, fetchProfile } = useAuthStore();
@@ -34,18 +31,14 @@ export const ProfileScreen = () => {
         <Text variant="title" weight="bold">
           Profile
         </Text>
-        <Text variant="body" tone="muted" style={{ marginTop: spacing.sm }}>
+        <Text variant="body" tone="muted" className="mt-sm">
           Info akun dan statistik.
         </Text>
 
-        <Card style={{ marginTop: spacing.lg }}>
-          <View style={styles.profileRow}>
-            <UserAvatar
-              name={profile?.nickname || profile?.username}
-              avatarUrl={profile?.avatar_url}
-              size={64}
-            />
-            <View style={{ flex: 1 }}>
+        <Card className="mt-lg">
+          <View className="flex-row items-center gap-md p-lg">
+            <UserAvatar name={profile?.nickname || profile?.username} avatarUrl={profile?.avatar_url} size={64} />
+            <View className="flex-1">
               <Text variant="subtitle" weight="bold">
                 {profile?.nickname || profile?.username || "User"}
               </Text>
@@ -56,9 +49,9 @@ export const ProfileScreen = () => {
           </View>
         </Card>
 
-        <Card style={{ marginTop: spacing.md }}>
-          <View style={styles.statGrid}>
-            <View style={styles.statItem}>
+        <Card className="mt-md">
+          <View className="flex-row gap-md p-lg">
+            <View className="flex-1 rounded-md border border-border bg-surface p-md">
               <Text variant="caption" tone="muted">
                 Stages completed
               </Text>
@@ -66,7 +59,7 @@ export const ProfileScreen = () => {
                 {completedStages}
               </Text>
             </View>
-            <View style={styles.statItem}>
+            <View className="flex-1 rounded-md border border-border bg-surface p-md">
               <Text variant="caption" tone="muted">
                 Current stage
               </Text>
@@ -77,12 +70,12 @@ export const ProfileScreen = () => {
           </View>
         </Card>
 
-        <Card style={{ marginTop: spacing.md }}>
-          <View style={styles.focusBox}>
+        <Card className="mt-md">
+          <View className="p-lg">
             <Text variant="label" weight="semibold">
               Next Focus
             </Text>
-            <Text variant="body" tone="muted" style={{ marginTop: spacing.xs }}>
+            <Text variant="body" tone="muted" className="mt-xs">
               {currentStage
                 ? `Lanjutkan stage "${currentStage.label}" untuk membuka ${remainingStages} stage berikutnya.`
                 : "Belum ada stage aktif. Coba refresh data atau buat stage pertama dari admin panel."}
@@ -90,7 +83,7 @@ export const ProfileScreen = () => {
           </View>
         </Card>
 
-        <View style={{ marginTop: spacing.lg }}>
+        <View className="mt-lg">
           <Button
             label="Refresh"
             variant="secondary"
@@ -104,23 +97,3 @@ export const ProfileScreen = () => {
     </Screen>
   );
 };
-
-const styles = StyleSheet.create({
-  profileRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: spacing.lg,
-    gap: spacing.md },
-  statGrid: {
-    flexDirection: "row",
-    gap: spacing.md,
-    padding: spacing.lg },
-  statItem: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    backgroundColor: colors.surface },
-  focusBox: {
-    padding: spacing.lg } });

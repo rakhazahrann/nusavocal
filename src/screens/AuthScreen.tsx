@@ -1,21 +1,12 @@
-import { colors } from "@/constants/colors";
-import { spacing, radius } from "@/constants/spacing";
 import React, { useMemo, useState } from "react";
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View } from "react-native";
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from "react-native";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
 import { EnterAnimatedView } from "@/components/motion/EnterAnimatedView";
-
+import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/authStore";
 
 export const AuthScreen = ({ navigation }: any) => {
@@ -26,10 +17,7 @@ export const AuthScreen = ({ navigation }: any) => {
 
   const { signUp, signIn, isLoading, error, clearError } = useAuthStore();
 
-  const title = useMemo(
-    () => (isLogin ? "Welcome back" : "Create account"),
-    [isLogin]
-  );
+  const title = useMemo(() => (isLogin ? "Welcome back" : "Create account"), [isLogin]);
 
   const handleSubmit = async () => {
     if (isLogin) {
@@ -64,166 +52,111 @@ export const AuthScreen = ({ navigation }: any) => {
       if (result.success) {
         navigation.navigate("ProfileCreation");
       } else {
-        Alert.alert(
-          "Registration Failed",
-          result.error || "Could not create account."
-        );
+        Alert.alert("Registration Failed", result.error || "Could not create account.");
       }
     }
   };
 
   return (
     <Screen padded={false}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-        >
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
+        <ScrollView className="bg-background" contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
           <EnterAnimatedView>
-            <View style={styles.header}>
-              <Text variant="hero" weight="bold">
-                NusaVocal
-              </Text>
-              <Text
-                variant="body"
-                tone="muted"
-                style={{ marginTop: spacing.sm }}
-              >
-                Level up your traditional voice.
-              </Text>
-            </View>
-
-            <View style={styles.segment}>
-              <Pressable
-                onPress={() => {
-                  setIsLogin(true);
-                  clearError();
-                }}
-                style={[styles.segmentItem, isLogin && styles.segmentItemActive]}
-              >
-                <Text
-                  variant="label"
-                  weight="semibold"
-                  tone={isLogin ? "default" : "muted"}
-                >
-                  Login
+            <View className="px-lg pb-xxl pt-xxl">
+              <View className="items-start">
+                <Text variant="hero" weight="bold">
+                  NusaVocal
                 </Text>
-              </Pressable>
-              <Pressable
-                onPress={() => {
-                  setIsLogin(false);
-                  clearError();
-                }}
-                style={[styles.segmentItem, !isLogin && styles.segmentItemActive]}
-              >
-                <Text
-                  variant="label"
-                  weight="semibold"
-                  tone={!isLogin ? "default" : "muted"}
-                >
-                  Register
+                <Text variant="body" tone="muted" className="mt-sm">
+                  Level up your traditional voice.
                 </Text>
-              </Pressable>
-            </View>
+              </View>
 
-            <Card style={{ marginTop: spacing.lg }}>
-              <Text variant="subtitle" weight="bold">
-                {title}
-              </Text>
-              <Text
-                variant="caption"
-                tone="muted"
-                style={{ marginTop: spacing.xs }}
-              >
-                {isLogin ? "Masuk untuk lanjut." : "Daftar untuk mulai."}
-              </Text>
+              <View className="mt-lg flex-row rounded-pill border border-border bg-surface p-1">
+                <Pressable
+                  onPress={() => {
+                    setIsLogin(true);
+                    clearError();
+                  }}
+                  className={cn(
+                    "flex-1 items-center justify-center rounded-pill py-sm",
+                    isLogin && "border border-border bg-background"
+                  )}
+                >
+                  <Text variant="label" weight="semibold" tone={isLogin ? "default" : "muted"}>
+                    Login
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => {
+                    setIsLogin(false);
+                    clearError();
+                  }}
+                  className={cn(
+                    "flex-1 items-center justify-center rounded-pill py-sm",
+                    !isLogin && "border border-border bg-background"
+                  )}
+                >
+                  <Text variant="label" weight="semibold" tone={!isLogin ? "default" : "muted"}>
+                    Register
+                  </Text>
+                </Pressable>
+              </View>
 
-              <View style={{ marginTop: spacing.lg, gap: spacing.md }}>
-                {!isLogin ? (
+              <Card className="mt-lg">
+                <Text variant="subtitle" weight="bold">
+                  {title}
+                </Text>
+                <Text variant="caption" tone="muted" className="mt-xs">
+                  {isLogin ? "Masuk untuk lanjut." : "Daftar untuk mulai."}
+                </Text>
+
+                <View className="mt-lg gap-md">
+                  {!isLogin ? (
+                    <Input
+                      label="Username"
+                      placeholder="budi_vocalist"
+                      value={username}
+                      onChangeText={setUsername}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                    />
+                  ) : null}
+
                   <Input
-                    label="Username"
-                    placeholder="budi_vocalist"
-                    value={username}
-                    onChangeText={setUsername}
+                    label="Email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChangeText={setEmail}
                     autoCapitalize="none"
                     autoCorrect={false}
+                    keyboardType="email-address"
                   />
-                ) : null}
+                  <Input
+                    label="Password"
+                    placeholder="********"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry
+                  />
 
-                <Input
-                  label="Email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChangeText={setEmail}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  keyboardType="email-address"
-                />
-                <Input
-                  label="Password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                />
+                  {error ? (
+                    <Text variant="caption" tone="danger">
+                      {error}
+                    </Text>
+                  ) : null}
 
-                {error ? (
-                  <Text variant="caption" tone="danger">
-                    {error}
-                  </Text>
-                ) : null}
+                  <Button label={isLogin ? "Login" : "Create account"} loading={isLoading} onPress={handleSubmit} />
+                </View>
+              </Card>
 
-                <Button
-                  label={isLogin ? "Login" : "Create account"}
-                  loading={isLoading}
-                  onPress={handleSubmit}
-                />
-              </View>
-            </Card>
-
-            <Text
-              variant="caption"
-              tone="muted"
-              style={{ marginTop: spacing.lg, textAlign: "center" }}
-            >
-              {isLogin
-                ? "By continuing, you agree to our terms."
-                : "Create an account to start practicing."}
-            </Text>
+              <Text variant="caption" tone="muted" className="mt-lg text-center">
+                {isLogin ? "By continuing, you agree to our terms." : "Create an account to start practicing."}
+              </Text>
+            </View>
           </EnterAnimatedView>
         </ScrollView>
       </KeyboardAvoidingView>
     </Screen>
   );
 };
-
-const styles = StyleSheet.create({
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xxl,
-    paddingBottom: spacing.xxl,
-    backgroundColor: colors.background },
-  header: {
-    alignItems: "flex-start" },
-  segment: {
-    flexDirection: "row",
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.pill,
-    padding: 4,
-    marginTop: spacing.lg },
-  segmentItem: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: spacing.sm,
-    borderRadius: radius.pill },
-  segmentItemActive: {
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.border } });

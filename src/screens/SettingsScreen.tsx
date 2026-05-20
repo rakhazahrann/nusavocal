@@ -1,25 +1,18 @@
-import { colors } from "@/constants/colors";
-import { spacing } from "@/constants/spacing";
 import React from "react";
-import { StyleSheet, Switch, View } from "react-native";
+import { Switch, View } from "react-native";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
-import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
-
-import { useSettingsStore } from "@/store/settingsStore";
-import { useAuthStore } from "@/store/authStore";
 import { EnterAnimatedView } from "@/components/motion/EnterAnimatedView";
+import { colors } from "@/constants/colors";
+import { useAuthStore } from "@/store/authStore";
+import { useSettingsStore } from "@/store/settingsStore";
 
 export const SettingsScreen = () => {
   const { signOut } = useAuthStore();
-  const {
-    sfxEnabled,
-    musicEnabled,
-    reduceMotion,
-    setSfxEnabled,
-    setMusicEnabled,
-    setReduceMotion } = useSettingsStore();
+  const { sfxEnabled, musicEnabled, reduceMotion, setSfxEnabled, setMusicEnabled, setReduceMotion } =
+    useSettingsStore();
 
   return (
     <Screen>
@@ -27,13 +20,13 @@ export const SettingsScreen = () => {
         <Text variant="title" weight="bold">
           Settings
         </Text>
-        <Text variant="body" tone="muted" style={{ marginTop: spacing.sm }}>
+        <Text variant="body" tone="muted" className="mt-sm">
           Preferensi aplikasi.
         </Text>
 
-        <Card style={{ marginTop: spacing.lg }}>
-          <View style={styles.row}>
-            <View style={styles.rowText}>
+        <Card className="mt-lg">
+          <View className="flex-row items-center justify-between px-lg py-md">
+            <View className="mr-lg flex-1">
               <Text variant="label" weight="semibold">
                 SFX
               </Text>
@@ -49,8 +42,8 @@ export const SettingsScreen = () => {
             />
           </View>
 
-          <View style={[styles.row, styles.rowBorder]}>
-            <View style={styles.rowText}>
+          <View className="flex-row items-center justify-between border-t border-border px-lg py-md">
+            <View className="mr-lg flex-1">
               <Text variant="label" weight="semibold">
                 Music
               </Text>
@@ -66,8 +59,8 @@ export const SettingsScreen = () => {
             />
           </View>
 
-          <View style={[styles.row, styles.rowBorder]}>
-            <View style={styles.rowText}>
+          <View className="flex-row items-center justify-between border-t border-border px-lg py-md">
+            <View className="mr-lg flex-1">
               <Text variant="label" weight="semibold">
                 Reduce Motion
               </Text>
@@ -84,9 +77,9 @@ export const SettingsScreen = () => {
           </View>
         </Card>
 
-        <View style={{ marginTop: spacing.lg }}>
+        <View className="mt-lg">
           <Button label="Logout" variant="secondary" onPress={() => signOut()} />
-          <Text variant="caption" tone="muted" style={{ marginTop: spacing.sm }}>
+          <Text variant="caption" tone="muted" className="mt-sm">
             NusaVocal v1.0
           </Text>
         </View>
@@ -94,17 +87,3 @@ export const SettingsScreen = () => {
     </Screen>
   );
 };
-
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg },
-  rowBorder: {
-    borderTopWidth: 1,
-    borderTopColor: colors.border },
-  rowText: {
-    flex: 1,
-    marginRight: spacing.lg } });

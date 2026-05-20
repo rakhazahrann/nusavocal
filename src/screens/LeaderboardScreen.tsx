@@ -1,11 +1,10 @@
-import { colors } from "@/constants/colors";
-import { spacing } from "@/constants/spacing";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native";
+import { ActivityIndicator, FlatList, View } from "react-native";
 import { Card } from "@/components/ui/Card";
 import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
 import { EnterAnimatedView } from "@/components/motion/EnterAnimatedView";
+import { colors } from "@/constants/colors";
 import { leaderboardService } from "@/services/leaderboardService";
 import { LeaderboardEntry } from "@/types/services";
 
@@ -37,44 +36,44 @@ export const LeaderboardScreen = () => {
         <Text variant="title" weight="bold">
           Leaderboard
         </Text>
-        <Text variant="body" tone="muted" style={{ marginTop: spacing.sm }}>
+        <Text variant="body" tone="muted" className="mt-sm">
           Peringkat global berdasarkan total skor vocab.
         </Text>
 
         {isLoading ? (
-          <View style={styles.center}>
+          <View className="flex-1 items-center justify-center">
             <ActivityIndicator color={colors.accent} />
-            <Text variant="caption" tone="muted" style={{ marginTop: spacing.sm }}>
+            <Text variant="caption" tone="muted" className="mt-sm">
               Loading...
             </Text>
           </View>
         ) : error ? (
-          <Card style={{ marginTop: spacing.lg }}>
-            <View style={{ padding: spacing.lg }}>
+          <Card className="mt-lg">
+            <View className="p-lg">
               <Text variant="label" weight="semibold">
                 Leaderboard belum tersedia
               </Text>
-              <Text variant="caption" tone="muted" style={{ marginTop: spacing.sm }}>
+              <Text variant="caption" tone="muted" className="mt-sm">
                 {error}
               </Text>
-              <Text variant="caption" tone="muted" style={{ marginTop: spacing.sm }}>
+              <Text variant="caption" tone="muted" className="mt-sm">
                 Pastikan fungsi SQL `get_leaderboard` sudah dibuat di Supabase.
               </Text>
             </View>
           </Card>
         ) : (
           <FlatList
-            style={{ marginTop: spacing.lg }}
+            className="mt-lg"
             data={data}
             keyExtractor={(item) => item.user_id}
-            ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
+            ItemSeparatorComponent={() => <View className="h-sm" />}
             renderItem={({ item, index }) => (
               <Card padded={false}>
-                <View style={styles.row}>
-                  <Text variant="label" weight="bold" style={{ width: 32 }}>
+                <View className="flex-row items-center rounded-md border border-border bg-surface px-lg py-md">
+                  <Text variant="label" weight="bold" className="w-8">
                     {index + 1}
                   </Text>
-                  <View style={{ flex: 1 }}>
+                  <View className="flex-1">
                     <Text variant="label" weight="semibold">
                       {item.nickname || item.username}
                     </Text>
@@ -94,18 +93,3 @@ export const LeaderboardScreen = () => {
     </Screen>
   );
 };
-
-const styles = StyleSheet.create({
-  center: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center" },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 16,
-    backgroundColor: colors.surface } });
