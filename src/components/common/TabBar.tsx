@@ -11,8 +11,7 @@ import Animated, {
   Easing,
   interpolate,
 } from "react-native-reanimated";
-import { Map, BookOpen, Trophy, User } from "@tamagui/lucide-icons";
-import { useTheme } from "tamagui";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { ROUTES } from "@/constants/routes";
 
 const { width } = Dimensions.get("window");
@@ -26,7 +25,6 @@ export const CustomTabBar = ({
   descriptors,
   navigation,
 }: BottomTabBarProps) => {
-  const theme = useTheme();
   const [layoutWidth, setLayoutWidth] = React.useState(0);
   const translateX = useSharedValue(0);
   const scale = useSharedValue(1);
@@ -132,10 +130,10 @@ export const CustomTabBar = ({
             }
           };
 
-          let Icon = Map;
-          if (route.name === ROUTES.MAP) Icon = Map;
-          else if (route.name === ROUTES.LEADERBOARD) Icon = Trophy;
-          else if (route.name === ROUTES.PROFILE) Icon = User;
+          let iconName: keyof typeof MaterialCommunityIcons.glyphMap = "map-outline";
+          if (route.name === ROUTES.MAP) iconName = "map-outline";
+          else if (route.name === ROUTES.LEADERBOARD) iconName = "trophy-outline";
+          else if (route.name === ROUTES.PROFILE) iconName = "account-outline";
 
           const iconColor = isFocused ? "#ffffff" : "#6b7280";
 
@@ -152,10 +150,10 @@ export const CustomTabBar = ({
                   transform: [{ scale: isFocused ? 1.1 : 1 }],
                 }}
               >
-                <Icon
+                <MaterialCommunityIcons
+                  name={iconName}
                   size={24}
                   color={iconColor}
-                  strokeWidth={isFocused ? 2.5 : 2}
                 />
               </Animated.View>
             </Pressable>

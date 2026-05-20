@@ -20,9 +20,7 @@ import {
   PixelifySans_700Bold,
 } from "@expo-google-fonts/pixelify-sans";
 import { useAuthStore } from "@/store/authStore";
-import { TamaguiProvider } from "tamagui";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { tamaguiConfig } from "./tamagui.config";
 import { PortalHost } from "@rn-primitives/portal";
 
 // Keep the splash screen visible while we fetch resources
@@ -72,14 +70,12 @@ export default function App() {
   }
 
   return (
-    <TamaguiProvider config={tamaguiConfig} defaultTheme="light">
-      <SafeAreaProvider>
-        <NavigationContainer>
-          <StatusBar style="dark" />
-          <AppNavigator />
-          <PortalHost />
-        </NavigationContainer>
-      </SafeAreaProvider>
-    </TamaguiProvider>
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <StatusBar style="dark" />
+        <AppNavigator />
+        <PortalHost />
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }

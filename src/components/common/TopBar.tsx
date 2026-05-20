@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { View, StyleSheet, Platform, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Circle } from "react-native-svg";
-import { Settings } from "@tamagui/lucide-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/Text";
 import { UserAvatar } from "./UserAvatar";
 import { useAuthStore } from "@/store/authStore";
@@ -153,7 +153,7 @@ export const TopBar = () => {
 
         {/* ── Right: Settings gear ── */}
         <TouchableOpacity style={styles.gearButton} activeOpacity={0.6}>
-          <Settings size={18} color="#9CA3AF" strokeWidth={2} />
+          <MaterialIcons name="settings" size={18} color="#9CA3AF" />
         </TouchableOpacity>
       </View>
     </View>
