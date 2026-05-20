@@ -121,7 +121,7 @@ export const ResultScreen = ({ route, navigation }: any) => {
                 <MaterialCommunityIcons 
                   name={isGameWin ? "trophy-variant" : "close-circle-outline"} 
                   size={74} 
-                  color={COLORS.accent} 
+                  color={isGameWin ? "#ffc947" : COLORS.accent} 
                 />
               </View>
             </View>

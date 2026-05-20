@@ -6,9 +6,9 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
-  Animated,
-  Platform,
   useWindowDimensions,
+  ScrollView,
+  Animated,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -18,140 +18,23 @@ import { GameScenario } from "@/types/store";
 import { useVoiceRecognition } from "@/hooks/useVoiceRecognition";
 import { getMatchScore } from "@/utils/scoring";
 
-const FALLBACK_BG =
-  "https://images.unsplash.com/photo-1569629743817-70d8db6c323b?auto=format&fit=crop&q=80&w=1200";
+import { WaveBar } from "@/components/game/WaveBar";
+import { EvaluationModal } from "@/components/game/EvaluationModal";
+import { DUMMY_SCENARIOS, FALLBACK_BG } from "@/constants/gameMock";
+
 const DEFAULT_TARGET = "Tentu, ini dia.";
 const SPEECH_LOCALE = "id-ID";
-
-/* ================================================================
-   Animated waveform bar used during recording
-   ================================================================ */
-const WaveBar = ({ h, active, d }: { h: number; active: boolean; d: number }) => {
-  const a = useRef(new Animated.Value(1)).current;
-  useEffect(() => {
-    if (active) {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(a, { toValue: 1.35, duration: 250 + d, useNativeDriver: true }),
-          Animated.timing(a, { toValue: 0.65, duration: 250 + d, useNativeDriver: true }),
-        ])
-      ).start();
-    } else {
-      a.stopAnimation();
-      Animated.timing(a, { toValue: 1, duration: 150, useNativeDriver: true }).start();
-    }
-  }, [active]);
-  return (
-    <Animated.View
-      style={{
-        width: 2,
-        height: h,
-        borderRadius: 1,
-        marginHorizontal: 2.5,
-        backgroundColor: active ? "#1E293B" : "#E2E8F0",
-        transform: [{ scaleY: a }],
-      }}
-    />
-  );
-};
-
-/* ================================================================
-   Feedback overlay after evaluation
-   ================================================================ */
-const FeedbackOverlay = ({
-  score,
-  onRetry,
-}: {
-  score: number;
-  onRetry: () => void;
-}) => {
-  const pct = Math.round(score * 100);
-  const good = pct >= 74;
-  const mid = pct >= 50 && pct < 74;
-
-  const emoji = good ? "😄" : mid ? "😊" : "😕";
-  const label = good ? "Bagus!" : mid ? "Lumayan!" : "Coba Lagi";
-  const accent = good ? "#22C55E" : mid ? "#F48C25" : "#EF4444";
-
-  return (
-    <View style={fb.wrap}>
-      <Text style={{ fontSize: 40, marginBottom: 4 }}>{emoji}</Text>
-      <Text style={[fb.label, { color: accent }]}>{label}</Text>
-
-      <View style={fb.row}>
-        <View style={fb.statBox}>
-          <Text style={[fb.pct, { color: accent }]}>{pct}%</Text>
-          <Text style={fb.statLabel}>Pengucapan</Text>
-        </View>
-        {good && (
-          <View style={fb.statBox}>
-            <Text style={[fb.pct, { color: "#22C55E" }]}>+20</Text>
-            <Text style={fb.statLabel}>XP</Text>
-          </View>
-        )}
-      </View>
-
-      {!good && (
-        <TouchableOpacity style={fb.retry} onPress={onRetry} activeOpacity={0.7}>
-          <MaterialIcons name="refresh" size={16} color="#64748B" />
-          <Text style={fb.retryText}>Coba Lagi</Text>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-};
-
-const fb = StyleSheet.create({
-  wrap: {
-    alignItems: "center",
-    paddingVertical: 20,
-    paddingHorizontal: 24,
-  },
-  label: {
-    fontFamily: "SpaceGrotesk-Bold",
-    fontSize: 22,
-    marginBottom: 12,
-  },
-  row: {
-    flexDirection: "row",
-    gap: 24,
-  },
-  statBox: { alignItems: "center" },
-  pct: {
-    fontFamily: "SpaceGrotesk-Bold",
-    fontSize: 28,
-  },
-  statLabel: {
-    fontFamily: "SpaceGrotesk-Regular",
-    fontSize: 11,
-    color: "#64748B",
-    marginTop: 2,
-  },
-  retry: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginTop: 18,
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    borderRadius: 99,
-    backgroundColor: "#F8FAFC",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-  },
-  retryText: {
-    fontFamily: "SpaceGrotesk-SemiBold",
-    fontSize: 13,
-    color: "#0F172A",
-  },
-});
 
 /* ================================================================
    MAIN GAME SCREEN
    ================================================================ */
 export const GameScreen = ({ navigation, route }: any) => {
   const { stageId, vocabScore = 0 } = route?.params || {};
-  const { currentScenarios, fetchGameScenarios, isLoading } = useGameStore();
+  const { currentScenarios: rawScenarios, fetchGameScenarios, isLoading } = useGameStore();
+  
+  // Use dummy fallback if array is empty
+  const currentScenarios = (rawScenarios && rawScenarios.length > 0) ? rawScenarios : DUMMY_SCENARIOS;
+
   const [idx, setIdx] = useState(0);
   const {
     isRecording,
@@ -170,9 +53,16 @@ export const GameScreen = ({ navigation, route }: any) => {
   const [matchScore, setMatchScore] = useState(0);
   const [speakScore, setSpeakScore] = useState(0);
 
+  // New Chat States
+  const [historyInteractions, setHistoryInteractions] = useState<{ [key: number]: { score: number; spoken: string; target: string } }>({});
+  const [showEvalModal, setShowEvalModal] = useState(false);
+  const [activeModalData, setActiveModalData] = useState({ score: 0, spoken: "", target: "" });
+
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const scenRef = useRef<GameScenario | null>(null);
-  const { height, width } = useWindowDimensions();
+  const { height } = useWindowDimensions();
+  const chatScrollRef = useRef<ScrollView>(null);
+  const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (stageId) fetchGameScenarios(stageId);
@@ -210,19 +100,75 @@ export const GameScreen = ({ navigation, route }: any) => {
   };
 
   const evaluate = (spoken: string) => {
+    if (hasEval) return;
     const expected = scenRef.current?.expected_voice_text?.trim() || DEFAULT_TARGET;
     const s = getMatchScore(spoken.trim(), expected);
     setMatchScore(s);
     setHasEval(true);
     setIsCorrect(s >= 0.74);
+    
+    const interaction = { score: s, spoken: spoken.trim(), target: expected };
+    
+    // Store interactions in history state
+    setHistoryInteractions((prev) => ({ ...prev, [idx]: interaction }));
+    
+    // Pop open details in bottom sheet
+    setActiveModalData(interaction);
+    setTimeout(() => setShowEvalModal(true), 400);
   };
 
+  // Normal trigger on final results
   useEffect(() => {
     if (finalResults && !isRecording && !isProcessing) evaluate(finalResults);
   }, [finalResults, isRecording, isProcessing]);
 
+  // Auto-finish & Silence Timeout logic
+  useEffect(() => {
+    if (!isRecording || !transcription || transcription === "Mendengarkan...") {
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+      return;
+    }
+
+    const currentExpected = scenRef.current?.expected_voice_text?.trim() || DEFAULT_TARGET;
+    const currentScore = getMatchScore(transcription.trim(), currentExpected);
+
+    // 1. Auto-finish if voice recognition matches target closely (> 85%)
+    if (currentScore >= 0.85) {
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+      (async () => {
+        await stopRecording();
+        evaluate(transcription);
+      })();
+      return;
+    }
+
+    // 2. Auto-finish if user is silent for 2 seconds
+    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+    silenceTimerRef.current = setTimeout(async () => {
+      if (isRecording) {
+        await stopRecording();
+        evaluate(transcription);
+      }
+    }, 2000);
+
+    return () => {
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+    };
+  }, [transcription, isRecording, scenario]);
+
+  // Clean up timers
+  useEffect(() => {
+    return () => {
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+    };
+  }, []);
+
+  // Auto scroll down on idx update or recording
   useEffect(() => {
     resetAttempt();
+    setTimeout(() => {
+      chatScrollRef.current?.scrollToEnd({ animated: true });
+    }, 500);
   }, [idx, stageId]);
 
   const handleMic = async () => {
@@ -234,6 +180,8 @@ export const GameScreen = ({ navigation, route }: any) => {
       setIsCorrect(false);
       setMatchScore(0);
       await startRecording(SPEECH_LOCALE);
+      // Gentle scroll to ensure mic area is visible if keyboard used or screen moves
+      chatScrollRef.current?.scrollToEnd({ animated: true });
     }
   };
 
@@ -267,213 +215,222 @@ export const GameScreen = ({ navigation, route }: any) => {
 
   return (
     <View style={s.root}>
-      {/* ─────────── TOP HALF: White bg ─────────── */}
-      <View style={[s.sceneWrap, { height: height * 0.6 }]}>
-        {/* Header */}
-        <SafeAreaView edges={["top"]} style={s.safeTop}>
+      {/* Top Banner fixed height */}
+      <View style={[s.sceneWrap, { height: height * 0.35 }]}>
+        <Image source={{ uri: bg }} style={s.sceneImg} />
+        <LinearGradient
+          colors={["rgba(255,255,255,0.8)", "transparent", "#FFFFFF"]}
+          locations={[0, 0.6, 1]}
+          style={StyleSheet.absoluteFillObject}
+        />
+        
+        <SafeAreaView edges={["top"]} style={{ flex: 1 }}>
           <View style={s.header}>
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              style={s.backBtn}
-              activeOpacity={0.7}
-            >
-              <MaterialIcons name="chevron-left" size={28} color="#0F172A" />
+            <TouchableOpacity onPress={() => navigation.goBack()} style={s.headerCircleBtn}>
+              <MaterialIcons name="chevron-left" size={24} color="#000" />
             </TouchableOpacity>
-
-            <View style={s.headerCenter}>
-              <Text style={s.headerTitle}>{stageLabel}</Text>
-              <Text style={s.headerSub}>
-                Percakapan {idx + 1} / {total}
-              </Text>
+            
+            <View style={s.headerCenterPill}>
+               <Text style={s.pillStageTxt}>Stage {idx + 1} / {total}</Text>
+               <Text style={s.pillTitleTxt} numberOfLines={1}>{stageLabel}</Text>
             </View>
 
-            <TouchableOpacity style={s.reportBtn} activeOpacity={0.7}>
-              <MaterialIcons name="flag" size={18} color="#94A3B8" />
-              <Text style={s.reportTxt}>Laporkan</Text>
-            </TouchableOpacity>
+            <View style={s.headerRightWrap}>
+               <View style={s.streakPill}>
+                  <Text style={s.streakTxt}>🔥 12</Text>
+               </View>
+               <TouchableOpacity style={s.headerCircleBtn}>
+                 <MaterialIcons name="settings" size={20} color="#000" />
+               </TouchableOpacity>
+            </View>
           </View>
         </SafeAreaView>
-
-        {/* Scene Image */}
-        <View style={[s.sceneWrap, { height: height * 0.24 }]}>
-          <Image source={{ uri: bg }} style={s.sceneImg} />
-          <LinearGradient
-            colors={["transparent", "rgba(255,255,255,0.6)", "#FFFFFF"]}
-            locations={[0.4, 0.8, 1]}
-            style={StyleSheet.absoluteFillObject}
-          />
-          {/* NPC Name Badge */}
-          <View style={s.npcBadge}>
-            <Text style={s.npcBadgeText}>{scenario?.npc_name || "NPC"}</Text>
-          </View>
-        </View>
-
-        {/* NPC Dialog Bubble */}
-        <View style={s.bubbleWrap}>
-          <View style={s.bubble}>
-            <View style={{ flex: 1 }}>
-              <Text style={s.bubbleMain}>
-                {scenario?.npc_text ||
-                  "Wilujeng sumping di Bandung!\nKamana tujuan anjeun?"}
-              </Text>
-              <Text style={s.bubbleSub}>
-                Selamat datang di Bandung!{"\n"}Mau ke mana tujuanmu?
-              </Text>
-            </View>
-            <TouchableOpacity style={s.speakerBtn} activeOpacity={0.7}>
-              <MaterialIcons name="volume-up" size={22} color="#64748B" />
-            </TouchableOpacity>
-          </View>
-        </View>
       </View>
 
-      {/* ─────────── BOTTOM HALF: White Floating Card ─────────── */}
-      <View style={s.bottomHalf}>
-        {/* User Task Header */}
-        <View style={s.taskHeader}>
-          <View style={s.taskLabelRow}>
-            <View style={s.taskIcon}>
-              <MaterialIcons name="assignment" size={14} color="#64748B" />
-            </View>
-            <Text style={s.taskLabel}>Tugas Kamu</Text>
-          </View>
-          <Text style={s.taskHint}>Ucapkan jawabanmu</Text>
-        </View>
+      {/* Chat Area with DARK NAVY BG OVERLAPPING */}
+      <View style={s.chatAreaContainer}>
+        <ScrollView
+          ref={chatScrollRef}
+          contentContainerStyle={s.chatScrollPadding}
+          showsVerticalScrollIndicator={false}
+          onContentSizeChange={() => chatScrollRef.current?.scrollToEnd({ animated: true })}
+        >
+          {currentScenarios.slice(0, idx + 1).map((scen, i) => {
+            const isCurrent = i === idx;
+            const isPast = i < idx;
 
-        {/* Target Phrase */}
-        <View style={s.targetWrap}>
-          <Text style={s.targetMain}>{target}</Text>
-          <Text style={s.targetSub}>
-            Saya mau ke pusat kota.
-          </Text>
-        </View>
+            const hist = historyInteractions[i] || {};
+            const stepScore = hist.score ?? (isCurrent ? matchScore : 0);
+            const stepSpoken = hist.spoken ?? (isCurrent ? transcription : "");
+            const stepTarget = hist.target ?? scen.expected_voice_text;
+            const isSuccess = isPast || (isCurrent && isCorrect);
 
-        {/* Transcription feedback */}
-        {(transcription !== "" || recording) && !hasEval && (
-          <View style={s.liveBox}>
-            <MaterialIcons
-              name={isProcessing ? "hourglass-top" : "graphic-eq"}
-              size={14}
-              color="#F48C25"
-            />
-            <Text style={s.liveTxt}>
-              {isProcessing ? "Sedang memproses..." : transcription}
-            </Text>
-          </View>
-        )}
-
-        {speechError && !hasEval ? (
-          <View style={s.errBox}>
-            <MaterialIcons name="error-outline" size={14} color="#F87171" />
-            <Text style={s.errTxt}>{speechError}</Text>
-          </View>
-        ) : null}
-
-        {/* MIC / FEEDBACK area */}
-        <View style={s.micArea}>
-          {hasEval ? (
-            <FeedbackOverlay score={matchScore} onRetry={resetAttempt} />
-          ) : (
-            <>
-              {/* Waveform and Mic Layout */}
-              <View style={s.waveRow}>
-                {/* Waveform Left */}
-                <View style={s.waveSide}>
-                  {[3, 6, 4, 8, 5, 7].map((h, i) => (
-                    <WaveBar key={`l-${i}`} h={h} active={isRecording} d={i * 35} />
-                  ))}
-                </View>
-
-                {/* Mic button */}
-                <View style={s.micBtnWrap}>
-                  <Animated.View
-                    style={[
-                      s.micPulse,
-                      isRecording && {
-                        transform: [{ scale: pulseAnim }],
-                        opacity: 0.2,
-                        backgroundColor: "#1E293B",
-                      },
-                    ]}
+            return (
+              <View key={`msg-${scen.id || i}`} style={{ marginBottom: 32 }}>
+                {/* NPC BUBBLE BLOCK */}
+                <View style={s.chatRowLeft}>
+                  <Image 
+                    source={{ uri: "https://api.dicebear.com/7.x/avataaars/png?seed=Felix&backgroundColor=b6e3f4" }}
+                    style={s.chatAvatar}
                   />
-                  <TouchableOpacity
-                    style={[s.micBtn, isRecording && s.micBtnRec]}
-                    onPress={handleMic}
-                    activeOpacity={0.8}
-                  >
-                    <View style={[s.micInner, isRecording && { backgroundColor: "#EF4444" }]}>
-                      <MaterialIcons
-                        name={isRecording ? "stop" : "mic"}
-                        size={32}
-                        color="#FFFFFF"
-                      />
-                    </View>
-                  </TouchableOpacity>
+                  <View style={{ flex: 1, marginLeft: 12 }}>
+                     <View style={s.metaRow}>
+                        <View style={s.numBadge}><Text style={s.numBadgeTxt}>{i + 1}</Text></View>
+                     </View>
+                     <View style={s.npcBubbleGlass}>
+                        <Text style={s.npcTxtMain}>{scen.npc_text}</Text>
+                        <TouchableOpacity style={s.speakerInlineBtn}>
+                          <MaterialIcons name="volume-up" size={18} color="rgba(0,0,0,0.5)" />
+                        </TouchableOpacity>
+                     </View>
+                  </View>
                 </View>
 
-                {/* Waveform Right */}
-                <View style={s.waveSide}>
-                  {[7, 5, 8, 4, 6, 3].map((h, i) => (
-                    <WaveBar key={`r-${i}`} h={h} active={isRecording} d={i * 35 + 200} />
-                  ))}
+                {/* USER BUBBLE BLOCK */}
+                <View style={s.chatRowRight}>
+                   <TouchableOpacity
+                     activeOpacity={0.8}
+                     disabled={!isPast && !(isCurrent && hasEval)}
+                     onPress={() => {
+                       setActiveModalData({ score: stepScore, spoken: stepSpoken, target: stepTarget });
+                       setShowEvalModal(true);
+                     }}
+                     style={{ flex: 1, marginRight: 12, alignItems: 'flex-end' }}
+                   >
+                      <View style={s.metaRowRight}>
+                         <View style={s.numBadge}><Text style={s.numBadgeTxt}>{i + 1}</Text></View>
+                      </View>
+                      
+                      <View
+                        style={[
+                          s.userBubbleGlass,
+                          isCurrent && !hasEval && s.bubbleGlowActive,
+                          isSuccess && s.bubbleSuccessState
+                        ]}
+                      >
+                         <View style={s.bubbleContentRow}>
+                            {/* Conditional display logic */}
+                            {isCurrent && !hasEval ? (
+                              <Text style={[s.userTxtMain, isSuccess && { color: "#000000" }]}>
+                                {target.split(/\s+/).map((word, wIdx) => {
+                                  const cleanWord = word.toLowerCase().replace(/[^\w\s]/g, "");
+                                  const spokenWords = transcription.toLowerCase().replace(/[^\w\s]/g, "").split(/\s+/);
+                                  const isSpoken = spokenWords.includes(cleanWord);
+                                  return (
+                                    <Text key={wIdx} style={isSpoken ? { color: "#000000", fontFamily: "SpaceGrotesk-Bold" } : { color: "rgba(0,0,0,0.3)" }}>
+                                      {word}{" "}
+                                    </Text>
+                                  );
+                                })}
+                              </Text>
+                            ) : (
+                              <Text style={[s.userTxtMain, isSuccess && { color: "#000000" }]}>
+                                {scen.expected_voice_text}
+                              </Text>
+                            )}
+
+                            {(isPast || (isCurrent && hasEval)) && (
+                               <View style={s.tinyScoreChip}>
+                                 <Text style={s.tinyScoreTxt}>{Math.round(stepScore * 100)}</Text>
+                               </View>
+                            )}
+                         </View>
+                         {/* Audio wave display mimic */}
+                         <View style={s.fakeMiniWaveRow}>
+                            <MaterialIcons name="play-circle" size={20} color="#000000" style={{marginRight: 4}} />
+                            {[3, 6, 4, 7, 3, 5, 4, 8, 3].map((h, w) => (
+                              <View key={w} style={{ width: 2, height: h, backgroundColor: "#000000", opacity: isSuccess ? 1 : 0.5, marginHorizontal: 1 }} />
+                            ))}
+                         </View>
+                      </View>
+                   </TouchableOpacity>
+                   
+                   <Image 
+                     source={{ uri: "https://api.dicebear.com/7.x/avataaars/png?seed=Milo&backgroundColor=ffdfbf" }}
+                     style={s.chatAvatar}
+                   />
                 </View>
               </View>
-
-              <Text style={s.micHint}>
-                {isProcessing
-                  ? "Sedang memproses..."
-                  : isRecording
-                    ? "Sedang mendengarkan..."
-                    : "Ketuk untuk mulai berbicara"}
-              </Text>
-            </>
-          )}
-        </View>
-
-        {/* DEBUG: Temporary Test Result Screen Button */}
-        <TouchableOpacity
-          style={{
-            alignSelf: "center",
-            paddingVertical: 6,
-            paddingHorizontal: 12,
-            marginBottom: 8,
-            backgroundColor: "#F1F5F9",
-            borderRadius: 8,
-          }}
-          activeOpacity={0.7}
-          onPress={() =>
-            navigation.replace("Result", {
-              win: true,
-              stageId: stageId || 1,
-              vocabScore: 85,
-              gameScore: 90,
-            })
-          }
-        >
-          <Text style={{ fontSize: 11, fontFamily: "SpaceGrotesk-Bold", color: "#F48C25" }}>
-            🛠️ TEST RESULT SCREEN
-          </Text>
-        </TouchableOpacity>
-
-        {/* Continue button */}
-        <SafeAreaView edges={["bottom"]} style={s.safeBottom}>
-          <TouchableOpacity
-            style={[s.contBtn, !canGo && s.contBtnOff]}
-            onPress={handleContinue}
-            disabled={!canGo}
-            activeOpacity={0.8}
-          >
-            <Text style={[s.contTxt, !canGo && s.contTxtOff]}>
-              {isLast ? "Selesai" : "Lanjut"}
-            </Text>
-            <MaterialIcons
-              name="arrow-forward"
-              size={18}
-              color={canGo ? "#1E293B" : "rgba(255,255,255,0.25)"}
-            />
-          </TouchableOpacity>
-        </SafeAreaView>
+            );
+          })}
+          <View style={{ height: 140 }} />
+        </ScrollView>
       </View>
+
+      {/* BOTTOM CONTROLS WITH TRANSPARENCY */}
+      <View style={s.bottomPanelFixed}>
+         {/* Notification overlay */}
+         <View style={{ alignItems: 'center', marginBottom: 12 }}>
+            {(transcription !== "" || recording) && !hasEval && (
+              <View style={s.bubbleNotifyDark}>
+                <Text style={{ color: '#000', fontSize: 13 }}>
+                   {isProcessing ? "Sedang memproses..." : transcription}
+                </Text>
+              </View>
+            )}
+         </View>
+
+         <View style={s.bottomActionInner}>
+           {!canGo ? (
+              <View style={s.micWrapFlex}>
+                 <View style={s.waveFlexSide}>
+                   {[3, 6, 4].map((h, index) => (
+                     <WaveBar key={`l-${index}`} h={h} active={isRecording} d={index * 40} />
+                   ))}
+                 </View>
+
+                 <View style={s.micCenterWrap}>
+                     <Animated.View
+                       style={[
+                         s.micPulseGlow,
+                         isRecording && {
+                           transform: [{ scale: pulseAnim }],
+                           backgroundColor: "rgba(0,0,0,0.1)",
+                         },
+                       ]}
+                     />
+                     <TouchableOpacity style={s.micFloatingBtn} onPress={handleMic} activeOpacity={0.8}>
+                       {isRecording ? (
+                          <LinearGradient colors={["#FFFFFF", "#F2F2F7"]} style={StyleSheet.absoluteFill}>
+                            <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#000000', borderRadius: 32}}>
+                              <MaterialIcons name="stop" size={32} color="#000" />
+                            </View>
+                          </LinearGradient>
+                       ) : (
+                          <LinearGradient colors={["#000000", "#1A1A1A"]} style={StyleSheet.absoluteFill}>
+                            <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+                               <MaterialIcons name="mic" size={32} color="#FFF" />
+                            </View>
+                          </LinearGradient>
+                       )}
+                     </TouchableOpacity>
+                  </View>
+
+                 <View style={s.waveFlexSide}>
+                   {[4, 6, 3].map((h, index) => (
+                     <WaveBar key={`r-${index}`} h={h} active={isRecording} d={index * 40 + 200} />
+                   ))}
+                 </View>
+              </View>
+           ) : (
+             <TouchableOpacity style={s.fancyContinueBtn} onPress={handleContinue} activeOpacity={0.9}>
+               <Text style={s.fancyContinueTxt}>{isLast ? "Selesai" : "Lanjut"}</Text>
+               <MaterialIcons name="arrow-forward" size={20} color="#FFF" />
+             </TouchableOpacity>
+           )}
+         </View>
+         <SafeAreaView edges={["bottom"]} />
+      </View>
+
+      {/* Final Integration of Bottom Sheet Modal */}
+      <EvaluationModal
+        visible={showEvalModal}
+        score={activeModalData.score}
+        spoken={activeModalData.spoken}
+        target={activeModalData.target}
+        onClose={() => setShowEvalModal(false)}
+        onAction={handleContinue}
+      />
     </View>
   );
 };
@@ -487,61 +444,14 @@ const DARK_SURFACE = "#282838";
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#FFFFFF" },
 
-  // ── Loading ──
   loadingTxt: {
     fontFamily: "SpaceGrotesk-Medium",
     fontSize: 14,
-    color: "#94A3B8",
+    color: "#666666",
     marginTop: 14,
   },
 
-  /* ──────── TOP HALF ──────── */
-  topHalf: {
-    backgroundColor: "#FFFFFF",
-  },
-  safeTop: {
-    backgroundColor: "#FFFFFF",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerCenter: {
-    flex: 1,
-    alignItems: "center",
-  },
-  headerTitle: {
-    fontFamily: "SpaceGrotesk-Bold",
-    fontSize: 18,
-    color: "#0F172A",
-  },
-  headerSub: {
-    fontFamily: "SpaceGrotesk-Regular",
-    fontSize: 12,
-    color: "#94A3B8",
-    marginTop: 1,
-  },
-  reportBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 3,
-    paddingRight: 4,
-  },
-  reportTxt: {
-    fontFamily: "SpaceGrotesk-Medium",
-    fontSize: 11,
-    color: "#94A3B8",
-  },
-
-  // Scene
+  /* ──────── HEADER STYLES ──────── */
   sceneWrap: {
     width: "100%",
     position: "relative",
@@ -550,284 +460,259 @@ const s = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     resizeMode: "cover",
   },
-  npcBadge: {
-    position: "absolute",
-    bottom: 12,
-    left: 20,
-    backgroundColor: "#1E293B",
-    paddingHorizontal: 14,
-    paddingVertical: 5,
-    borderRadius: 20,
-  },
-  npcBadgeText: {
-    fontFamily: "SpaceGrotesk-SemiBold",
-    fontSize: 13,
-    color: "#FFFFFF",
-  },
-
-  // Bubble
-  bubbleWrap: {
-    paddingHorizontal: 20,
-    marginTop: -8,
-    paddingBottom: 16,
-  },
-  bubble: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 16,
+  header: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.06,
-        shadowRadius: 12,
-      },
-      android: { elevation: 3 },
-    }),
-  },
-  bubbleMain: {
-    fontFamily: "SpaceGrotesk-Bold",
-    fontSize: 16,
-    color: "#0F172A",
-    lineHeight: 24,
-    marginBottom: 6,
-  },
-  bubbleSub: {
-    fontFamily: "SpaceGrotesk-Regular",
-    fontSize: 13,
-    color: "#94A3B8",
-    lineHeight: 20,
-    fontStyle: "italic",
-  },
-  speakerBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: "#F8FAFC",
     alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  headerCircleBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.85)",
     justifyContent: "center",
-    marginLeft: 10,
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#E5E5EA",
+  },
+  headerCenterPill: {
+    flex: 1,
+    marginHorizontal: 10,
+    backgroundColor: "rgba(255, 255, 255, 0.85)",
+    borderRadius: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E5E5EA",
+  },
+  pillStageTxt: {
+    fontFamily: "SpaceGrotesk-Regular",
+    fontSize: 10,
+    color: "rgba(0, 0, 0, 0.5)",
+  },
+  pillTitleTxt: {
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 13,
+    color: "#000000",
+    marginTop: 1,
+  },
+  headerRightWrap: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  streakPill: {
+    backgroundColor: "rgba(255, 255, 255, 0.85)",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#E5E5EA",
+  },
+  streakTxt: {
+    fontFamily: "SpaceGrotesk-Bold",
+    color: "#000000",
+    fontSize: 13,
   },
 
-  /* ──────── BOTTOM HALF ──────── */
-  bottomHalf: {
+  /* ──────── CHAT AREA (MONOCHROME LIGHT) ──────── */
+  chatAreaContainer: {
     flex: 1,
     backgroundColor: "#FFFFFF",
+    marginTop: -32,
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    marginTop: -16, // Pull up to overlap scene
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: -4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 16,
-      },
-      android: { elevation: 12 },
-    }),
+    overflow: "hidden",
   },
-
-  // Task header
-  taskHeader: {
+  chatScrollPadding: {
+    paddingHorizontal: 16,
+    paddingTop: 32,
+    paddingBottom: 160, // Give plenty of space for the absolute bottom bar
+  },
+  
+  // Message blocks
+  chatRowLeft: {
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 14,
+    alignItems: "flex-start",
+    maxWidth: "85%",
   },
-  taskLabelRow: {
+  chatRowRight: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
+    alignItems: "flex-start",
+    alignSelf: "flex-end",
+    maxWidth: "85%",
   },
-  taskIcon: {
-    width: 26,
-    height: 26,
-    borderRadius: 6,
-    backgroundColor: "#F1F5F9",
-    alignItems: "center",
+  chatAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: "#E5E5EA",
+    backgroundColor: "#F2F2F7",
+  },
+  
+  // Sub layouts
+  metaRow: {
+    flexDirection: "row",
+    marginBottom: 6,
+  },
+  metaRowRight: {
+    flexDirection: "row",
+    marginBottom: 6,
+    alignSelf: "flex-end",
+  },
+  numBadge: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: "rgba(0, 0, 0, 0.05)",
     justifyContent: "center",
-  },
-  taskLabel: {
-    fontFamily: "SpaceGrotesk-SemiBold",
-    fontSize: 14,
-    color: "#475569",
-  },
-  taskHint: {
-    fontFamily: "SpaceGrotesk-Regular",
-    fontSize: 12,
-    color: "#94A3B8",
-  },
-
-  // Target
-  targetWrap: {
     alignItems: "center",
-    marginBottom: 20,
-    marginTop: 8,
   },
-  targetMain: {
+  numBadgeTxt: {
+    fontSize: 9,
     fontFamily: "SpaceGrotesk-Bold",
-    fontSize: 18,
-    color: "#0F172A",
-    lineHeight: 26,
-    marginBottom: 4,
-    textAlign: "center",
-  },
-  targetSub: {
-    fontFamily: "SpaceGrotesk-Regular",
-    fontSize: 14,
-    color: "#64748B",
-    fontStyle: "italic",
-    textAlign: "center",
+    color: "rgba(0, 0, 0, 0.4)",
   },
 
-  // Live transcription
-  liveBox: {
+  // Bubbles
+  npcBubbleGlass: {
+    backgroundColor: "#F2F2F7",
+    borderRadius: 20,
+    borderTopLeftRadius: 4,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#E5E5EA",
+  },
+  npcTxtMain: {
+    fontFamily: "SpaceGrotesk-Medium",
+    fontSize: 15,
+    color: "#000000",
+    lineHeight: 22,
+  },
+  speakerInlineBtn: {
+    marginTop: 8,
+    alignSelf: "flex-start",
+  },
+
+  userBubbleGlass: {
+    backgroundColor: "#F2F2F7",
+    borderWidth: 1,
+    borderColor: "#E5E5EA",
+    borderRadius: 20,
+    borderTopRightRadius: 4,
+    padding: 16,
+    minWidth: 150,
+  },
+  bubbleGlowActive: {
+    borderColor: "#E5E5EA",
+    backgroundColor: "#F2F2F7",
+  },
+  bubbleSuccessState: {
+    borderColor: "#E5E5EA",
+    backgroundColor: "#F2F2F7",
+  },
+  bubbleContentRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    backgroundColor: "rgba(244,140,37,0.08)",
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: "rgba(244,140,37,0.15)",
   },
-  liveTxt: {
+  userTxtMain: {
     fontFamily: "SpaceGrotesk-Medium",
-    fontSize: 13,
-    color: "#F48C25",
-    fontStyle: "italic",
+    fontSize: 15,
+    color: "#000000",
+    textAlign: "right",
     flex: 1,
+  },
+  tinyScoreChip: {
+    backgroundColor: "#000000",
+    borderRadius: 4,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
+  tinyScoreTxt: {
+    fontSize: 9,
+    fontFamily: "SpaceGrotesk-Bold",
+    color: "#FFFFFF",
+  },
+  fakeMiniWaveRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 12,
+    opacity: 0.7,
+    alignSelf: "flex-end",
   },
 
-  // Error
-  errBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    backgroundColor: "rgba(239,68,68,0.08)",
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: "rgba(239,68,68,0.15)",
-  },
-  errTxt: {
-    fontFamily: "SpaceGrotesk-Medium",
-    fontSize: 12,
-    color: "#F87171",
-    flex: 1,
-  },
-
-  // Mic area
-  micArea: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "flex-start",
-    paddingTop: 10,
-  },
-  waveRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-  },
-  waveSide: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    width: 80,
-  },
-  micBtnWrap: {
-    width: 84,
-    height: 84,
-    alignItems: "center",
-    justifyContent: "center",
-    marginHorizontal: 12,
-  },
-  micPulse: {
+  /* ──────── BOTTOM CONTROL BAR ──────── */
+  bottomPanelFixed: {
     position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  bubbleNotifyDark: {
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#E5E5EA",
+  },
+  bottomActionInner: {
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderTopWidth: 1,
+    borderTopColor: "#E5E5EA",
+  },
+  micWrapFlex: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  waveFlexSide: {
+    flexDirection: "row",
+    justifyContent: "center",
+    width: 60,
+  },
+  micCenterWrap: {
     width: 84,
     height: 84,
-    borderRadius: 42,
-    backgroundColor: "transparent",
+    justifyContent: "center",
+    alignItems: "center",
+    marginHorizontal: 20,
   },
-  micBtn: {
+  micPulseGlow: {
+    position: "absolute",
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+  },
+  micFloatingBtn: {
     width: 64,
     height: 64,
     borderRadius: 32,
     overflow: "hidden",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 10,
-      },
-      android: { elevation: 6 },
-    }),
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
   },
-  micBtnRec: {},
-  micInner: {
-    width: "100%",
-    height: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#1E293B",
-  },
-  micHint: {
-    fontFamily: "SpaceGrotesk-Medium",
-    fontSize: 13,
-    color: "#94A3B8",
-    marginTop: 16,
-    textAlign: "center",
-  },
-
-  // Continue
-  safeBottom: {
-    paddingBottom: Platform.OS === "ios" ? 0 : 8,
-  },
-  contBtn: {
+  fancyContinueBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#F48C25",
-    paddingVertical: 14,
-    borderRadius: 14,
-    gap: 6,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#F48C25",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.35,
-        shadowRadius: 8,
-      },
-      android: { elevation: 6 },
-    }),
+    backgroundColor: "#000000",
+    paddingVertical: 16,
+    borderRadius: 16,
+    gap: 8,
+    elevation: 4,
   },
-  contBtnOff: {
-    backgroundColor: "rgba(255,255,255,0.06)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  contTxt: {
+  fancyContinueTxt: {
     fontFamily: "SpaceGrotesk-Bold",
     fontSize: 16,
     color: "#FFFFFF",
-  },
-  contTxtOff: {
-    color: "rgba(255,255,255,0.4)",
   },
 });
