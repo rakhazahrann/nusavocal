@@ -298,20 +298,20 @@ export const GameScreen = ({ navigation, route }: any) => {
                          <View style={s.bubbleContentRow}>
                             {/* Conditional display logic */}
                             {isCurrent && !hasEval ? (
-                              <Text style={[s.userTxtMain, isSuccess && { color: "#000000" }]}>
+                              <Text style={s.userTxtMain}>
                                 {target.split(/\s+/).map((word, wIdx) => {
                                   const cleanWord = word.toLowerCase().replace(/[^\w\s]/g, "");
                                   const spokenWords = transcription.toLowerCase().replace(/[^\w\s]/g, "").split(/\s+/);
                                   const isSpoken = spokenWords.includes(cleanWord);
                                   return (
-                                    <Text key={wIdx} style={isSpoken ? { color: "#000000", fontFamily: "Poppins-Bold" } : { color: "rgba(0,0,0,0.3)" }}>
+                                    <Text key={wIdx} style={isSpoken ? { color: colors.success, fontFamily: "Poppins-Bold" } : { color: colors.mutedText }}>
                                       {word}{" "}
                                     </Text>
                                   );
                                 })}
                               </Text>
                             ) : (
-                              <Text style={[s.userTxtMain, isSuccess && { color: "#000000" }]}>
+                              <Text style={[s.userTxtMain, isSuccess ? { color: colors.success } : { color: colors.danger }]}>
                                 {scen.expected_voice_text}
                               </Text>
                             )}
