@@ -16,6 +16,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useGameStore } from "@/store/gameStore";
 import { OptionCard } from "@/components/glass/OptionCard";
 import { GameHeader } from "@/components/glass/ProgressBar";
+import { colors } from "@/constants/colors";
 
 export const VocabFarmingScreen = ({ navigation, route }: any) => {
   const { stageId } = route?.params || {};
@@ -72,8 +73,8 @@ export const VocabFarmingScreen = ({ navigation, route }: any) => {
 
   if (isLoading) {
     return (
-      <LinearGradient colors={["#ffffff", "#f0f0f0"]} style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#000000" />
+      <LinearGradient colors={[colors.surface, colors.background]} style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.accent} />
         <Text style={styles.loadingText}>Loading Vocabulary...</Text>
       </LinearGradient>
     );
@@ -82,7 +83,7 @@ export const VocabFarmingScreen = ({ navigation, route }: any) => {
   const optionLabels = ["A", "B", "C", "D"];
 
   return (
-    <LinearGradient colors={["#ffffff", "#f0f0f0"]} style={styles.container}>
+    <LinearGradient colors={[colors.surface, colors.background]} style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         {/* Top Navigation Shell */}
         <GameHeader
@@ -262,7 +263,7 @@ const styles = StyleSheet.create({
   titleText: {
     fontFamily: "Poppins-Bold",
     fontSize: 32,
-    color: "#121212",
+    color: colors.text,
     letterSpacing: -1,
     marginBottom: 2,
     textAlign: "center",
@@ -271,7 +272,7 @@ const styles = StyleSheet.create({
   subtitleText: {
     fontFamily: "Poppins-Medium",
     fontSize: 12,
-    color: "rgba(18, 18, 18, 0.6)",
+    color: colors.mutedText,
     letterSpacing: 2.5,
     textTransform: "uppercase",
   },
@@ -288,7 +289,7 @@ const styles = StyleSheet.create({
   },
   nextStepButton: {
     height: 58,
-    backgroundColor: "#000000",
+    backgroundColor: colors.accent,
     borderRadius: 20,
     flexDirection: "row",
     alignItems: "center",
@@ -319,7 +320,7 @@ const styles = StyleSheet.create({
   bgAccentText: {
     fontFamily: "Poppins-Bold",
     fontSize: 200,
-    color: "#000000",
+    color: colors.text,
     lineHeight: 200,
   },
 });

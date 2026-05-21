@@ -12,7 +12,7 @@ module.exports = {
         mutedText: "hsl(var(--muted-foreground))",
         border: "hsl(var(--border))",
         accent: "hsl(var(--accent))",
-        accentDark: "#c0630b",
+        accentDark: "hsl(var(--accent-dark))",
         danger: "hsl(var(--destructive))",
         success: "hsl(var(--success))",
         gold: "hsl(var(--gold))",

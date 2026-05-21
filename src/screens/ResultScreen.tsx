@@ -13,16 +13,17 @@ import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAuthStore } from "@/store/authStore";
 import { useGameStore } from "@/store/gameStore";
+import { colors } from "@/constants/colors";
 
 // Pure Monochrome Design System Constants
 const COLORS = {
-  accent: "#000000",
-  text: "#000000",
-  muted: "#6B7280",
-  surface: "#FFFFFF",
-  lightGray: "#F3F4F6",
-  navy: "#000000", // Fully monochrome black theme for the box
-  error: "#EF4444", // Keep red only for emergency errors
+  accent: colors.accent,
+  text: colors.text,
+  muted: colors.mutedText,
+  surface: colors.surface,
+  lightGray: colors.parchment,
+  navy: colors.navy, // Fully monochrome black theme for the box
+  error: colors.danger, // Keep red only for emergency errors
 };
 
 export const ResultScreen = ({ route, navigation }: any) => {
@@ -348,7 +349,7 @@ const styles = StyleSheet.create({
     width: 46,
     height: 46,
     borderRadius: 12,
-    backgroundColor: "rgba(0,0,0,0.04)",
+    backgroundColor: COLORS.lightGray,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
@@ -359,7 +360,7 @@ const styles = StyleSheet.create({
   cardLabel: {
     fontFamily: "Poppins-Medium",
     fontSize: 12,
-    color: "rgba(0,0,0,0.5)",
+    color: COLORS.muted,
     marginBottom: 2,
     textTransform: "uppercase",
     letterSpacing: 1,
@@ -371,14 +372,14 @@ const styles = StyleSheet.create({
   cardValue: {
     fontFamily: "Poppins-Bold",
     fontSize: 28,
-    color: "#000000",
+    color: COLORS.text,
     marginRight: 6,
     letterSpacing: -0.5,
   },
   cardUnit: {
     fontFamily: "Poppins-Bold",
     fontSize: 10,
-    color: "rgba(0,0,0,0.3)",
+    color: COLORS.muted,
     letterSpacing: 1,
   },
 
@@ -390,7 +391,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 24,
     marginTop: 8,
-    backgroundColor: "#000000",
+    backgroundColor: COLORS.navy,
     ...Platform.select({
       ios: {
         shadowColor: "#000",
@@ -457,7 +458,7 @@ const styles = StyleSheet.create({
   },
   mainButton: {
     flexDirection: "row",
-    backgroundColor: "#000000",
+    backgroundColor: COLORS.accent,
     height: 60,
     borderRadius: 20,
     justifyContent: "center",

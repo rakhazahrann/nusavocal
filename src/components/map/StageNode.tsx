@@ -4,6 +4,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { StageStatus } from "@/types/constants";
 import { getStageX, getStageY, STAGE_NODE_SIZE } from "@/constants/stageLayout";
 import { Text } from "@/components/ui/Text";
+import { colors } from "@/constants/colors";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -75,7 +76,7 @@ export const StageNode: React.FC<StageNodeProps> = ({ id, x, stageIndex, totalSt
       return (
         <View style={styles.nodeWrapper}>
           <View style={[styles.node, styles.completedNode]}>
-            <MaterialIcons name="check-circle" size={32} color="#000" />
+            <MaterialIcons name="check-circle" size={32} color={colors.accent} />
           </View>
           <Text style={styles.labelCompleted}>{label}</Text>
         </View>
@@ -168,7 +169,7 @@ const styles = StyleSheet.create({
     width: 88,
     height: 88,
     borderRadius: 44,
-    backgroundColor: "#000000", 
+    backgroundColor: colors.accent, 
     borderWidth: 4,
     borderColor: "#FFFFFF", 
     shadowColor: "#000",
@@ -182,13 +183,14 @@ const styles = StyleSheet.create({
     width: 110,
     height: 110,
     borderRadius: 55,
-    backgroundColor: "rgba(0,0,0,0.05)",
+    backgroundColor: colors.accent,
+    opacity: 0.15,
   },
   lockedNode: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: "#F1F1F1", 
+    backgroundColor: colors.parchment, 
     borderWidth: 1,
     borderColor: "rgba(0,0,0,0.05)",
     opacity: 0.6,
@@ -199,7 +201,8 @@ const styles = StyleSheet.create({
     height: 88,
     borderRadius: 44,
     borderWidth: 2,
-    borderColor: "rgba(0,0,0,0.2)",
+    borderColor: colors.accent,
+    opacity: 0.3,
     backgroundColor: "transparent",
   },
   labelCompleted: {
@@ -227,7 +230,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     letterSpacing: 2,
     textTransform: "uppercase",
-    color: "#000",
+    color: colors.text,
     textAlign: "center",
   },
 });

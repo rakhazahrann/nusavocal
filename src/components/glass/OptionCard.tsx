@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { OptionCardProps } from "@/types/components";
+import { colors } from "@/constants/colors";
 
 
 
@@ -41,7 +42,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
   },
   selectedContainerShadow: {
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -53,27 +54,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 15,
     paddingHorizontal: 18,
-    backgroundColor: '#000000',
+    backgroundColor: colors.accent,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#000000',
+    borderColor: colors.accent,
   },
   unselectedContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 15,
     paddingHorizontal: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.45)',
+    backgroundColor: colors.whiteTranslucent,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
+    borderColor: colors.whiteSemiTranslucent,
     overflow: 'hidden',
   },
   selectedLabelContainer: {
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.white,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 14,
@@ -82,7 +83,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    backgroundColor: colors.blackTranslucent,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 14,
@@ -90,21 +91,21 @@ const styles = StyleSheet.create({
   selectedLabelText: {
     fontFamily: 'Poppins-Bold',
     fontSize: 13,
-    color: '#000000',
+    color: colors.accent,
   },
   unselectedLabelText: {
     fontFamily: 'Poppins-Bold',
     fontSize: 13,
-    color: 'rgba(0, 0, 0, 0.4)',
+    color: colors.blackMutedText,
   },
   selectedText: {
     fontFamily: 'Poppins-SemiBold',
     fontSize: 15,
-    color: '#ffffff',
+    color: colors.white,
   },
   unselectedText: {
     fontFamily: 'Poppins-SemiBold',
     fontSize: 15,
-    color: '#121212',
+    color: colors.text,
   },
 });

@@ -10,9 +10,9 @@ import { useGameStore } from "@/store/gameStore";
 import { colors } from "@/constants/colors";
 
 // ── Design constants ────────────────────────────────────────────
-const ACCENT_GREEN = "#22C55E"; // success token
-const ACCENT_GREEN_LIGHT = "#86EFAC";
-const ACCENT_GREEN_BG = "rgba(34, 197, 94, 0.10)";
+const ACCENT_GREEN = colors.accent; // success token
+const ACCENT_GREEN_LIGHT = "#A1DBA8";
+const ACCENT_GREEN_BG = "rgba(80, 166, 92, 0.10)";
 const RING_SIZE = 48;
 const RING_STROKE = 3;
 const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;

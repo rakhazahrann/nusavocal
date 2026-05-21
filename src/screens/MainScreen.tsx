@@ -27,6 +27,7 @@ import { AdminStageWizardModal } from "@/components/admin/StageWizard";
 import { AdminDeleteConfirmModal } from "@/components/admin/DeleteModal";
 import { Text } from "@/components/ui/Text";
 import { Card } from "@/components/ui/Card";
+import { colors } from "@/constants/colors";
 
 
 export const MainScreen = ({ navigation }: any) => {
@@ -295,7 +296,7 @@ export const MainScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f9f9f9",
+    backgroundColor: colors.background,
   },
   topBarOverlay: {
     position: "absolute",
@@ -311,7 +312,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: "#f48c25",
+    backgroundColor: colors.accent,
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",

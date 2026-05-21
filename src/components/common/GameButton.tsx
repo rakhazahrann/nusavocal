@@ -3,14 +3,12 @@ import {
   TouchableOpacity,
   View,
   StyleSheet,
-  TouchableOpacityProps,
   ActivityIndicator,
 } from "react-native";
 import { GameText } from "./GameText";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { GameButtonProps } from "@/types/components";
-
-
+import { colors } from "@/constants/colors";
 
 export const GameButton: React.FC<GameButtonProps> = ({
   title,
@@ -28,33 +26,33 @@ export const GameButton: React.FC<GameButtonProps> = ({
     switch (variant) {
       case "secondary":
         return {
-          main: "#AEECEF", // Retro Mint
-          shadow: "#5D3A1A",
-          text: "#5D3A1A",
+          main: colors.mint,
+          shadow: colors.parchmentText,
+          text: colors.parchmentText,
         };
       case "outline":
         return {
-          main: "#FFFFFF",
-          shadow: "#D1C4B5",
-          text: "#5D3A1A",
+          main: colors.white,
+          shadow: colors.border,
+          text: colors.text,
         };
       case "adventure":
         return {
-          main: "#1E88E5", // Bright Adventure Blue
-          shadow: "#0D47A1", // Dark Navy Shadow
-          text: "#FFFFFF",
+          main: colors.adventure,
+          shadow: colors.adventureDark,
+          text: colors.white,
         };
       case "danger":
         return {
-          main: "#d9534f", // Retro Red
-          shadow: "#5D3A1A",
-          text: "#FFFFFF",
+          main: colors.danger,
+          shadow: colors.accentDark,
+          text: colors.white,
         };
       default:
         return {
-          main: "#FFB067", // Retro Peach/Orange
-          shadow: "#5D3A1A",
-          text: "#5D3A1A",
+          main: colors.accent,
+          shadow: colors.accentDark,
+          text: colors.white,
         };
     }
   };
@@ -85,7 +83,7 @@ export const GameButton: React.FC<GameButtonProps> = ({
           styles.mainLayer,
           {
             backgroundColor: theme.main,
-            borderColor: variant === "outline" ? theme.shadow : "#FFF",
+            borderColor: variant === "outline" ? theme.shadow : colors.white,
           },
           isPressed ? styles.mainLayerPressed : null,
         ]}
@@ -128,7 +126,7 @@ const styles = StyleSheet.create({
   },
   shadowLayer: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "#c0630b", // primary-dark
+    backgroundColor: colors.accentDark, // primary-dark
     top: 4,
     left: 4,
     borderRadius: 2,
@@ -138,8 +136,8 @@ const styles = StyleSheet.create({
     left: 0,
   },
   mainLayer: {
-    backgroundColor: "#f48c25", // primary
-    borderColor: "#FFF",
+    backgroundColor: colors.accent, // primary
+    borderColor: colors.white,
     borderWidth: 2,
     flexDirection: "row",
     justifyContent: "center",
@@ -148,7 +146,7 @@ const styles = StyleSheet.create({
     borderRadius: 2, // Minimal for pixel look
   },
   mainLayerPressed: {
-    backgroundColor: "#e37a15", // slightly darker on press
+    backgroundColor: colors.accentDark, // slightly darker on press
     transform: [{ translateX: 4 }, { translateY: 4 }],
   },
   icon: {

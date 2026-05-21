@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import { Animated } from "react-native";
+import { colors } from "@/constants/colors";
 
 export const WaveBar = ({ h, active, d }: { h: number; active: boolean; d: number }) => {
   const a = useRef(new Animated.Value(1)).current;
@@ -23,7 +24,7 @@ export const WaveBar = ({ h, active, d }: { h: number; active: boolean; d: numbe
         height: h * 4,
         borderRadius: 2,
         marginHorizontal: 3,
-        backgroundColor: active ? "#22C55E" : "#E5E5EA",
+        backgroundColor: active ? colors.success : colors.gray,
         transform: [{ scaleY: a }],
       }}
     />

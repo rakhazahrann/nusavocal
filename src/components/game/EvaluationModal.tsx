@@ -9,6 +9,7 @@ import {
   Platform,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { colors } from "@/constants/colors";
 
 interface EvaluationModalProps {
   visible: boolean;
@@ -32,7 +33,7 @@ export const EvaluationModal = ({
   const mid = pct >= 50 && pct < 74;
 
   const label = good ? "Bagus!" : mid ? "Lumayan!" : "Coba Lagi";
-  const accent = good ? "#22C55E" : mid ? "#F59E0B" : "#EF4444";
+  const accent = good ? colors.success : mid ? colors.gold : colors.danger;
 
   // Simple phonetic-split for visuals
   const syllableBreakdown = target.split(' ').map(w => {
@@ -69,23 +70,23 @@ export const EvaluationModal = ({
             </View>
           </View>
 
-          <View style={[fb.feedbackBanner, { backgroundColor: good ? "#000000" : "#F2F2F7" }]}>
-            <MaterialIcons name={good ? "check-circle" : "error"} size={24} color={good ? "#FFFFFF" : "#000000"} />
+          <View style={[fb.feedbackBanner, { backgroundColor: good ? colors.black : colors.lightGray }]}>
+            <MaterialIcons name={good ? "check-circle" : "error"} size={24} color={good ? colors.white : colors.black} />
             <View style={{ flex: 1 }}>
-               <Text style={[fb.feedbackText, { color: good ? "#FFFFFF" : "#000000" }]}>
-                 <Text style={{ fontFamily: "Poppins-Bold" }}>{label}!</Text> {good ? "Pelafalan kamu sudah jelas dan natural. Terus pertahankan ya!" : "Coba ulangi sekali lagi dengan lebih jelas."}
+               <Text style={[fb.feedbackText, { color: good ? colors.white : colors.black }]}>
+                 <Text style={{ fontFamily: "Poppins-Bold" }}>{label}!</Text> {good ? "Pelafalan kamu sudah jelas dan natural. Terus pertahaman ya!" : "Coba ulangi sekali lagi dengan lebih jelas."}
                </Text>
             </View>
           </View>
 
           <View style={fb.audioBox}>
              <TouchableOpacity style={fb.audioCircleBtn}>
-                <MaterialIcons name="play-arrow" size={24} color="#0F172A" />
+                <MaterialIcons name="play-arrow" size={24} color={colors.slate} />
              </TouchableOpacity>
              <Text style={fb.audioMainTxt}>Dengar pengucapan yang benar</Text>
              <View style={fb.fakeWaves}>
                {[3, 6, 4, 8, 5, 7, 4].map((h, i) => (
-                 <View key={i} style={{ width: 2, height: h*1.5, backgroundColor: "#22C55E", borderRadius: 1 }} />
+                 <View key={i} style={{ width: 2, height: h*1.5, backgroundColor: colors.success, borderRadius: 1 }} />
                ))}
              </View>
           </View>
@@ -95,7 +96,7 @@ export const EvaluationModal = ({
                 <Text style={fb.secBtnTxt}>{good ? "Ulangi" : "Tutup"}</Text>
              </TouchableOpacity>
               <TouchableOpacity 
-                 style={[fb.priBtn, { backgroundColor: good ? "#000000" : "#E5E5EA" }]} 
+                 style={[fb.priBtn, { backgroundColor: good ? colors.black : colors.gray }]} 
                  onPress={() => {
                    if (good && onAction) {
                       onAction();
@@ -104,8 +105,8 @@ export const EvaluationModal = ({
                  }} 
                  activeOpacity={0.8}
               >
-                 <Text style={[fb.priBtnTxt, { color: good ? "#FFFFFF" : "#000000" }]}>{good ? "Lanjut" : "Latihan lagi"}</Text>
-                 <MaterialIcons name={good ? "arrow-forward" : "mic"} size={18} color={good ? "#FFFFFF" : "#000000"} />
+                 <Text style={[fb.priBtnTxt, { color: good ? colors.white : colors.black }]}>{good ? "Lanjut" : "Latihan lagi"}</Text>
+                 <MaterialIcons name={good ? "arrow-forward" : "mic"} size={18} color={good ? colors.white : colors.black} />
               </TouchableOpacity>
           </View>
         </View>
@@ -117,24 +118,24 @@ export const EvaluationModal = ({
 const fb = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: colors.blackOverlay,
     justifyContent: "flex-end",
   },
   sheet: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.surface,
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     paddingHorizontal: 24,
     paddingBottom: Platform.OS === 'ios' ? 40 : 24,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderColor: "#E5E5EA",
+    borderColor: colors.gray,
   },
   dragHandle: {
     width: 40,
     height: 5,
     borderRadius: 3,
-    backgroundColor: "#E5E5EA",
+    backgroundColor: colors.gray,
     alignSelf: "center",
     marginBottom: 20,
   },
@@ -154,22 +155,22 @@ const fb = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: colors.lightGray,
   },
   smLabel: {
     fontFamily: "Poppins-Regular",
     fontSize: 14,
-    color: "#666666",
+    color: colors.darkGray,
   },
   mainQuote: {
     fontFamily: "Poppins-Bold",
     fontSize: 28,
-    color: "#000000",
+    color: colors.black,
   },
   syllableTxt: {
     fontFamily: "Poppins-Medium",
     fontSize: 18,
-    color: "#888888",
+    color: colors.mediumGray,
     marginTop: 8,
     letterSpacing: 0.5,
   },
@@ -206,29 +207,29 @@ const fb = StyleSheet.create({
   audioBox: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F2F2F7",
+    backgroundColor: colors.lightGray,
     borderRadius: 16,
     padding: 12,
     gap: 12,
     borderWidth: 1,
-    borderColor: "#E5E5EA",
+    borderColor: colors.gray,
     marginBottom: 24,
   },
   audioCircleBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.white,
     justifyContent: "center",
     alignItems: "center",
     elevation: 2,
-    shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 3, shadowOffset: { width: 0, height: 2 },
+    shadowColor: colors.black, shadowOpacity: 0.05, shadowRadius: 3, shadowOffset: { width: 0, height: 2 },
   },
   audioMainTxt: {
     flex: 1,
     fontFamily: "Poppins-SemiBold",
     fontSize: 13,
-    color: "#000000",
+    color: colors.black,
   },
   fakeWaves: {
     flexDirection: "row",
@@ -241,7 +242,7 @@ const fb = StyleSheet.create({
   },
   secBtn: {
     flex: 1,
-    backgroundColor: "#F2F2F7",
+    backgroundColor: colors.lightGray,
     paddingVertical: 16,
     borderRadius: 16,
     alignItems: "center",
@@ -249,11 +250,11 @@ const fb = StyleSheet.create({
   secBtnTxt: {
     fontFamily: "Poppins-Bold",
     fontSize: 16,
-    color: "#000000",
+    color: colors.black,
   },
   priBtn: {
     flex: 2,
-    backgroundColor: "#000000",
+    backgroundColor: colors.black,
     paddingVertical: 16,
     borderRadius: 16,
     alignItems: "center",
@@ -264,6 +265,6 @@ const fb = StyleSheet.create({
   priBtnTxt: {
     fontFamily: "Poppins-Bold",
     fontSize: 16,
-    color: "#FFFFFF",
+    color: colors.white,
   },
 });

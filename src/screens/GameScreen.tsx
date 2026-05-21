@@ -22,6 +22,7 @@ import { WaveBar } from "@/components/game/WaveBar";
 import { EvaluationModal } from "@/components/game/EvaluationModal";
 import { DUMMY_SCENARIOS, FALLBACK_BG } from "@/constants/gameMock";
 import { GameHeader } from "@/components/glass/ProgressBar";
+import { colors } from "@/constants/colors";
 
 const DEFAULT_TARGET = "Tentu, ini dia.";
 const SPEECH_LOCALE = "id-ID";
@@ -202,11 +203,10 @@ export const GameScreen = ({ navigation, route }: any) => {
     }
   };
 
-  // ── Loading ──
   if (isLoading) {
     return (
       <View style={[s.root, { justifyContent: "center", alignItems: "center" }]}>
-        <ActivityIndicator size="large" color="#F48C25" />
+        <ActivityIndicator size="large" color={colors.accent} />
         <Text style={s.loadingTxt}>Memuat Percakapan...</Text>
       </View>
     );
@@ -377,19 +377,19 @@ export const GameScreen = ({ navigation, route }: any) => {
                        ]}
                      />
                      <TouchableOpacity style={s.micFloatingBtn} onPress={handleMic} activeOpacity={0.8}>
-                       {isRecording ? (
-                          <LinearGradient colors={["#FFFFFF", "#F2F2F7"]} style={StyleSheet.absoluteFill}>
-                            <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#000000', borderRadius: 32}}>
-                              <MaterialIcons name="stop" size={32} color="#000" />
-                            </View>
-                          </LinearGradient>
-                       ) : (
-                          <LinearGradient colors={["#000000", "#1A1A1A"]} style={StyleSheet.absoluteFill}>
-                            <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-                               <MaterialIcons name="mic" size={32} color="#FFF" />
-                            </View>
-                          </LinearGradient>
-                       )}
+                        {isRecording ? (
+                           <LinearGradient colors={["#FFFFFF", "#F2F2F7"]} style={StyleSheet.absoluteFill}>
+                             <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: colors.accent, borderRadius: 32}}>
+                               <MaterialIcons name="stop" size={32} color={colors.accent} />
+                             </View>
+                           </LinearGradient>
+                        ) : (
+                           <LinearGradient colors={[colors.accent, colors.accentDark]} style={StyleSheet.absoluteFill}>
+                             <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+                                <MaterialIcons name="mic" size={32} color="#FFF" />
+                             </View>
+                           </LinearGradient>
+                        )}
                      </TouchableOpacity>
                   </View>
 
@@ -613,7 +613,7 @@ const s = StyleSheet.create({
     flex: 1,
   },
   tinyScoreChip: {
-    backgroundColor: "#000000",
+    backgroundColor: colors.accent,
     borderRadius: 4,
     paddingHorizontal: 4,
     paddingVertical: 2,
@@ -691,7 +691,7 @@ const s = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#000000",
+    backgroundColor: colors.accent,
     paddingVertical: 16,
     borderRadius: 16,
     gap: 8,

@@ -13,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
+import { colors } from "@/constants/colors";
 
 interface StagePopupProps {
   visible: boolean;
@@ -84,7 +85,7 @@ export const StagePopup: React.FC<StagePopupProps> = ({
                   {/* Learning Objectives Row 1 */}
                   <View style={styles.listItem}>
                     <View style={styles.iconWrapper}>
-                      <MaterialIcons name="translate" size={18} color="#1a1c1c" />
+                      <MaterialIcons name="translate" size={18} color={colors.text} />
                     </View>
                     <View style={styles.listTextContent}>
                       <Text style={styles.listTitle}>Essential Lexicon</Text>
@@ -97,7 +98,7 @@ export const StagePopup: React.FC<StagePopupProps> = ({
                   {/* Learning Objectives Row 2 */}
                   <View style={styles.listItem}>
                     <View style={styles.iconWrapper}>
-                      <MaterialIcons name="settings-voice" size={18} color="#1a1c1c" />
+                      <MaterialIcons name="settings-voice" size={18} color={colors.text} />
                     </View>
                     <View style={styles.listTextContent}>
                       <Text style={styles.listTitle}>Voice Scenarios</Text>
@@ -164,7 +165,7 @@ const styles = StyleSheet.create({
     width: "100%",
     borderRadius: 20,
     overflow: "hidden",
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.surface,
   },
   heroContainer: {
     width: "100%",
@@ -235,7 +236,7 @@ const styles = StyleSheet.create({
   },
   bodyContainer: {
     padding: 20,
-    backgroundColor: "#ffffff", // solid white for pristine readability
+    backgroundColor: colors.surface, // solid white for pristine readability
   },
   listItem: {
     flexDirection: "row",
@@ -246,7 +247,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 12,
-    backgroundColor: "rgba(26, 28, 28, 0.05)",
+    backgroundColor: colors.parchment,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
@@ -258,18 +259,18 @@ const styles = StyleSheet.create({
   listTitle: {
     fontFamily: "Poppins-Bold",
     fontSize: 13,
-    color: "#1a1c1c",
+    color: colors.text,
     marginBottom: 2,
   },
   listDesc: {
     fontFamily: "Poppins-Regular",
     fontSize: 11,
-    color: "rgba(26, 28, 28, 0.6)",
+    color: colors.mutedText,
     lineHeight: 16,
   },
   divider: {
     height: 1,
-    backgroundColor: "rgba(0,0,0,0.06)",
+    backgroundColor: colors.border,
     marginBottom: 16,
   },
   statsContainer: {
@@ -286,32 +287,32 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 1.5,
-    borderColor: "#ffffff",
+    borderColor: colors.surface,
   },
   avatarPlus: {
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: "#e2e2e2",
+    backgroundColor: colors.parchment,
     borderWidth: 1.5,
-    borderColor: "#ffffff",
+    borderColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
   },
   avatarPlusText: {
     fontFamily: "Poppins-Bold",
     fontSize: 7,
-    color: "#1a1c1c",
+    color: colors.text,
   },
   statsText: {
     flex: 1,
     fontFamily: "Poppins-Medium",
     fontSize: 11,
-    color: "rgba(26, 28, 28, 0.5)",
+    color: colors.mutedText,
   },
   startButton: {
     width: "100%",
-    backgroundColor: "#000000",
+    backgroundColor: colors.accent,
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: "center",

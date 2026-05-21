@@ -10,6 +10,7 @@ import { GameText } from "./GameText";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { GameInputProps } from "@/types/components";
+import { colors } from "@/constants/colors";
 
 
 
@@ -30,7 +31,7 @@ export const GameInput: React.FC<GameInputProps> = ({
     <View style={styles.container}>
       <GameText
         size={10}
-        color={variant === "dark" ? "#FFF" : "#5d3a1a"}
+        color={variant === "dark" ? colors.white : colors.parchmentText}
         style={styles.label}
       >
         {label}
@@ -48,7 +49,7 @@ export const GameInput: React.FC<GameInputProps> = ({
           <MaterialIcons
             name={iconName}
             size={24}
-            color={variant === "dark" ? "#FFF" : "#5d3a1a"}
+            color={variant === "dark" ? colors.white : colors.parchmentText}
             style={styles.icon}
           />
         )}
@@ -56,13 +57,13 @@ export const GameInput: React.FC<GameInputProps> = ({
           <MaterialCommunityIcons
             name={communityIconName}
             size={24}
-            color={variant === "dark" ? "#FFF" : "#5d3a1a"}
+            color={variant === "dark" ? colors.white : colors.parchmentText}
             style={styles.icon}
           />
         )}
         <TextInput
-          style={[styles.input, variant === "dark" && { color: "#FFF" }]}
-          placeholderTextColor={variant === "dark" ? "#666" : "#a1887f"}
+          style={[styles.input, variant === "dark" && { color: colors.white }]}
+          placeholderTextColor={variant === "dark" ? colors.darkGray : colors.parchmentMuted}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           secureTextEntry={secureTextEntry && !isPasswordVisible}
@@ -76,7 +77,7 @@ export const GameInput: React.FC<GameInputProps> = ({
             <MaterialIcons
               name={isPasswordVisible ? "visibility" : "visibility-off"}
               size={20}
-              color={variant === "dark" ? "#FFF" : "#5d3a1a"}
+              color={variant === "dark" ? colors.white : colors.parchmentText}
             />
           </TouchableOpacity>
         )}
@@ -97,10 +98,10 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFCF9", // Lighter cream
+    backgroundColor: colors.parchmentLight,
     borderWidth: 4,
-    borderColor: "#5D3A1A", // Dark brown retro border
-    shadowColor: "#000",
+    borderColor: colors.parchmentText, // Dark brown retro border
+    shadowColor: colors.black,
     shadowOffset: { width: 3, height: 3 },
     shadowOpacity: 0.2,
     shadowRadius: 0,
@@ -109,11 +110,11 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   inputWrapperFocused: {
-    borderColor: "#FFB067", // Retro orange focus
+    borderColor: colors.accent, // Organic green focus
   },
   inputWrapperDark: {
-    backgroundColor: "#111111",
-    borderColor: "#FFFFFF",
+    backgroundColor: colors.black,
+    borderColor: colors.white,
     borderWidth: 2,
   },
   icon: {
@@ -127,7 +128,7 @@ const styles = StyleSheet.create({
     height: 48,
     fontFamily: "Poppins-Regular",
     fontSize: 16, // Slightly larger for better readability
-    color: "#5D3A1A",
+    color: colors.parchmentText,
     backgroundColor: "transparent",
     paddingHorizontal: 12,
   },

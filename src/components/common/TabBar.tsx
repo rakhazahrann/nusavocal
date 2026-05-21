@@ -1,8 +1,6 @@
 import React, { useEffect } from "react";
 import { View, StyleSheet, Pressable, Dimensions, Platform } from "react-native";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { BlurView } from "expo-blur";
-import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -13,6 +11,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { ROUTES } from "@/constants/routes";
+import { colors } from "@/constants/colors";
 
 const { width } = Dimensions.get("window");
 const TAB_BAR_WIDTH = width * 0.72;
@@ -66,47 +65,10 @@ export const CustomTabBar = ({
   return (
     <View style={styles.wrapper} pointerEvents="box-none">
       <View
-        style={styles.glassBase}
+        style={styles.solidBase}
         onLayout={(e) => setLayoutWidth(e.nativeEvent.layout.width)}
       >
-        {/* Layer 1: Native backdrop blur (iOS) / solid frosted (Android) */}
-        <BlurView
-          intensity={Platform.OS === "ios" ? 80 : 100}
-          tint="light"
-          style={StyleSheet.absoluteFill}
-        />
-
-        {/* Layer 2: Liquid glass surface — glossy highlight gradient */}
-        <LinearGradient
-          colors={[
-            "rgba(255,255,255,0.55)",
-            "rgba(255,255,255,0.08)",
-            "rgba(255,255,255,0.0)",
-            "rgba(255,255,255,0.12)",
-          ]}
-          locations={[0, 0.35, 0.6, 1]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={styles.glassShine}
-        />
-
-        {/* Layer 2b: Horizontal shimmer for liquid refraction feel */}
-        <LinearGradient
-          colors={[
-            "rgba(255,255,255,0.0)",
-            "rgba(255,255,255,0.15)",
-            "rgba(255,255,255,0.0)",
-          ]}
-          locations={[0, 0.5, 1]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.glassShine}
-        />
-
-        {/* Layer 2c: Inner border glow */}
-        <View style={styles.innerBorder} />
-
-        {/* Layer 3: Animated indicator */}
+        {/* Layer 1: Animated indicator */}
         {layoutWidth > 0 && (
           <Animated.View
             style={[styles.indicatorWrapper, animatedIndicatorStyle]}
@@ -115,7 +77,7 @@ export const CustomTabBar = ({
           </Animated.View>
         )}
 
-        {/* Layer 4: Tab icons */}
+        {/* Layer 2: Tab icons */}
         {state.routes.map((route, index) => {
           const isFocused = state.index === index;
 
@@ -135,7 +97,7 @@ export const CustomTabBar = ({
           else if (route.name === ROUTES.LEADERBOARD) iconName = "trophy-outline";
           else if (route.name === ROUTES.PROFILE) iconName = "account-outline";
 
-          const iconColor = isFocused ? "#ffffff" : "#6b7280";
+          const iconColor = isFocused ? "#ffffff" : "rgba(255, 255, 255, 0.4)";
 
           return (
             <Pressable
@@ -172,33 +134,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  glassBase: {
+  solidBase: {
     flexDirection: "row",
     alignItems: "center",
     height: TAB_BAR_HEIGHT,
     borderRadius: BORDER_RADIUS,
     width: TAB_BAR_WIDTH,
     overflow: "hidden",
-    backgroundColor:
-      Platform.OS === "android"
-        ? "rgba(240, 242, 245, 0.92)"
-        : "rgba(255, 255, 255, 0.45)",
+    backgroundColor: colors.navy,
     // Shadow for depth
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 24,
-    elevation: 16,
-  },
-  glassShine: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: BORDER_RADIUS,
-  },
-  innerBorder: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: BORDER_RADIUS,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.6)",
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 12,
   },
   tabItem: {
     flex: 1,
@@ -220,11 +169,11 @@ const styles = StyleSheet.create({
     width: INDICATOR_SIZE,
     height: INDICATOR_SIZE,
     borderRadius: INDICATOR_SIZE / 2,
-    backgroundColor: "#1a1c1e",
+    backgroundColor: colors.accent,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
   },
 });

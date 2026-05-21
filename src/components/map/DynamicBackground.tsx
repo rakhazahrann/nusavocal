@@ -1,14 +1,13 @@
 import React from "react";
 import { View, StyleSheet, useWindowDimensions } from "react-native";
-
-
+import { colors } from "@/constants/colors";
 
 export const DynamicBackground = () => {
   const { width } = useWindowDimensions();
   return (
     <View style={styles.container}>
-      {/* Base Background Color from Tailwind */}
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: "#f9f9f9" }]} />
+      {/* Base Background Color from global tokens */}
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]} />
       
       {/* Top Left Blob */}
       <View style={[styles.blob, styles.topLeftBlob, { width: width * 0.8, height: width * 0.8 }]} />
@@ -33,15 +32,15 @@ const styles = StyleSheet.create({
   blob: {
     position: "absolute",
     borderRadius: 9999, // Perfect circle
-    opacity: 0.15,
+    opacity: 0.12,
   },
   topLeftBlob: {
-    backgroundColor: "#e8e8e8",
+    backgroundColor: colors.accent,
     top: -100,
     left: -100,
   },
   bottomRightBlob: {
-    backgroundColor: "#c6c6c6",
+    backgroundColor: colors.gold,
     bottom: -100,
     right: -100,
   },
