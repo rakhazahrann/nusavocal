@@ -17,6 +17,8 @@ const RING_SIZE = 48;
 const RING_STROKE = 3;
 const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+const DUMMY_STREAK = 7;
+const DUMMY_RANK = 12;
 
 // ── Helpers ─────────────────────────────────────────────────────
 
@@ -80,6 +82,8 @@ export const TopBar = () => {
             width={RING_SIZE}
             height={RING_SIZE}
             style={styles.ringSvg}
+            accessible
+            accessibilityLabel={`Level ${level}, ${currentLevelExp} dari ${nextLevelExp} EXP`}
           >
             {/* Background ring */}
             <Circle
@@ -127,8 +131,7 @@ export const TopBar = () => {
 
           {/* Row 2: Level + EXP bar inline */}
           <View style={styles.levelRow}>
-            <Text style={styles.levelNumber}>{level} lvl</Text>
-            <View style={styles.dot} />
+            <Text style={styles.levelNumber}>Level {level}</Text>
 
             {/* Progress bar with EXP text overlaid */}
             <View style={styles.expBarContainer}>
@@ -143,17 +146,36 @@ export const TopBar = () => {
                   ]}
                 />
               </View>
-              <Text style={styles.expLabel}>
-                <Text style={styles.expValue}>{currentLevelExp} EXP</Text>
-                <Text style={styles.expTotal}> / {nextLevelExp}</Text>
-              </Text>
             </View>
           </View>
         </View>
 
-        {/* ── Right: Settings gear ── */}
-        <TouchableOpacity style={styles.gearButton} activeOpacity={0.6}>
-          <MaterialIcons name="settings" size={18} color="#9CA3AF" />
+        <View style={styles.quickStats}>
+          <View
+            style={styles.statItem}
+            accessible
+            accessibilityLabel={`Runtun belajar ${DUMMY_STREAK} hari`}
+          >
+            <MaterialIcons name="local-fire-department" size={17} color="#E8652B" />
+            <Text style={styles.statValue}>{DUMMY_STREAK}</Text>
+          </View>
+          <View
+            style={styles.statItem}
+            accessible
+            accessibilityLabel={`Peringkat ${DUMMY_RANK}`}
+          >
+            <MaterialIcons name="emoji-events" size={17} color={colors.gold} />
+            <Text style={styles.statValue}>#{DUMMY_RANK}</Text>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={styles.gearButton}
+          activeOpacity={0.6}
+          accessibilityRole="button"
+          accessibilityLabel="Buka pengaturan"
+        >
+          <MaterialIcons name="settings" size={20} color={colors.darkGray} />
         </TouchableOpacity>
       </View>
     </View>
@@ -162,7 +184,7 @@ export const TopBar = () => {
 
 // ── Styles ───────────────────────────────────────────────────────
 
-const TOPBAR_HEIGHT = 68;
+const TOPBAR_HEIGHT = 72;
 const CARD_RADIUS = 18;
 
 const styles = StyleSheet.create({
@@ -177,8 +199,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingLeft: 10,
-    paddingRight: 12,
-    gap: 10,
+    paddingRight: 8,
+    gap: 8,
     // Shadow
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -237,7 +259,7 @@ const styles = StyleSheet.create({
   levelRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 8,
   },
   levelNumber: {
     fontFamily: "Poppins-Bold",
@@ -245,17 +267,10 @@ const styles = StyleSheet.create({
     color: ACCENT_GREEN,
     lineHeight: 16,
   },
-  dot: {
-    width: 3,
-    height: 3,
-    borderRadius: 1.5,
-    backgroundColor: "#D1D5DB",
-  },
   expBarContainer: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
   },
   expBarTrack: {
     flex: 1,
@@ -268,27 +283,32 @@ const styles = StyleSheet.create({
     height: "100%",
     borderRadius: 3,
   },
-  expLabel: {
+  quickStats: {
+    gap: 4,
+  },
+  statItem: {
+    minWidth: 42,
+    height: 25,
+    borderRadius: 12,
+    paddingHorizontal: 6,
+    backgroundColor: colors.lightGray,
     flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 2,
   },
-  expValue: {
+  statValue: {
     fontFamily: "Poppins-Bold",
-    fontSize: 10,
-    color: ACCENT_GREEN,
-    lineHeight: 14,
-  },
-  expTotal: {
-    fontFamily: "Poppins-Regular",
-    fontSize: 10,
-    color: "#9CA3AF",
-    lineHeight: 14,
+    fontSize: 11,
+    lineHeight: 15,
+    color: colors.text,
   },
 
   // ── Gear button ──
   gearButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: "#F9FAFB",
     alignItems: "center",
     justifyContent: "center",
