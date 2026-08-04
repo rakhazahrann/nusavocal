@@ -4,57 +4,71 @@
 
 @layer base {
   :root {
-    --background: 69 48% 95%;
-    --foreground: 120 28% 14%;
+    /* Warm Nusantara palette — synced with colors.ts */
+    --background: 38 30% 93%;
+    --foreground: 100 16% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 120 28% 14%;
+    --card-foreground: 100 16% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 120 28% 14%;
-    --primary: 128 35% 48%;
+    --popover-foreground: 100 16% 10%;
+    --primary: 151 45% 42%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 71 24% 92%;
-    --secondary-foreground: 120 28% 14%;
-    --muted: 71 24% 92%;
-    --muted-foreground: 120 7% 45%;
-    --accent: 128 35% 48%;
-    --accent-dark: 128 39% 39%;
-    --accent-foreground: 120 28% 14%;
-    --destructive: 0 84% 60%;
+    --secondary: 38 22% 90%;
+    --secondary-foreground: 100 16% 10%;
+    --muted: 38 22% 90%;
+    --muted-foreground: 110 7% 49%;
+    --accent: 151 45% 42%;
+    --accent-dark: 151 47% 32%;
+    --accent-foreground: 100 16% 10%;
+    --destructive: 0 70% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 74 18% 82%;
-    --input: 74 18% 82%;
-    --ring: 128 35% 48%;
-    --success: 128 35% 48%;
-    --gold: 44 100% 64%;
-    --navy: 0 0% 14%;
-    --parchment: 71 24% 92%;
+    --border: 35 15% 82%;
+    --input: 35 15% 82%;
+    --ring: 151 45% 42%;
+    --success: 151 45% 42%;
+    --gold: 41 90% 58%;
+    --navy: 195 15% 12%;
+    --parchment: 38 22% 90%;
     --radius: 16px;
+
+    /* Extended gamification tokens */
+    --streak: 18 80% 53%;
+    --xp: 257 96% 67%;
+    --celebration: 51 100% 50%;
+    --surface-elevated: 42 60% 98%;
+    --surface-pressed: 38 20% 88%;
   }
 
   .dark:root {
-    --background: 120 18% 11%;
-    --foreground: 120 15% 91%;
-    --card: 120 20% 15%;
-    --card-foreground: 120 15% 91%;
-    --popover: 120 20% 15%;
-    --popover-foreground: 120 15% 91%;
-    --primary: 128 35% 48%;
+    --background: 140 20% 7%;
+    --foreground: 120 12% 89%;
+    --card: 135 15% 10%;
+    --card-foreground: 120 12% 89%;
+    --popover: 135 15% 10%;
+    --popover-foreground: 120 12% 89%;
+    --primary: 148 40% 49%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 120 17% 18%;
-    --secondary-foreground: 120 15% 91%;
-    --muted: 120 17% 18%;
-    --muted-foreground: 120 10% 60%;
-    --accent: 128 35% 48%;
-    --accent-dark: 128 39% 39%;
+    --secondary: 130 14% 14%;
+    --secondary-foreground: 120 12% 89%;
+    --muted: 130 14% 14%;
+    --muted-foreground: 120 7% 55%;
+    --accent: 148 40% 49%;
+    --accent-dark: 151 45% 42%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 60% 46%;
+    --destructive: 0 75% 63%;
     --destructive-foreground: 0 0% 100%;
-    --border: 120 17% 21%;
-    --input: 120 17% 21%;
-    --ring: 128 35% 48%;
-    --success: 128 35% 48%;
-    --gold: 44 100% 64%;
-    --navy: 0 0% 14%;
-    --parchment: 120 17% 18%;
+    --border: 130 15% 17%;
+    --input: 130 15% 17%;
+    --ring: 148 40% 49%;
+    --success: 148 40% 49%;
+    --gold: 44 88% 60%;
+    --navy: 160 15% 6%;
+    --parchment: 130 14% 14%;
+
+    --streak: 20 85% 56%;
+    --xp: 257 100% 72%;
+    --celebration: 51 100% 50%;
+    --surface-elevated: 130 18% 14%;
+    --surface-pressed: 130 14% 16%;
   }
 }
