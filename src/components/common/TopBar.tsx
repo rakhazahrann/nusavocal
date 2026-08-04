@@ -1,7 +1,6 @@
 import React, { useMemo } from "react";
-import { View, StyleSheet, Platform, TouchableOpacity } from "react-native";
+import { View, StyleSheet, Platform } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import Svg, { Circle } from "react-native-svg";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/Text";
 import { UserAvatar } from "./UserAvatar";
@@ -13,12 +12,7 @@ import { colors } from "@/constants/colors";
 const ACCENT_GREEN = colors.accent; // success token
 const ACCENT_GREEN_LIGHT = "#A1DBA8";
 const ACCENT_GREEN_BG = "rgba(80, 166, 92, 0.10)";
-const RING_SIZE = 48;
-const RING_STROKE = 3;
-const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
-const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 const DUMMY_STREAK = 7;
-const DUMMY_RANK = 12;
 
 // ── Helpers ─────────────────────────────────────────────────────
 
@@ -66,117 +60,72 @@ export const TopBar = () => {
   const { level, currentLevelExp, nextLevelExp } = getLevelInfo(totalExp);
   const progressRatio = Math.min(currentLevelExp / Math.max(nextLevelExp, 1), 1);
 
-  // SVG ring progress
-  const strokeDashoffset = RING_CIRCUMFERENCE * (1 - progressRatio);
-
   const displayName = profile?.nickname || profile?.username || "Penjelajah";
   const greeting = getGreeting();
 
   return (
     <View style={styles.wrapper}>
       <View style={styles.card}>
-        {/* ── Left: Avatar with SVG progress ring ── */}
-        <View style={styles.avatarSection}>
-          {/* SVG progress ring */}
-          <Svg
-            width={RING_SIZE}
-            height={RING_SIZE}
-            style={styles.ringSvg}
-            accessible
-            accessibilityLabel={`Level ${level}, ${currentLevelExp} dari ${nextLevelExp} EXP`}
-          >
-            {/* Background ring */}
-            <Circle
-              cx={RING_SIZE / 2}
-              cy={RING_SIZE / 2}
-              r={RING_RADIUS}
-              stroke={ACCENT_GREEN_BG}
-              strokeWidth={RING_STROKE}
-              fill="none"
-            />
-            {/* Progress ring */}
-            <Circle
-              cx={RING_SIZE / 2}
-              cy={RING_SIZE / 2}
-              r={RING_RADIUS}
-              stroke={ACCENT_GREEN}
-              strokeWidth={RING_STROKE}
-              fill="none"
-              strokeLinecap="round"
-              strokeDasharray={`${RING_CIRCUMFERENCE}`}
-              strokeDashoffset={strokeDashoffset}
-              rotation="-90"
-              origin={`${RING_SIZE / 2}, ${RING_SIZE / 2}`}
-            />
-          </Svg>
-          {/* Avatar centered inside ring */}
+        <View
+          style={styles.avatarSection}
+          accessible
+          accessibilityLabel={`${displayName}, level ${level}`}
+        >
           <View style={styles.avatarInner}>
             <UserAvatar
               name={displayName}
               avatarUrl={profile?.avatar_url}
-              size={36}
+              size={54}
             />
+          </View>
+          <View style={styles.levelBadge}>
+            <Text style={styles.levelBadgeText}>{level}</Text>
           </View>
         </View>
 
         {/* ── Center: Greeting + level/exp ── */}
         <View style={styles.infoColumn}>
-          {/* Row 1: Greeting */}
           <View style={styles.greetingRow}>
-            <Text style={styles.greetingText}>{greeting}, </Text>
-            <Text style={styles.nameText} numberOfLines={1}>
-              {displayName}
+            <Text style={styles.greetingText} numberOfLines={1}>
+              {greeting}, <Text style={styles.nameText}>{displayName}!</Text>
             </Text>
           </View>
 
-          {/* Row 2: Level + EXP bar inline */}
-          <View style={styles.levelRow}>
-            <Text style={styles.levelNumber}>Level {level}</Text>
-
-            {/* Progress bar with EXP text overlaid */}
-            <View style={styles.expBarContainer}>
-              <View style={styles.expBarTrack}>
-                <LinearGradient
-                  colors={[ACCENT_GREEN, ACCENT_GREEN_LIGHT]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={[
-                    styles.expBarFill,
-                    { width: `${Math.max(progressRatio * 100, 5)}%` as any },
-                  ]}
-                />
-              </View>
+          <Text style={styles.levelNumber}>Level {level}</Text>
+          <View style={styles.expRow}>
+            <View style={styles.expBarTrack}>
+              <LinearGradient
+                colors={[ACCENT_GREEN, ACCENT_GREEN_LIGHT]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={[
+                  styles.expBarFill,
+                  { width: `${Math.max(progressRatio * 100, 5)}%` as any },
+                ]}
+              />
             </View>
+            <Text style={styles.expLabel}>{currentLevelExp} / {nextLevelExp} XP</Text>
           </View>
         </View>
 
         <View style={styles.quickStats}>
           <View
-            style={styles.statItem}
+            style={[styles.statItem, styles.statDivider]}
             accessible
             accessibilityLabel={`Runtun belajar ${DUMMY_STREAK} hari`}
           >
-            <MaterialIcons name="local-fire-department" size={17} color="#E8652B" />
+            <MaterialIcons name="local-fire-department" size={23} color="#F97316" />
             <Text style={styles.statValue}>{DUMMY_STREAK}</Text>
           </View>
           <View
             style={styles.statItem}
             accessible
-            accessibilityLabel={`Peringkat ${DUMMY_RANK}`}
+            accessibilityLabel={`${totalExp} total EXP`}
           >
-            <MaterialIcons name="emoji-events" size={17} color={colors.gold} />
-            <Text style={styles.statValue}>#{DUMMY_RANK}</Text>
+            <MaterialIcons name="hexagon" size={23} color="#55C96B" />
+            <Text style={styles.statValue}>{totalExp}</Text>
           </View>
         </View>
-
-        <TouchableOpacity
-          style={styles.gearButton}
-          activeOpacity={0.6}
-          accessibilityRole="button"
-          accessibilityLabel="Buka pengaturan"
-        >
-          <MaterialIcons name="settings" size={20} color={colors.darkGray} />
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -184,8 +133,8 @@ export const TopBar = () => {
 
 // ── Styles ───────────────────────────────────────────────────────
 
-const TOPBAR_HEIGHT = 72;
-const CARD_RADIUS = 18;
+const TOPBAR_HEIGHT = 86;
+const CARD_RADIUS = 22;
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -198,121 +147,130 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     flexDirection: "row",
     alignItems: "center",
-    paddingLeft: 10,
-    paddingRight: 8,
-    gap: 8,
+    paddingHorizontal: 14,
+    gap: 12,
     // Shadow
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.1,
+    shadowRadius: 14,
+    elevation: 6,
     // Subtle border
     borderWidth: 1,
     borderColor: "rgba(0,0,0,0.04)",
   },
 
-  // ── Avatar with ring ──
   avatarSection: {
-    width: RING_SIZE,
-    height: RING_SIZE,
+    width: 60,
+    height: 60,
     alignItems: "center",
     justifyContent: "center",
   },
-  ringSvg: {
-    position: "absolute",
-  },
   avatarInner: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
     overflow: "hidden",
     borderWidth: 2,
-    borderColor: "#FFFFFF",
+    borderColor: "#D8F0D8",
+  },
+  levelBadge: {
+    position: "absolute",
+    right: -2,
+    bottom: -2,
+    width: 25,
+    height: 25,
+    borderRadius: 13,
+    backgroundColor: "#F5A623",
+    borderWidth: 2,
+    borderColor: colors.white,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  levelBadgeText: {
+    fontFamily: "Poppins-Bold",
+    fontSize: 12,
+    color: colors.white,
   },
 
   // ── Info column ──
   infoColumn: {
     flex: 1,
     justifyContent: "center",
-    gap: 3,
+    minWidth: 0,
   },
   greetingRow: {
     flexDirection: "row",
-    alignItems: "baseline",
+    minWidth: 0,
   },
   greetingText: {
-    fontFamily: "Poppins-Regular",
+    fontFamily: "Poppins-SemiBold",
     fontSize: 13,
-    color: "#6B7280",
-    lineHeight: 18,
+    color: colors.text,
+    lineHeight: 17,
   },
   nameText: {
     fontFamily: "Poppins-Bold",
-    fontSize: 14,
+    fontSize: 13,
     color: colors.text,
-    lineHeight: 18,
-    flexShrink: 1,
   },
 
-  // ── Level row ──
-  levelRow: {
+  levelNumber: {
+    fontFamily: "Poppins-SemiBold",
+    fontSize: 11,
+    color: colors.darkGray,
+    lineHeight: 15,
+  },
+  expRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-  },
-  levelNumber: {
-    fontFamily: "Poppins-Bold",
-    fontSize: 12,
-    color: ACCENT_GREEN,
-    lineHeight: 16,
-  },
-  expBarContainer: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
+    marginTop: 4,
   },
   expBarTrack: {
     flex: 1,
-    height: 6,
-    borderRadius: 3,
+    height: 7,
+    borderRadius: 4,
     backgroundColor: ACCENT_GREEN_BG,
     overflow: "hidden",
   },
   expBarFill: {
     height: "100%",
-    borderRadius: 3,
+    borderRadius: 4,
+  },
+  expLabel: {
+    fontFamily: "Poppins-Medium",
+    fontSize: 9,
+    color: colors.darkGray,
+    minWidth: 74,
   },
   quickStats: {
-    gap: 4,
+    height: 42,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.white,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 4,
   },
   statItem: {
-    minWidth: 42,
-    height: 25,
-    borderRadius: 12,
-    paddingHorizontal: 6,
-    backgroundColor: colors.lightGray,
+    minWidth: 48,
+    height: 30,
+    paddingHorizontal: 7,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 2,
+    gap: 4,
+  },
+  statDivider: {
+    borderRightWidth: 1,
+    borderRightColor: colors.border,
   },
   statValue: {
     fontFamily: "Poppins-Bold",
-    fontSize: 11,
-    lineHeight: 15,
+    fontSize: 12,
+    lineHeight: 17,
     color: colors.text,
-  },
-
-  // ── Gear button ──
-  gearButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#F9FAFB",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.04)",
   },
 });
