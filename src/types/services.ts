@@ -3,5 +3,5 @@ export type LeaderboardEntry = {
   username: string;
   nickname: string | null;
   completed_stages: number;
-  total_vocab_score: number;
+  total_xp: number;
 };

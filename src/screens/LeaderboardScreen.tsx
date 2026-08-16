@@ -1,36 +1,24 @@
-import React from "react";
-import { FlatList, StyleSheet, View } from "react-native";
+import React, { useCallback, useState } from "react";
+import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
-import { TopBar } from "@/components/common/TopBar";
 import { UserAvatar } from "@/components/common/UserAvatar";
 import { EnterAnimatedView } from "@/components/motion/EnterAnimatedView";
 import { colors } from "@/constants/colors";
+import { leaderboardService } from "@/services/leaderboardService";
+import { useAuthStore } from "@/store/authStore";
+import { LeaderboardEntry } from "@/types/services";
 
 type LeaderboardPlayer = {
   id: string;
   name: string;
   username: string;
-  level: number;
   stages: number;
-  streak: number;
   xp: number;
   isCurrentUser?: boolean;
 };
-
-const DUMMY_LEADERBOARD: LeaderboardPlayer[] = [
-  { id: "1", name: "Ayu Lestari", username: "ayulestari", level: 14, stages: 38, streak: 21, xp: 12840 },
-  { id: "2", name: "Bima Pratama", username: "bimap", level: 13, stages: 36, streak: 18, xp: 11920 },
-  { id: "3", name: "Citra Maharani", username: "citram", level: 12, stages: 34, streak: 15, xp: 10750 },
-  { id: "4", name: "Dimas Saputra", username: "dimass", level: 11, stages: 31, streak: 12, xp: 9840 },
-  { id: "5", name: "Sekar Arum", username: "sekararum", level: 10, stages: 29, streak: 10, xp: 8960 },
-  { id: "6", name: "Raka Wijaya", username: "rakaw", level: 10, stages: 27, streak: 9, xp: 8420 },
-  { id: "7", name: "Nadia Putri", username: "nadiap", level: 9, stages: 25, streak: 8, xp: 7760 },
-  { id: "8", name: "Fajar Nugraha", username: "fajarn", level: 9, stages: 24, streak: 8, xp: 7310 },
-  { id: "9", name: "Gita Permata", username: "gitap", level: 8, stages: 22, streak: 7, xp: 6840 },
-  { id: "10", name: "Nara", username: "penjelajah", level: 8, stages: 20, streak: 7, xp: 6420, isCurrentUser: true },
-];
 
 const PODIUM_COLORS = [colors.gold, "#AAB3BD", "#B97850"];
 const UI = {
@@ -39,7 +27,6 @@ const UI = {
   borderLight: "rgba(0,0,0,0.06)",
   surfaceElevated: "#FFFCF5",
   warningLight: "#FFF3D6",
-  streak: "#E8652B",
 };
 
 const PodiumPlayer = ({ player, rank }: { player: LeaderboardPlayer; rank: number }) => {
@@ -57,19 +44,48 @@ const PodiumPlayer = ({ player, rank }: { player: LeaderboardPlayer; rank: numbe
       <Text style={styles.podiumXp}>{player.xp.toLocaleString("id-ID")} XP</Text>
       <View style={[styles.podiumBase, { backgroundColor: PODIUM_COLORS[rank - 1] }]}>
         <MaterialIcons name="emoji-events" size={18} color={colors.white} />
-        <Text style={styles.podiumLevel}>Level {player.level}</Text>
+        <Text style={styles.podiumLevel}>{player.stages} stage</Text>
       </View>
     </View>
   );
 };
 
 export const LeaderboardScreen = () => {
-  const currentRank = DUMMY_LEADERBOARD.findIndex((player) => player.isCurrentUser) + 1;
-  const listData = DUMMY_LEADERBOARD.slice(3);
+  const userId = useAuthStore((state) => state.user?.id);
+  const [players, setPlayers] = useState<LeaderboardPlayer[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useFocusEffect(useCallback(() => {
+    setIsLoading(true);
+    leaderboardService.getLeaderboard()
+      .then((entries: LeaderboardEntry[]) => {
+        setPlayers(entries.map((entry) => ({
+          id: entry.user_id,
+          name: entry.nickname || entry.username,
+          username: entry.username,
+          stages: entry.completed_stages,
+          xp: entry.total_xp,
+          isCurrentUser: entry.user_id === userId,
+        })));
+        setError(null);
+      })
+      .catch((requestError) => setError(requestError.message || "Gagal memuat leaderboard."))
+      .finally(() => setIsLoading(false));
+  }, [userId]));
+
+  const currentRankIndex = players.findIndex((player) => player.isCurrentUser);
+  const currentRank = currentRankIndex + 1;
+  const currentPlayer = players[currentRankIndex];
+  const fifthPlayer = players[4];
+  const xpToTopFive = currentPlayer && fifthPlayer
+    ? Math.max(0, fifthPlayer.xp - currentPlayer.xp + 1)
+    : 0;
+  const podiumPlayers = players.slice(0, 3);
+  const listData = players.slice(3);
 
   return (
     <Screen padded={false}>
-      <TopBar />
       <FlatList
         data={listData}
         keyExtractor={(item) => item.id}
@@ -94,17 +110,31 @@ export const LeaderboardScreen = () => {
                 <MaterialIcons name="trending-up" size={22} color={colors.accentDark} />
               </View>
               <View style={styles.currentRankCopy}>
-                <Text style={styles.currentRankLabel}>Peringkatmu minggu ini</Text>
-                <Text style={styles.currentRankHint}>2.420 XP lagi untuk masuk 5 besar</Text>
+                <Text style={styles.currentRankLabel}>Peringkatmu</Text>
+                <Text style={styles.currentRankHint}>
+                  {!currentPlayer
+                    ? "Belum ada peringkat"
+                    : currentRank > 5
+                      ? `${xpToTopFive.toLocaleString("id-ID")} XP lagi untuk masuk 5 besar`
+                      : "Kamu masuk 5 besar"}
+                </Text>
               </View>
-              <Text style={styles.currentRankValue}>#{currentRank}</Text>
+              <Text style={styles.currentRankValue}>{currentRank ? `#${currentRank}` : "-"}</Text>
             </View>
 
-            <View style={styles.podiumCard}>
-              <PodiumPlayer player={DUMMY_LEADERBOARD[1]} rank={2} />
-              <PodiumPlayer player={DUMMY_LEADERBOARD[0]} rank={1} />
-              <PodiumPlayer player={DUMMY_LEADERBOARD[2]} rank={3} />
-            </View>
+            {isLoading ? (
+              <ActivityIndicator style={styles.loading} size="large" color={colors.accent} />
+            ) : error ? (
+              <Text style={styles.errorText}>{error}</Text>
+            ) : podiumPlayers.length ? (
+              <View style={styles.podiumCard}>
+                {podiumPlayers[1] && <PodiumPlayer player={podiumPlayers[1]} rank={2} />}
+                {podiumPlayers[0] && <PodiumPlayer player={podiumPlayers[0]} rank={1} />}
+                {podiumPlayers[2] && <PodiumPlayer player={podiumPlayers[2]} rank={3} />}
+              </View>
+            ) : (
+              <Text style={styles.emptyText}>Belum ada data peringkat.</Text>
+            )}
 
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Peringkat liga</Text>
@@ -123,14 +153,10 @@ export const LeaderboardScreen = () => {
                   <Text style={styles.playerName} numberOfLines={1}>{item.name}</Text>
                   {item.isCurrentUser && <Text style={styles.youBadge}>KAMU</Text>}
                 </View>
-                <Text style={styles.playerMeta}>Level {item.level} · {item.stages} stage</Text>
+                <Text style={styles.playerMeta}>{item.stages} stage selesai</Text>
               </View>
               <View style={styles.scoreCopy}>
-                <Text style={styles.score}>{item.xp.toLocaleString("id-ID")}</Text>
-                <View style={styles.streakRow}>
-                  <MaterialIcons name="local-fire-department" size={14} color={UI.streak} />
-                  <Text style={styles.streakText}>{item.streak} hari</Text>
-                </View>
+                <Text style={styles.score}>{item.xp.toLocaleString("id-ID")} XP</Text>
               </View>
             </View>
           );
@@ -155,6 +181,9 @@ const styles = StyleSheet.create({
   currentRankLabel: { fontFamily: "Poppins-SemiBold", fontSize: 14, color: colors.text },
   currentRankHint: { fontFamily: "Poppins-Regular", fontSize: 12, color: colors.darkGray, marginTop: 1 },
   currentRankValue: { fontFamily: "Poppins-Bold", fontSize: 24, color: colors.accentDark },
+  loading: { height: 220 },
+  errorText: { marginVertical: 32, textAlign: "center", fontFamily: "Poppins-Regular", fontSize: 13, color: colors.danger },
+  emptyText: { marginVertical: 32, textAlign: "center", fontFamily: "Poppins-Regular", fontSize: 13, color: colors.darkGray },
   podiumCard: { minHeight: 220, borderRadius: 24, paddingHorizontal: 8, paddingTop: 20, backgroundColor: UI.surfaceElevated, borderWidth: 1, borderColor: colors.border, flexDirection: "row", alignItems: "flex-end", overflow: "hidden" },
   podiumPlayer: { flex: 1, alignItems: "center" },
   podiumWinner: { alignSelf: "flex-start" },
@@ -180,6 +209,4 @@ const styles = StyleSheet.create({
   playerMeta: { fontFamily: "Poppins-Regular", fontSize: 11, color: colors.darkGray, marginTop: 2 },
   scoreCopy: { alignItems: "flex-end", marginLeft: 8 },
   score: { fontFamily: "Poppins-Bold", fontSize: 14, color: colors.text },
-  streakRow: { flexDirection: "row", alignItems: "center" },
-  streakText: { fontFamily: "Poppins-Regular", fontSize: 10, color: colors.darkGray },
 });

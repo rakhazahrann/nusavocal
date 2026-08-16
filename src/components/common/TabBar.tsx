@@ -135,7 +135,7 @@ export const CustomTabBar = ({
           } else if (route.name === ROUTES.LEADERBOARD) {
             iconNameOutline = "trophy-outline";
             iconNameSolid = "trophy";
-            labelText = "Challenge";
+            labelText = "Leaderboard";
           } else if (route.name === ROUTES.PROFILE) {
             iconNameOutline = "account-outline";
             iconNameSolid = "account";
@@ -202,22 +202,6 @@ export const CustomTabBar = ({
             };
           });
 
-          // Animated styles for active label text container (melebar bersama capsule)
-          const animatedActiveTextStyle = useAnimatedStyle(() => {
-            const widthVal = isFocused
-              ? withDelay(400, withTiming(80, { duration: 200, easing: Easing.bezier(0.25, 1, 0.4, 1) }))
-              : withTiming(0, { duration: 150 });
-
-            const marginVal = isFocused
-              ? withDelay(400, withTiming(6, { duration: 200, easing: Easing.bezier(0.25, 1, 0.4, 1) }))
-              : withTiming(0, { duration: 150 });
-
-            return {
-              width: widthVal,
-              marginLeft: marginVal,
-            };
-          });
-
           return (
             <Animated.View
               key={route.key}
@@ -248,15 +232,9 @@ export const CustomTabBar = ({
                       size={20}
                       color={colors.white}
                     />
-                    <Animated.View style={[styles.activeTextWrapper, animatedActiveTextStyle]}>
-                      <Text
-                        numberOfLines={1}
-                        ellipsizeMode="clip"
-                        style={styles.activeLabelText}
-                      >
-                        {labelText}
-                      </Text>
-                    </Animated.View>
+                    <Text numberOfLines={1} style={styles.activeLabelText}>
+                      {labelText}
+                    </Text>
                   </Animated.View>
                 </View>
               </Pressable>
@@ -345,17 +323,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    gap: 6,
     width: "100%",
     height: "100%",
     zIndex: 3,
-  },
-  activeTextWrapper: {
-    overflow: "hidden",
-    justifyContent: "center",
   },
   activeLabelText: {
     color: colors.white,
     fontSize: 13,
     fontFamily: "Poppins-Bold",
+    paddingRight: 2,
   },
 });

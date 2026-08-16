@@ -110,20 +110,12 @@ export const TopBar = () => {
 
         <View style={styles.quickStats}>
           <View
-            style={[styles.statItem, styles.statDivider]}
+            style={styles.statItem}
             accessible
             accessibilityLabel={`Runtun belajar ${DUMMY_STREAK} hari`}
           >
             <MaterialIcons name="local-fire-department" size={23} color="#F97316" />
             <Text style={styles.statValue}>{DUMMY_STREAK}</Text>
-          </View>
-          <View
-            style={styles.statItem}
-            accessible
-            accessibilityLabel={`${totalExp} total EXP`}
-          >
-            <MaterialIcons name="hexagon" size={23} color="#55C96B" />
-            <Text style={styles.statValue}>{totalExp}</Text>
           </View>
         </View>
       </View>
@@ -262,10 +254,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 4,
-  },
-  statDivider: {
-    borderRightWidth: 1,
-    borderRightColor: colors.border,
   },
   statValue: {
     fontFamily: "Poppins-Bold",

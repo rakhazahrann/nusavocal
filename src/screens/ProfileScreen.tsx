@@ -4,7 +4,6 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
-import { TopBar } from "@/components/common/TopBar";
 import { UserAvatar } from "@/components/common/UserAvatar";
 import { EnterAnimatedView } from "@/components/motion/EnterAnimatedView";
 import { colors } from "@/constants/colors";
@@ -60,7 +59,6 @@ export const ProfileScreen = () => {
 
   return (
     <Screen padded={false}>
-      <TopBar />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}

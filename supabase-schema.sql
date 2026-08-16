@@ -195,13 +195,15 @@ INSERT INTO public.stages (label, description, image_url, x_position, sort_order
 -- Global leaderboard requires a SECURITY DEFINER function to avoid client-side RLS limitations.
 -- This returns only non-sensitive public fields + aggregates.
 
-CREATE OR REPLACE FUNCTION public.get_leaderboard(limit_count INT DEFAULT 50)
+DROP FUNCTION IF EXISTS public.get_leaderboard(INT);
+
+CREATE FUNCTION public.get_leaderboard(limit_count INT DEFAULT 50)
 RETURNS TABLE (
   user_id UUID,
   username TEXT,
   nickname TEXT,
   completed_stages INT,
-  total_vocab_score INT
+  total_xp INT
 )
 LANGUAGE sql
 SECURITY DEFINER
@@ -212,12 +214,12 @@ AS $$
     p.username,
     p.nickname,
     COALESCE(SUM(CASE WHEN up.status = 'completed' THEN 1 ELSE 0 END), 0)::INT AS completed_stages,
-    COALESCE(SUM(up.vocab_score), 0)::INT AS total_vocab_score
+    (COALESCE(SUM(up.score), 0) + COALESCE(SUM(up.vocab_score), 0))::INT * 10 AS total_xp
   FROM public.profiles p
   LEFT JOIN public.user_progress up
     ON up.user_id = p.id
   GROUP BY p.id, p.username, p.nickname
-  ORDER BY total_vocab_score DESC, completed_stages DESC
+  ORDER BY total_xp DESC
   LIMIT limit_count;
 $$;
 
