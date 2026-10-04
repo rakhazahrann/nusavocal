@@ -17,8 +17,21 @@ export interface Stage {
   x_position: number;
   sort_order: number;
   is_active: boolean;
+  course_id: number | null;
+  publication_status: 'draft' | 'published';
+  archived_at: string | null;
   // merged from user_progress
   status: 'locked' | 'current' | 'completed';
+}
+
+export interface Course {
+  id: number;
+  title: string;
+  description: string | null;
+  cover_url: string | null;
+  sort_order: number;
+  status: 'draft' | 'published';
+  archived_at: string | null;
 }
 
 export interface VocabQuestion {

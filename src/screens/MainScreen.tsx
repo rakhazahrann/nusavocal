@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from "react";
-import { StyleSheet, View, Alert, TouchableOpacity, ActivityIndicator, useWindowDimensions } from "react-native";
+import { StyleSheet, View, TouchableOpacity, ActivityIndicator, useWindowDimensions } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
@@ -23,8 +23,6 @@ import { useAuthStore } from "@/store/authStore";
 import { useGameStore } from "@/store/gameStore";
 import { Stage } from "@/types/store";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { AdminStageWizardModal } from "@/components/admin/StageWizard";
-import { AdminDeleteConfirmModal } from "@/components/admin/DeleteModal";
 import { Text } from "@/components/ui/Text";
 import { Card } from "@/components/ui/Card";
 import { colors } from "@/constants/colors";
@@ -34,7 +32,7 @@ export const MainScreen = ({ navigation }: any) => {
   const scrollY = useSharedValue(0);
   const { height: viewportHeight } = useWindowDimensions();
   const { profile, user } = useAuthStore();
-  const { stages: dbStages, fetchStages, deleteStage, isLoading, error } = useGameStore();
+  const { stages: dbStages, fetchStages, isLoading, error } = useGameStore();
 
   const scrollOffsetRef = useRef(0);
 
@@ -88,9 +86,6 @@ export const MainScreen = ({ navigation }: any) => {
   const [selectedStageLabel, setSelectedStageLabel] = React.useState<string>("");
   const [selectedStageDescription, setSelectedStageDescription] = React.useState<string>("");
   const [popupVisible, setPopupVisible] = React.useState(false);
-  const [isWizardVisible, setIsWizardVisible] = React.useState(false);
-  const [isDeleteModalVisible, setIsDeleteModalVisible] = React.useState(false);
-  const [stageToDelete, setStageToDelete] = React.useState<{ id: number; label: string } | null>(null);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -155,28 +150,6 @@ export const MainScreen = ({ navigation }: any) => {
     setPopupVisible(true);
   };
 
-  const handleDeleteStage = (stageId: number, label: string) => {
-    setStageToDelete({ id: stageId, label });
-    setIsDeleteModalVisible(true);
-  };
-
-  const confirmDeleteStage = async () => {
-    if (!stageToDelete || !user?.id) return;
-
-    try {
-      console.log(`[Admin] Deleting stage ${stageToDelete.id}...`);
-      const result = await deleteStage(stageToDelete.id, user.id);
-      if (result.success) {
-        setIsDeleteModalVisible(false);
-        setStageToDelete(null);
-      } else {
-        Alert.alert("Error", result.error || "Failed to delete stage");
-      }
-    } catch (error: any) {
-      Alert.alert("Error", error.message || "Failed to delete stage");
-    }
-  };
-
   return (
     <View style={styles.container}>
       {/* Layer 2: Scrollable map content */}
@@ -198,8 +171,6 @@ export const MainScreen = ({ navigation }: any) => {
         {stages.map((stage, index) => {
           const isSelected = stage.id === selectedStageId;
           const nodeStatus = isSelected ? "current" : (stage.status === "current" ? "completed" : stage.status);
-          const isAdmin = profile?.role === "admin";
-
           return (
             <StageNode
               key={stage.id}
@@ -210,7 +181,6 @@ export const MainScreen = ({ navigation }: any) => {
               label={stage.label}
               status={nodeStatus}
               onPress={() => handleStagePress(stage.id, stage.label, index)}
-              onDelete={isAdmin ? () => handleDeleteStage(stage.id, stage.label) : undefined}
             />
           );
         })}
@@ -235,42 +205,13 @@ export const MainScreen = ({ navigation }: any) => {
         }}
       />
 
-      {/* Layer 5: Admin Floating Action Button */}
-      {profile?.role === "admin" && (
-        <TouchableOpacity
-          style={styles.adminFab}
-          onPress={() => setIsWizardVisible(true)}
-          activeOpacity={0.8}
-        >
-          <MaterialIcons name="add" size={36} color="#FFF" />
-        </TouchableOpacity>
-      )}
-
-      {/* Layer 6: Admin Wizard Modal */}
-      <AdminStageWizardModal
-        visible={isWizardVisible}
-        onClose={() => setIsWizardVisible(false)}
-        onSuccess={() => {
-          setIsWizardVisible(false);
-          if (user?.id) fetchStages(user.id);
-        }}
-      />
-
-      <AdminDeleteConfirmModal
-        visible={isDeleteModalVisible}
-        stageLabel={stageToDelete?.label || ""}
-        onClose={() => setIsDeleteModalVisible(false)}
-        onConfirm={confirmDeleteStage}
-        isLoading={isLoading}
-      />
-
       {/* Error / Empty State Feedback */}
       {!isLoading && (error || (user?.id && stages.length === 0)) && (
         <View style={styles.errorContainer}>
           <Card style={{ padding: 16, alignItems: "center" }}>
             <MaterialIcons name="error-outline" size={24} color="#D32F2F" style={{ alignSelf: 'center', marginBottom: 5 }} />
             <Text tone="danger" style={{ textAlign: "center" }}>
-              {error ? error : "Wah, Peta kosong! Klik '+' untuk tambah stage baru."}
+              {error ? error : "Belum ada stage yang dipublikasikan."}
             </Text>
             {error && (
               <TouchableOpacity onPress={() => user?.id && fetchStages(user.id)} style={{ marginTop: 10 }}>
@@ -304,25 +245,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 10,
-  },
-  adminFab: {
-    position: "absolute",
-    bottom: 120, // Enough clearance above dynamic TabBar
-    right: 28, // Centered above the 4th tab icon
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: colors.accent,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-    zIndex: 100,
-    borderWidth: 2,
-    borderColor: "#FFF",
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,

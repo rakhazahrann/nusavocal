@@ -5,6 +5,8 @@ export const stageService = {
     const { data, error } = await supabase
       .from('stages')
       .select('*')
+      .eq('is_active', true)
+      .is('archived_at', null)
       .order('sort_order', { ascending: true });
     if (error) throw error;
     return data || [];

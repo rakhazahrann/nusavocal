@@ -27,5 +27,14 @@ export const mediaService = {
       console.error('Upload image error:', error);
       throw new Error(`Upload failed: ${error.message}`);
     }
-  }
+  },
+
+  async deleteAsset(publicUrl?: string | null) {
+    if (!publicUrl) return;
+    const marker = "/storage/v1/object/public/assets/";
+    const path = publicUrl.split(marker)[1];
+    if (!path) return;
+    const { error } = await supabase.storage.from("assets").remove([decodeURIComponent(path)]);
+    if (error) throw error;
+  },
 };

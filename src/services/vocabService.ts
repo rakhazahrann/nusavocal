@@ -9,6 +9,7 @@ export const vocabService = {
         options:vocab_options(*)
       `)
       .eq('stage_id', stageId)
+      .is('archived_at', null)
       .order('sort_order', { ascending: true });
     
     if (error) throw error;

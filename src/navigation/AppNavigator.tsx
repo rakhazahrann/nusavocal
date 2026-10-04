@@ -13,6 +13,7 @@ import { SettingsScreen } from "@/screens/SettingsScreen";
 import { VocabFarmingScreen } from "@/screens/FarmingScreen";
 import { GameScreen } from "@/screens/GameScreen";
 import { ResultScreen } from "@/screens/ResultScreen";
+import { AdminDashboardScreen } from "@/screens/AdminDashboardScreen";
 
 import { CustomTabBar } from "@/components/common/TabBar";
 import { useAuthStore } from "@/store/authStore";
@@ -85,7 +86,9 @@ export const AppNavigator = () => {
       <RootStack.Screen name={ROUTES.SPLASH} component={SplashScreen} />
       <RootStack.Screen name={ROUTES.AUTH} component={AuthNavigator} />
       <RootStack.Screen name={ROUTES.MAIN} component={MainNavigator} />
-      {/* <RootStack.Screen name="Admin" component={AdminNavigator} /> */}
+      {profile?.role === "admin" && (
+        <RootStack.Screen name={ROUTES.ADMIN} component={AdminDashboardScreen} />
+      )}
       <RootStack.Screen name={ROUTES.VOCAB_FARMING} component={VocabFarmingScreen} />
       <RootStack.Screen name={ROUTES.GAMEPLAY} component={GameScreen} />
       <RootStack.Screen name={ROUTES.RESULT} component={ResultScreen} />

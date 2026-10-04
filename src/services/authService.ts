@@ -18,7 +18,6 @@ export const authService = {
           id: data.user.id,
           username,
           email,
-          role: 'user',
         });
       if (profileError) throw profileError;
     }

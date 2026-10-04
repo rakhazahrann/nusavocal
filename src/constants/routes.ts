@@ -6,6 +6,7 @@ export const ROUTES = {
   VOCAB_FARMING: "VocabFarming",
   GAMEPLAY: "Gameplay",
   RESULT: "Result",
+  ADMIN: "Admin",
   
   // Auth Stack
   LOGIN: "Login",

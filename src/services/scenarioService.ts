@@ -6,6 +6,7 @@ export const scenarioService = {
       .from('game_scenarios')
       .select('*')
       .eq('stage_id', stageId)
+      .is('archived_at', null)
       .order('sort_order', { ascending: true });
     
     if (error) throw error;
